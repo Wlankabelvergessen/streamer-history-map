@@ -779,6 +779,8 @@ h1,h2,h3,p{margin:0}
   .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(220px,42%) minmax(0,1fr);grid-template-areas:"map" "panel"}
   .hero .auth{position:relative;top:auto;right:auto;justify-content:center;padding:0 12px 12px}
   .avatar{width:46px;height:46px}
+  .hero .sub{letter-spacing:.06em;font-size:11px}
+  .hero .upd{color:#2a1430;font-weight:500}
 }
 
 /* Panel-Inhalt */
@@ -1025,10 +1027,7 @@ function initMap(){
   map.attributionControl.setPrefix(false);
   // OpenStreetMap-Kacheln: kostenlos, ohne API-Key. Per CSS-Filter abgedunkelt.
   var osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:'osm-dark',attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'});
-  var none=L.layerGroup();
-  // Lokal geöffnet (file://) liefert OSM keine Kacheln, dann nur die eingebettete Karte
-  (location.protocol==='file:'?none:osm).addTo(map);
-  L.control.layers({'Straßenkarte (OpenStreetMap)':osm,'Nur Umrisse (offline)':none},null,{position:'topright',collapsed:false}).addTo(map);
+  osm.addTo(map); // immer Straßenkarte; die eingebettete Umrisskarte liegt nur als Rückfall darunter
   // Eingebettete Grundkarte (Natural Earth, Länder): liegt unter den Kacheln und ist sichtbar, wenn keine Kacheln laden
   map.createPane('base');map.getPane('base').style.zIndex=150;
   var cs=getComputedStyle(document.documentElement);
