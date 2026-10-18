@@ -19,4 +19,4 @@ Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Da
 Benötigte Repository-Secrets: `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` (App von dev.twitch.tv/console).
 Manuell starten: *Actions → Streams und Clips aktualisieren → Run workflow*.
 
-Neue Orte: Eintrag in `data/locations.json` ergänzen (`key` = Wort im Titel, kleingeschrieben).
+Orte: `data/locations.json` enthält ~100 Städte/Orte. Neuer Eintrag = `key` (Wort im Titel, kleingeschrieben), `name`, `lat`, `lng`; `"prefix": true` erlaubt auch Wortanfänge. Neue Einträge wirken beim nächsten Lauf auch rückwirkend.

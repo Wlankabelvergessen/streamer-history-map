@@ -81,10 +81,13 @@ function cleanTitle(t) {
 // ---------- Ablauf ----------
 const streams = JSON.parse(await readFile(DATA, 'utf8'));
 const locs = JSON.parse(await readFile(LOCS, 'utf8'));
+// Ortsnamen im Titel erkennen. Standard: ganzes Wort (auch "Kölner", "Berlins"),
+// Einträge mit "prefix": true auch als Wortanfang (z. B. "dokom" für "DoKomi"/"Dokoomiii").
+const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const matchers = locs.map(l => ({ l, re: new RegExp('(^|[^\\p{L}])' + esc(l.key) + (l.prefix ? '' : '(er|s|n)?(?![\\p{L}])'), 'iu') }));
 function locate(title) {
-  const low = title.toLowerCase();
-  const l = locs.find(x => low.includes(x.key));
-  return l ? { name: l.name, lat: l.lat, lng: l.lng, approx: true } : undefined;
+  const m = matchers.find(x => x.re.test(title));
+  return m ? { name: m.l.name, lat: m.l.lat, lng: m.l.lng, approx: true } : undefined;
 }
 const startOf = r => fromBerlin(r.date, r.start || '00:00');
 
@@ -118,6 +121,11 @@ for (const v of videos) {
     streams.push(n); added++;
   }
 }
+
+// Orte nachtragen: Streams ohne Ort bekommen einen, sobald ihr Titel zu einem Eintrag in data/locations.json passt.
+// (Bestehende Orte werden nie überschrieben – so wirken neue Einträge in der Ortsliste auch rückwirkend.)
+let located = 0;
+for (const r of streams) if (!r.location) { const l = locate(r.title); if (l) { r.location = l; located++; } }
 
 // 2) Clips der letzten CLIP_DAYS Tage
 const since = new Date(Date.now() - CLIP_DAYS * 86400000).toISOString();
@@ -212,5 +220,5 @@ if (json !== old) await writeFile(DATA, json);
 if (json !== old || profileChanged) {
   await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, ...profile }, null, 1) + '\n');
 }
-console.log(`VODs geprüft: ${videos.length} · neue Streams: ${added} · aktualisiert: ${updated}`);
+console.log(`VODs geprüft: ${videos.length} · neue Streams: ${added} · aktualisiert: ${updated} · Orte nachgetragen: ${located}`);
 console.log(`Clips geprüft: ${clips.length} neue · ${stored.length} gespeicherte · neu: ${clipsNew} · gelöscht: ${clipsDel} · Aufrufe aktualisiert: ${clipsUpd} · ohne Stream: ${clipsLost}`);

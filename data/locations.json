@@ -3,31 +3,43 @@
   "key": "japan-tag",
   "name": "Düsseldorf, Japan-Tag (Rheinufer)",
   "lat": 51.2265,
-  "lng": 6.771
+  "lng": 6.771,
+  "prefix": true
  },
  {
   "key": "japanviertel",
   "name": "Düsseldorf, Japanviertel",
   "lat": 51.225,
-  "lng": 6.788
+  "lng": 6.788,
+  "prefix": true
+ },
+ {
+  "key": "dokoom",
+  "name": "Düsseldorf, DoKomi (Messe)",
+  "lat": 51.2601,
+  "lng": 6.738,
+  "prefix": true
  },
  {
   "key": "dokom",
   "name": "Düsseldorf, DoKomi (Messe)",
   "lat": 51.2601,
-  "lng": 6.738
+  "lng": 6.738,
+  "prefix": true
  },
  {
   "key": "polaris",
   "name": "Hamburg, Polaris (Messe)",
   "lat": 53.5627,
-  "lng": 9.977
+  "lng": 9.977,
+  "prefix": true
  },
  {
   "key": "gamescom",
   "name": "Köln, Gamescom (Koelnmesse)",
   "lat": 50.9466,
-  "lng": 6.983
+  "lng": 6.983,
+  "prefix": true
  },
  {
   "key": "düsseldorf",
@@ -64,5 +76,539 @@
   "name": "Venedig (IT)",
   "lat": 45.4408,
   "lng": 12.3155
+ },
+ {
+  "key": "berlin",
+  "name": "Berlin",
+  "lat": 52.52,
+  "lng": 13.405
+ },
+ {
+  "key": "münchen",
+  "name": "München",
+  "lat": 48.1351,
+  "lng": 11.582
+ },
+ {
+  "key": "munich",
+  "name": "München",
+  "lat": 48.1351,
+  "lng": 11.582
+ },
+ {
+  "key": "stuttgart",
+  "name": "Stuttgart",
+  "lat": 48.7758,
+  "lng": 9.1829
+ },
+ {
+  "key": "dortmund",
+  "name": "Dortmund",
+  "lat": 51.5136,
+  "lng": 7.4653
+ },
+ {
+  "key": "leipzig",
+  "name": "Leipzig",
+  "lat": 51.3397,
+  "lng": 12.3731
+ },
+ {
+  "key": "bremen",
+  "name": "Bremen",
+  "lat": 53.0793,
+  "lng": 8.8017
+ },
+ {
+  "key": "dresden",
+  "name": "Dresden",
+  "lat": 51.0504,
+  "lng": 13.7373
+ },
+ {
+  "key": "hannover",
+  "name": "Hannover",
+  "lat": 52.3759,
+  "lng": 9.732
+ },
+ {
+  "key": "nürnberg",
+  "name": "Nürnberg",
+  "lat": 49.4521,
+  "lng": 11.0767
+ },
+ {
+  "key": "duisburg",
+  "name": "Duisburg",
+  "lat": 51.4344,
+  "lng": 6.7623
+ },
+ {
+  "key": "bochum",
+  "name": "Bochum",
+  "lat": 51.4818,
+  "lng": 7.2162
+ },
+ {
+  "key": "wuppertal",
+  "name": "Wuppertal",
+  "lat": 51.2562,
+  "lng": 7.1508
+ },
+ {
+  "key": "bielefeld",
+  "name": "Bielefeld",
+  "lat": 52.0302,
+  "lng": 8.5325
+ },
+ {
+  "key": "bonn",
+  "name": "Bonn",
+  "lat": 50.7374,
+  "lng": 7.0982
+ },
+ {
+  "key": "münster",
+  "name": "Münster",
+  "lat": 51.9607,
+  "lng": 7.6261
+ },
+ {
+  "key": "mannheim",
+  "name": "Mannheim",
+  "lat": 49.4875,
+  "lng": 8.466
+ },
+ {
+  "key": "karlsruhe",
+  "name": "Karlsruhe",
+  "lat": 49.0069,
+  "lng": 8.4037
+ },
+ {
+  "key": "augsburg",
+  "name": "Augsburg",
+  "lat": 48.3705,
+  "lng": 10.8978
+ },
+ {
+  "key": "wiesbaden",
+  "name": "Wiesbaden",
+  "lat": 50.0782,
+  "lng": 8.2398
+ },
+ {
+  "key": "mönchengladbach",
+  "name": "Mönchengladbach",
+  "lat": 51.1805,
+  "lng": 6.4428
+ },
+ {
+  "key": "gelsenkirchen",
+  "name": "Gelsenkirchen",
+  "lat": 51.5177,
+  "lng": 7.0857
+ },
+ {
+  "key": "aachen",
+  "name": "Aachen",
+  "lat": 50.7753,
+  "lng": 6.0839
+ },
+ {
+  "key": "kiel",
+  "name": "Kiel",
+  "lat": 54.3233,
+  "lng": 10.1228
+ },
+ {
+  "key": "rostock",
+  "name": "Rostock",
+  "lat": 54.0924,
+  "lng": 12.0991
+ },
+ {
+  "key": "mainz",
+  "name": "Mainz",
+  "lat": 49.9929,
+  "lng": 8.2473
+ },
+ {
+  "key": "oberhausen",
+  "name": "Oberhausen",
+  "lat": 51.4963,
+  "lng": 6.8638
+ },
+ {
+  "key": "krefeld",
+  "name": "Krefeld",
+  "lat": 51.3388,
+  "lng": 6.5853
+ },
+ {
+  "key": "neuss",
+  "name": "Neuss",
+  "lat": 51.1981,
+  "lng": 6.685
+ },
+ {
+  "key": "leverkusen",
+  "name": "Leverkusen",
+  "lat": 51.0459,
+  "lng": 6.9853
+ },
+ {
+  "key": "heidelberg",
+  "name": "Heidelberg",
+  "lat": 49.3988,
+  "lng": 8.6724
+ },
+ {
+  "key": "freiburg",
+  "name": "Freiburg",
+  "lat": 47.999,
+  "lng": 7.8421
+ },
+ {
+  "key": "lübeck",
+  "name": "Lübeck",
+  "lat": 53.8655,
+  "lng": 10.6866
+ },
+ {
+  "key": "erfurt",
+  "name": "Erfurt",
+  "lat": 50.9848,
+  "lng": 11.0299
+ },
+ {
+  "key": "magdeburg",
+  "name": "Magdeburg",
+  "lat": 52.1205,
+  "lng": 11.6276
+ },
+ {
+  "key": "potsdam",
+  "name": "Potsdam",
+  "lat": 52.3906,
+  "lng": 13.0645
+ },
+ {
+  "key": "regensburg",
+  "name": "Regensburg",
+  "lat": 49.0134,
+  "lng": 12.1016
+ },
+ {
+  "key": "würzburg",
+  "name": "Würzburg",
+  "lat": 49.7913,
+  "lng": 9.9534
+ },
+ {
+  "key": "trier",
+  "name": "Trier",
+  "lat": 49.7499,
+  "lng": 6.6371
+ },
+ {
+  "key": "koblenz",
+  "name": "Koblenz",
+  "lat": 50.3569,
+  "lng": 7.589
+ },
+ {
+  "key": "saarbrücken",
+  "name": "Saarbrücken",
+  "lat": 49.2402,
+  "lng": 6.9969
+ },
+ {
+  "key": "sylt",
+  "name": "Sylt",
+  "lat": 54.9079,
+  "lng": 8.3157
+ },
+ {
+  "key": "rügen",
+  "name": "Rügen",
+  "lat": 54.4167,
+  "lng": 13.4333
+ },
+ {
+  "key": "europa-park",
+  "name": "Europa-Park (Rust)",
+  "lat": 48.266,
+  "lng": 7.722
+ },
+ {
+  "key": "europapark",
+  "name": "Europa-Park (Rust)",
+  "lat": 48.266,
+  "lng": 7.722
+ },
+ {
+  "key": "phantasialand",
+  "name": "Phantasialand (Brühl)",
+  "lat": 50.799,
+  "lng": 6.879
+ },
+ {
+  "key": "movie park",
+  "name": "Movie Park (Bottrop)",
+  "lat": 51.6214,
+  "lng": 6.9726
+ },
+ {
+  "key": "ruhrgebiet",
+  "name": "Ruhrgebiet",
+  "lat": 51.4818,
+  "lng": 7.2162
+ },
+ {
+  "key": "ruhrpott",
+  "name": "Ruhrgebiet",
+  "lat": 51.4818,
+  "lng": 7.2162
+ },
+ {
+  "key": "amsterdam",
+  "name": "Amsterdam (NL)",
+  "lat": 52.3676,
+  "lng": 4.9041
+ },
+ {
+  "key": "rotterdam",
+  "name": "Rotterdam (NL)",
+  "lat": 51.9244,
+  "lng": 4.4777
+ },
+ {
+  "key": "den haag",
+  "name": "Den Haag (NL)",
+  "lat": 52.0705,
+  "lng": 4.3007
+ },
+ {
+  "key": "utrecht",
+  "name": "Utrecht (NL)",
+  "lat": 52.0907,
+  "lng": 5.1214
+ },
+ {
+  "key": "roermond",
+  "name": "Roermond (NL)",
+  "lat": 51.1942,
+  "lng": 5.987
+ },
+ {
+  "key": "maastricht",
+  "name": "Maastricht (NL)",
+  "lat": 50.8514,
+  "lng": 5.691
+ },
+ {
+  "key": "eindhoven",
+  "name": "Eindhoven (NL)",
+  "lat": 51.4416,
+  "lng": 5.4697
+ },
+ {
+  "key": "brüssel",
+  "name": "Brüssel (BE)",
+  "lat": 50.8503,
+  "lng": 4.3517
+ },
+ {
+  "key": "brussel",
+  "name": "Brüssel (BE)",
+  "lat": 50.8503,
+  "lng": 4.3517
+ },
+ {
+  "key": "antwerpen",
+  "name": "Antwerpen (BE)",
+  "lat": 51.2194,
+  "lng": 4.4025
+ },
+ {
+  "key": "brügge",
+  "name": "Brügge (BE)",
+  "lat": 51.2093,
+  "lng": 3.2247
+ },
+ {
+  "key": "luxemburg",
+  "name": "Luxemburg (LU)",
+  "lat": 49.6116,
+  "lng": 6.1319
+ },
+ {
+  "key": "paris",
+  "name": "Paris (FR)",
+  "lat": 48.8566,
+  "lng": 2.3522
+ },
+ {
+  "key": "london",
+  "name": "London (UK)",
+  "lat": 51.5074,
+  "lng": -0.1278
+ },
+ {
+  "key": "wien",
+  "name": "Wien (AT)",
+  "lat": 48.2082,
+  "lng": 16.3738
+ },
+ {
+  "key": "salzburg",
+  "name": "Salzburg (AT)",
+  "lat": 47.8095,
+  "lng": 13.055
+ },
+ {
+  "key": "zürich",
+  "name": "Zürich (CH)",
+  "lat": 47.3769,
+  "lng": 8.5417
+ },
+ {
+  "key": "prag",
+  "name": "Prag (CZ)",
+  "lat": 50.0755,
+  "lng": 14.4378
+ },
+ {
+  "key": "kopenhagen",
+  "name": "Kopenhagen (DK)",
+  "lat": 55.6761,
+  "lng": 12.5683
+ },
+ {
+  "key": "barcelona",
+  "name": "Barcelona (ES)",
+  "lat": 41.3874,
+  "lng": 2.1686
+ },
+ {
+  "key": "madrid",
+  "name": "Madrid (ES)",
+  "lat": 40.4168,
+  "lng": -3.7038
+ },
+ {
+  "key": "mallorca",
+  "name": "Mallorca (ES)",
+  "lat": 39.5696,
+  "lng": 2.6502
+ },
+ {
+  "key": "rom",
+  "name": "Rom (IT)",
+  "lat": 41.9028,
+  "lng": 12.4964
+ },
+ {
+  "key": "mailand",
+  "name": "Mailand (IT)",
+  "lat": 45.4642,
+  "lng": 9.19
+ },
+ {
+  "key": "milano",
+  "name": "Mailand (IT)",
+  "lat": 45.4642,
+  "lng": 9.19
+ },
+ {
+  "key": "florenz",
+  "name": "Florenz (IT)",
+  "lat": 43.7696,
+  "lng": 11.2558
+ },
+ {
+  "key": "neapel",
+  "name": "Neapel (IT)",
+  "lat": 40.8518,
+  "lng": 14.2681
+ },
+ {
+  "key": "gardasee",
+  "name": "Gardasee (IT)",
+  "lat": 45.65,
+  "lng": 10.6667
+ },
+ {
+  "key": "lissabon",
+  "name": "Lissabon (PT)",
+  "lat": 38.7223,
+  "lng": -9.1393
+ },
+ {
+  "key": "istanbul",
+  "name": "Istanbul (TR)",
+  "lat": 41.0082,
+  "lng": 28.9784
+ },
+ {
+  "key": "antalya",
+  "name": "Antalya (TR)",
+  "lat": 36.8969,
+  "lng": 30.7133
+ },
+ {
+  "key": "budapest",
+  "name": "Budapest (HU)",
+  "lat": 47.4979,
+  "lng": 19.0402
+ },
+ {
+  "key": "warschau",
+  "name": "Warschau (PL)",
+  "lat": 52.2297,
+  "lng": 21.0122
+ },
+ {
+  "key": "athen",
+  "name": "Athen (GR)",
+  "lat": 37.9838,
+  "lng": 23.7275
+ },
+ {
+  "key": "tokio",
+  "name": "Tokio (JP)",
+  "lat": 35.6762,
+  "lng": 139.6503
+ },
+ {
+  "key": "tokyo",
+  "name": "Tokio (JP)",
+  "lat": 35.6762,
+  "lng": 139.6503
+ },
+ {
+  "key": "seoul",
+  "name": "Seoul (KR)",
+  "lat": 37.5665,
+  "lng": 126.978
+ },
+ {
+  "key": "new york",
+  "name": "New York (US)",
+  "lat": 40.7128,
+  "lng": -74.006
+ },
+ {
+  "key": "los angeles",
+  "name": "Los Angeles (US)",
+  "lat": 34.0522,
+  "lng": -118.2437
+ },
+ {
+  "key": "las vegas",
+  "name": "Las Vegas (US)",
+  "lat": 36.1699,
+  "lng": -115.1398
  }
 ]
