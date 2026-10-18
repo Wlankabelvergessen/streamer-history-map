@@ -775,7 +775,10 @@ h1,h2,h3,p{margin:0}
 .pad{padding:14px 16px 18px}
 .tools{display:flex;gap:8px;padding:12px 16px;position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);z-index:2}
 .tools{flex-wrap:wrap}
-.tools input{flex:1 1 100%;min-width:0}
+.qwrap{position:relative;flex:1 1 100%;min-width:0}
+.qwrap input{width:100%;padding-right:34px}
+.qclear{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:0;border-radius:50%;background:var(--panel-2);color:var(--muted);font:500 17px/24px var(--f-body);padding:0;display:grid;place-items:center}
+.qclear:hover{background:var(--accent);color:var(--accent-ink)}
 .tools select{flex:1 1 0;min-width:0;height:34px}
 .tools select{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:0 8px;font:inherit}
 .card .m .hl{color:var(--accent)}
@@ -898,7 +901,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 
   <aside class="panel" id="panel" aria-label="Routen">
     <div id="v-list">
-      <div class="tools"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen"><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="none">Ohne Ort</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option><option value="dist">Entfernung (Strecke)</option></select></div><p class="count mono" id="count"></p>
+      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="none">Ohne Ort</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option><option value="dist">Entfernung (Strecke)</option></select></div><p class="count mono" id="count"></p>
       <div class="list" id="list"></div>
       <p class="hint" id="listhint"></p>
     </div>
@@ -1030,7 +1033,7 @@ function showGroup(g){
   var el=hoverTip.getElement();L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);
   el.addEventListener('mouseenter',function(){clearTimeout(tipTimer)});el.addEventListener('mouseleave',function(){hideTip()});
 }
-function showInList(name){hideTip(true);state.query=name;$('#q').value=name;renderList();if(state.selectedId)deselect();else showView('list')}
+function showInList(name){hideTip(true);setQuery(name);if(state.selectedId)deselect();else showView('list')}
 function drawLines(){
   Object.keys(lines).forEach(function(k){map.removeLayer(lines[k])});lines={};
   Object.keys(groups).forEach(function(k){map.removeLayer(groups[k].marker)});groups={};hideTip(true);
@@ -1281,6 +1284,7 @@ document.addEventListener('click',function(e){
   if(t.dataset.stop!==undefined){var m=stopMarkers[+t.dataset.stop];if(m){map.flyTo(m.getLatLng(),Math.max(map.getZoom(),16),{duration:reduceMotion?0:.6});m.openPopup()}return}
   switch(t.id){
     case 'back':deselect();break;
+    case 'qclear':setQuery('');$('#q').focus();break;
     case 'moreclips':document.querySelectorAll('.clip.more').forEach(function(x){x.hidden=false});t.remove();break;
     case 'login':login();break;
     case 'logout':setUser(null);toast('Abgemeldet.');break;
@@ -1300,7 +1304,9 @@ document.addEventListener('click',function(e){
       break;
   }
 });
-$('#q').addEventListener('input',function(e){state.query=e.target.value;renderList()});
+function setQuery(v){state.query=v;$('#q').value=v;$('#qclear').hidden=!v;renderList()}
+$('#q').addEventListener('input',function(e){setQuery(e.target.value)});
+$('#q').addEventListener('keydown',function(e){if(e.key==='Escape'&&e.target.value){setQuery('');e.preventDefault()}});
 $('#flt').addEventListener('change',function(e){state.filter=e.target.value;renderList()});
 $('#srt').addEventListener('change',function(e){state.sort=e.target.value;renderList();$('#panel').scrollTop=0});
 $('#v-form').addEventListener('submit',submitForm);
