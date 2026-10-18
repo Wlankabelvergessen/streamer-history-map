@@ -1109,7 +1109,7 @@ function showView(v){
 function renderStats(){
   var min=0,clips=0,places={};state.routes.forEach(function(r){min+=r.durationMin;clips+=(r.clips||[]).length;if(r.location)places[r.location.name.split(',')[0]]=1});
   var f=function(n){return n.toLocaleString('de-DE',{maximumFractionDigits:1})};
-  $('#stats').innerHTML='<div><b>'+f(state.routes.length)+'</b><small>Streams</small></div><div><b>'+f(min/60)+'</b><small>Stunden</small></div><div><b>'+f(clips)+'</b><small>Clips</small></div><div><b>'+Object.keys(places).length+'</b><small>Städte</small></div>';
+  $('#stats').innerHTML='<div><b>'+f(state.routes.length)+'</b><small>Streams</small></div><div><b>'+f(min/60)+'</b><small>Stunden</small></div><div><b>'+f(clips)+'</b><small>Clips</small></div>';
 }
 function renderList(){
   var q=state.query.trim().toLowerCase();
