@@ -161,9 +161,13 @@ streams.sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start));
 
 const json = JSON.stringify(streams, null, 0).replace(/\},\{"id"/g, '},\n{"id"');
 const old = await readFile(DATA, 'utf8');
-if (json !== old) {
-  await writeFile(DATA, json);
-  await writeFile(META, JSON.stringify({ updated: new Date().toISOString(), streams: streams.length }, null, 1) + '\n');
+let meta = {};
+try { meta = JSON.parse(await readFile(META, 'utf8')); } catch {}
+const profile = { profileImage: user.profile_image_url || meta.profileImage || null, displayName: user.display_name || meta.displayName || LOGIN };
+const profileChanged = profile.profileImage !== meta.profileImage || profile.displayName !== meta.displayName;
+if (json !== old) await writeFile(DATA, json);
+if (json !== old || profileChanged) {
+  await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, ...profile }, null, 1) + '\n');
 }
 console.log(`VODs geprüft: ${videos.length} · neue Streams: ${added} · aktualisiert: ${updated}`);
 console.log(`Clips geprüft: ${clips.length} · neu: ${clipsNew} · Aufrufe aktualisiert: ${clipsUpd} · ohne Stream: ${clipsLost}`);

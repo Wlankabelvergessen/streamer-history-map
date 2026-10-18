@@ -1340,6 +1340,7 @@ $('#f-gpx').addEventListener('change',function(e){
       if(sel&&byId(sel))select(sel);else if(!sel)fitAll();
     }).catch(function(){});
     fetch('data/meta.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null}).then(function(m){
+      if(m&&m.profileImage){var av=document.querySelector('.avatar img');if(!av){av=document.createElement('img');av.alt='';document.querySelector('.avatar').appendChild(av)}av.src=m.profileImage}
       if(m&&m.updated){var d=new Date(m.updated);$('#upd').textContent='Automatisch aktualisiert: '+d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' Uhr'}
     }).catch(function(){});
   }
