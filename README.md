@@ -11,6 +11,7 @@ Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Da
 `.github/workflows/update.yml` läuft 2× täglich und führt `scripts/update.mjs` aus:
 
 - holt neue Streams (VODs) und Clips von naschiitaschii über die offizielle Twitch-API,
+- prüft alle gespeicherten Clips: auf Twitch gelöschte werden entfernt, Aufrufe und Titel aktualisiert,
 - ordnet Clips über ihr VOD bzw. die Uhrzeit dem richtigen Stream zu,
 - setzt bei Ortsnamen im Titel (siehe `data/locations.json`) einen ungefähren Ort,
 - speichert alles in `data/streams.json`; die Seite lädt diese Datei beim Öffnen.

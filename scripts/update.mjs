@@ -156,6 +156,41 @@ for (const c of clips) {
   clipsNew++;
 }
 
+// 3) Alle gespeicherten Clips prüfen: gelöschte entfernen, Aufrufe aktualisieren
+//    Twitch liefert bei /clips?id=… nur Clips zurück, die noch existieren (bis 100 IDs pro Anfrage).
+const stored = [];
+for (const r of streams) for (const c of r.clips || []) stored.push({ r, c, id: c.url.split('/').pop() });
+const alive = new Map();
+let checkFailed = false;
+for (let i = 0; i < stored.length; i += 100) {
+  const batch = stored.slice(i, i + 100);
+  const q = new URLSearchParams(); batch.forEach(s => q.append('id', s.id));
+  try {
+    const res = await helix('clips', q);
+    // Sicherheitsnetz: ein komplett leerer Block deutet eher auf einen API-Fehler hin als auf 100 gelöschte Clips
+    if (!res.length && batch.length >= 20) { checkFailed = true; console.warn('Leere Antwort für einen Clip-Block, Prüfung übersprungen.'); continue; }
+    for (const c of res) alive.set(c.id, c);
+  } catch (e) { checkFailed = true; console.warn('Clip-Prüfung fehlgeschlagen:', e.message); }
+}
+let clipsDel = 0;
+const missing = stored.filter(s => !alive.has(s.id));
+if (!checkFailed && missing.length > stored.length * 0.25) {
+  console.warn(`${missing.length} von ${stored.length} Clips fehlen – das sieht nach einem API-Problem aus, es wird nichts gelöscht.`);
+} else if (!checkFailed) {
+  const gone = new Set(missing.map(s => s.c));
+  for (const r of streams) {
+    const before = (r.clips || []).length;
+    r.clips = (r.clips || []).filter(c => !gone.has(c));
+    clipsDel += before - r.clips.length;
+  }
+  if (clipsDel) console.log('Gelöschte Clips entfernt:', missing.map(s => s.c.title).join(' | '));
+}
+for (const s of stored) {
+  const a = alive.get(s.id);
+  if (a && s.c.views !== a.view_count) { s.c.views = a.view_count; clipsUpd++; }
+  if (a && a.title && s.c.title !== a.title.trim()) s.c.title = a.title.trim();   // umbenannte Clips
+}
+
 for (const r of streams) (r.clips || []).sort((a, b) => b.views - a.views);
 streams.sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start));
 
@@ -170,4 +205,4 @@ if (json !== old || profileChanged) {
   await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, ...profile }, null, 1) + '\n');
 }
 console.log(`VODs geprüft: ${videos.length} · neue Streams: ${added} · aktualisiert: ${updated}`);
-console.log(`Clips geprüft: ${clips.length} · neu: ${clipsNew} · Aufrufe aktualisiert: ${clipsUpd} · ohne Stream: ${clipsLost}`);
+console.log(`Clips geprüft: ${clips.length} neue · ${stored.length} gespeicherte · neu: ${clipsNew} · gelöscht: ${clipsDel} · Aufrufe aktualisiert: ${clipsUpd} · ohne Stream: ${clipsLost}`);
