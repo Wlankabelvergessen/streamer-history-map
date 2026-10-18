@@ -1,4 +1,4 @@
-# Streamer History Map
+# Naschii’s Adventure Map
 
 Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Datum, Dauer, Zuschauerzahlen, ungefähre Orte (aus den Streamtiteln) und zugeordnete Twitch-Clips.
 
