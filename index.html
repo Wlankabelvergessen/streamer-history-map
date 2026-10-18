@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Naschii’s Adventure Map</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Alle Streams von naschiitaschii auf einer Karte: Orte, Clips, Zuschauer und Streamzeiten – automatisch aktualisiert.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Naschii’s Adventure Map">
+<meta property="og:description" content="Alle Streams von naschiitaschii auf einer Karte: Orte, Clips, Zuschauer und Streamzeiten – automatisch aktualisiert.">
+<meta property="og:url" content="https://wlankabelvergessen.github.io/streamer-history-map/">
+<meta property="og:image" content="https://wlankabelvergessen.github.io/streamer-history-map/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#3b1d40">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Rubik+Bubbles&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>/* required styles */
 
@@ -780,8 +790,27 @@ h1,h2,h3,p{margin:0}
 .qclear{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:24px;height:24px;border:0;border-radius:50%;background:var(--panel-2);color:var(--muted);font:500 17px/24px var(--f-body);padding:0;display:grid;place-items:center}
 .qclear:hover{background:var(--accent);color:var(--accent-ink)}
 .tools select{flex:1 1 0;min-width:0;height:34px}
+#srt{flex:1 1 100%}
 .tools select{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:0 8px;font:inherit}
 .card .m .hl{color:var(--accent)}
+.card.has-thumb{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:10px;align-items:center}
+.cbody{display:block;min-width:0}
+.card .thumb{width:88px;height:50px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--panel-2)}
+.cat{font:600 10px var(--f-mono);letter-spacing:.06em;text-transform:none;border-radius:4px;padding:1px 6px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line)}
+.cat.irl{background:#f5a9d61f;border-color:#f5a9d680;color:var(--accent)}
+.hero-thumb{position:relative;display:block;margin:10px 0 4px;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/9;max-width:100%;background:var(--panel-2)}
+.hero-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.hero-thumb:hover img{transform:scale(1.03)}
+.hero-thumb span{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 9px;background:linear-gradient(transparent,#000c);color:#fff;font:500 13px var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clip .ic.th{width:64px;height:36px;border-radius:5px;overflow:hidden;background:#000}
+.clip .ic.th img{width:100%;height:100%;object-fit:cover}
+.live{display:inline-flex;align-items:center;gap:8px;max-width:min(560px,92vw);padding:5px 12px 5px 10px;border-radius:999px;background:#e91916;color:#fff;text-decoration:none;font:500 12px var(--f-body);box-shadow:0 4px 14px #e9191655}
+.live i{width:8px;height:8px;border-radius:50%;background:#fff;flex:none;animation:pulse 1.4s infinite}
+.live b{font:700 11px var(--f-mono);letter-spacing:.12em}
+.live span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.hero.is-live .avatar{box-shadow:0 0 0 3px #e91916,0 0 0 7px #e9191644,0 6px 18px #0008;animation:ring 1.8s infinite}
+@keyframes pulse{50%{opacity:.25}}
+@keyframes ring{50%{box-shadow:0 0 0 3px #e91916,0 0 0 11px #e9191611,0 6px 18px #0008}}
 .grp{display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd3ec,var(--accent) 55%,var(--pink-deep));color:var(--accent-ink);font:700 12px var(--f-mono);border:2px solid #fff;box-shadow:0 0 0 4px #f5a9d640,0 4px 12px #0008;cursor:pointer;transition:transform .15s}
 .grp:hover{transform:scale(1.08)}
 .leaflet-tooltip.grp-tip{background:var(--panel);color:var(--fg);border:1px solid var(--accent);border-radius:10px;padding:0;width:300px;max-width:72vw;white-space:normal;box-shadow:0 10px 30px #000a}
@@ -884,6 +913,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
     <h1>Naschii’s Adventure Map</h1>
     <p class="sub"><a href="https://www.twitch.tv/naschiitaschii" target="_blank" rel="noopener noreferrer">twitch.tv/naschiitaschii</a> · IRL-Streams &amp; Clips</p>
     <div class="stats" id="stats" aria-label="Gesamtwerte"></div>
+    <a class="live" id="live" href="https://www.twitch.tv/naschiitaschii" target="_blank" rel="noopener noreferrer" hidden><i></i><b>LIVE</b><span id="live-t"></span></a>
     <p class="upd" id="upd"></p>
   </div>
   <div class="auth" id="auth"></div>
@@ -901,7 +931,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 
   <aside class="panel" id="panel" aria-label="Routen">
     <div id="v-list">
-      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="none">Ohne Ort</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="avg">Meiste Ø Zuschauer</option><option value="max">Meiste Max. Zuschauer</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div><p class="count mono" id="count"></p>
+      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="none">Ohne Ort</option></select><select id="cat" aria-label="Nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="avg">Meiste Ø Zuschauer</option><option value="max">Meiste Max. Zuschauer</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div><p class="count mono" id="count"></p>
       <div class="list" id="list"></div>
       <p class="hint" id="listhint"></p>
     </div>
@@ -1110,6 +1140,7 @@ function renderStats(){
   var min=0,clips=0,places={};state.routes.forEach(function(r){min+=r.durationMin;clips+=(r.clips||[]).length;if(r.location)places[r.location.name.split(',')[0]]=1});
   var f=function(n){return n.toLocaleString('de-DE',{maximumFractionDigits:1})};
   $('#stats').innerHTML='<div><b>'+f(state.routes.length)+'</b><small>Streams</small></div><div><b>'+f(min/60)+'</b><small>Stunden</small></div><div><b>'+f(clips)+'</b><small>Clips</small></div>';
+  renderCats();
 }
 function renderList(){
   var q=state.query.trim().toLowerCase();
@@ -1118,8 +1149,9 @@ function renderList(){
     if(f==='loc'&&!(r.location||hasRoute(r)))return false;
     if(f==='route'&&!hasRoute(r))return false;
     if(f==='none'&&(r.location||hasRoute(r)))return false;
+    if(state.cat&&r.category!==state.cat)return false;
     if(!q)return true;
-    var hay=[r.title,r.desc,fmtDate(r.date),r.date,r.location?r.location.name:''].concat((r.stops||[]).map(function(s){return s.name})).join(' ').toLowerCase();
+    var hay=[r.title,r.desc,fmtDate(r.date),r.date,r.location?r.location.name:'',r.category||''].concat((r.stops||[]).map(function(s){return s.name})).join(' ').toLowerCase();
     return hay.indexOf(q)>=0;
   });
   var srt=state.sort||'new';
@@ -1137,13 +1169,25 @@ function renderList(){
   });
   $('#count').textContent=rows.length+' von '+state.routes.length+' Streams';
   $('#list').innerHTML=rows.length?rows.map(function(r){
-    return '<button type="button" class="card" data-id="'+esc(r.id)+'" aria-pressed="'+(r.id===state.selectedId)+'">'+
-      '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+' · '+esc(r.start||'')+routeTag(r)+'</div>'+
+    var th=thumbOf(r);
+    return '<button type="button" class="card'+(th?' has-thumb':'')+'" data-id="'+esc(r.id)+'" aria-pressed="'+(r.id===state.selectedId)+'"><span class="cbody">'+
+      '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+' · '+esc(r.start||'')+catTag(r)+routeTag(r)+'</div>'+
       '<h3>'+esc(r.title)+'</h3>'+
-      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span'+(state.sort==='avg'?' class="hl"':'')+'>Ø '+r.avgViewers+' Zuschauer</span>':'')+(r.maxViewers!=null&&state.sort==='max'?'<span class="hl">Max. '+r.maxViewers.toLocaleString('de-DE')+'</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+' Follower</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+(r.clips.length===1?' Clip':' Clips')+'</span>':'')+'</div></button>';
-  }).join(''):'<p class="empty">Keine Route gefunden.</p>';
+      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span'+(state.sort==='avg'?' class="hl"':'')+'>Ø '+r.avgViewers+' Zuschauer</span>':'')+(r.maxViewers!=null&&state.sort==='max'?'<span class="hl">Max. '+r.maxViewers.toLocaleString('de-DE')+'</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+' Follower</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+(r.clips.length===1?' Clip':' Clips')+'</span>':'')+'</div></span>'+(th?'<img class="thumb" src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</button>';
+  }).join(''):'<p class="empty">Keine Streams gefunden.</p>';
   $('#listhint').textContent=canEdit(state.user)?'':(state.user?'Nur naschiitaschii und ihre Mods können Streams hinzufügen oder bearbeiten.':'naschiitaschii und ihre Mods können sich mit Twitch anmelden, um Routen und Clips zu ergänzen.');
   $('#listhint').hidden=canEdit(state.user);
+}
+function thumbOf(r){var c=(r.clips||[]).find(function(c){return c.thumb});return c&&safeUrl(c.thumb)}
+function catTag(r){return r.category?'<span class="cat'+(r.category==='IRL'?' irl':'')+'">'+esc(r.category)+'</span>':''}
+function clipIcon(c){var u=c.thumb&&safeUrl(c.thumb);return '<span class="ic'+(u?' th':'')+'">'+(u?'<img src="'+esc(u)+'" alt="" loading="lazy">':'▶')+'</span>'}
+function renderCats(){
+  var cnt={};state.routes.forEach(function(r){if(r.category)cnt[r.category]=(cnt[r.category]||0)+1});
+  var keys=Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a]});
+  var sel=$('#cat'),cur=state.cat||'';
+  sel.innerHTML='<option value="">Alle Kategorien</option>'+keys.map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+' ('+cnt[k]+')</option>'}).join('');
+  sel.hidden=!keys.length;
+  if(cur&&cnt[cur])sel.value=cur;else{state.cat='';sel.value=''}
 }
 function routeTag(r){if(hasRoute(r))return '';return r.location?'<span class="tag">ORT UNGEFÄHR</span>':''}
 function renderListSelection(){var cs=document.querySelectorAll('.card');for(var i=0;i<cs.length;i++){cs[i].setAttribute('aria-pressed',cs[i].dataset.id===state.selectedId)}}
@@ -1159,12 +1203,12 @@ function renderDetail(r){
   var own=state.user&&r.owner===state.user.login, base=!r.owner;
   var stops=(r.stops||[]).map(function(s,i){return '<li><button type="button" data-stop="'+i+'"><span class="n">'+(i+1)+'</span><span class="t">'+esc(s.time||'')+'</span><span><span class="nm">'+esc(s.name)+'</span><span class="nt">'+esc(s.note||'')+'</span></span></button></li>'}).join('');
   var CL=r.clips||[];
-  var clips=CL.map(function(c,i){var u=safeUrl(c.url);if(!u)return'';var meta=c.views!=null?(c.views.toLocaleString('de-DE')+' Aufrufe'+(c.dur?' · '+c.dur+' s':'')+(c.by?' · von '+c.by:'')):new URL(u).hostname.replace(/^www\./,'');return '<a class="clip'+(i>=10?' more':'')+'" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"'+(i>=10?' hidden':'')+'><span class="ic">▶</span><span class="tt">'+esc(c.title||'Clip')+'<small>'+esc(meta)+' ↗</small></span></a>'}).join('')+(CL.length>10?'<button type="button" class="btn ghost" id="moreclips">Alle '+CL.length+' Clips anzeigen</button>':'');
+  var clips=CL.map(function(c,i){var u=safeUrl(c.url);if(!u)return'';var meta=c.views!=null?(c.views.toLocaleString('de-DE')+' Aufrufe'+(c.dur?' · '+c.dur+' s':'')+(c.by?' · von '+c.by:'')):new URL(u).hostname.replace(/^www\./,'');return '<a class="clip'+(i>=10?' more':'')+'" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"'+(i>=10?' hidden':'')+'>'+clipIcon(c)+'<span class="tt">'+esc(c.title||'Clip')+'<small>'+esc(meta)+' ↗</small></span></a>'}).join('')+(CL.length>10?'<button type="button" class="btn ghost" id="moreclips">Alle '+CL.length+' Clips anzeigen</button>':'');
   var routeInfo=r.location?'<p class="note routenote">Ort ungefähr, abgeleitet aus dem Streamtitel: '+esc(r.location.name)+'</p>':'';
   $('#v-detail').innerHTML=
     '<button type="button" class="back" id="back">← Alle Streams</button>'+
-    '<div class="when"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+routeTag(r)+'</div>'+
-    '<h2>'+esc(r.title)+'</h2>'+
+    '<div class="when"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+catTag(r)+routeTag(r)+'</div>'+
+    '<h2>'+esc(r.title)+'</h2>'+(CL[0]&&CL[0].thumb&&safeUrl(CL[0].thumb)?'<a class="hero-thumb" href="'+esc(safeUrl(CL[0].url))+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(safeUrl(CL[0].thumb))+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><span>▶ Top-Clip: '+esc(CL[0].title)+(CL[0].views!=null?' · '+CL[0].views.toLocaleString('de-DE')+' Aufrufe':'')+'</span></a>':'')+
     '<div class="facts"><div><b>'+esc(fmtDur(r.durationMin))+'</b><small>Dauer</small></div><div><b>'+esc(r.start||'–')+(r.start?'–'+addMin(r.start,r.durationMin):'')+'</b><small>Uhrzeit</small></div><div><b>'+CL.length.toLocaleString('de-DE')+'</b><small>Clips</small></div>'+
     (r.avgViewers!=null?'<div><b>'+r.avgViewers+'</b><small>Ø Zuschauer</small></div><div><b>'+r.maxViewers.toLocaleString('de-DE')+'</b><small>Max. Zuschauer</small></div><div><b>'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+'</b><small>Follower</small></div>':'')+
     '</div>'+
@@ -1310,6 +1354,7 @@ function setQuery(v){state.query=v;$('#q').value=v;$('#qclear').hidden=!v;render
 $('#q').addEventListener('input',function(e){setQuery(e.target.value)});
 $('#q').addEventListener('keydown',function(e){if(e.key==='Escape'&&e.target.value){setQuery('');e.preventDefault()}});
 $('#flt').addEventListener('change',function(e){state.filter=e.target.value;renderList()});
+$('#cat').addEventListener('change',function(e){state.cat=e.target.value;renderList();$('#panel').scrollTop=0});
 $('#srt').addEventListener('change',function(e){state.sort=e.target.value;renderList();$('#panel').scrollTop=0});
 $('#v-form').addEventListener('submit',submitForm);
 $('#f-gpx').addEventListener('change',function(e){
@@ -1341,6 +1386,22 @@ $('#f-gpx').addEventListener('change',function(e){
       SAMPLE=d;var sel=state.selectedId;buildRoutes();drawLines();renderStats();renderList();
       if(sel&&byId(sel))select(sel);else if(!sel)fitAll();
     }).catch(function(){});
+    // LIVE-Status (über decapi.me, ohne Twitch-Token), alle 2 Minuten
+    var liveCheck=function(){
+      var base='https://decapi.me/twitch/',ch=CHANNEL,get=function(p){return fetch(base+p+'/'+ch,{cache:'no-store'}).then(function(r){return r.ok?r.text():''})};
+      get('uptime').then(function(up){
+        var on=up&&!/offline|error|not found/i.test(up);
+        $('#live').hidden=!on;document.querySelector('.hero').classList.toggle('is-live',!!on);
+        if(!on)return;
+        var h=(up.match(/(\d+) hour/)||[])[1],m=(up.match(/(\d+) minute/)||[])[1];
+        var since=(h?h+' Std. ':'')+(m?m+' Min.':'');
+        Promise.all([get('title'),get('game')]).then(function(v){
+          var title=(v[0]||'').replace(/\s*[|│┃]?\s*!(subtember|subathon|rad|dc|insta|tt|yt|ig|clip)\b.*$/i,'').trim();
+          $('#live-t').textContent=[v[1],title,since?'seit '+since:''].filter(Boolean).join(' · ');
+        });
+      }).catch(function(){});
+    };
+    liveCheck();setInterval(liveCheck,120000);
     fetch('data/meta.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null}).then(function(m){
       if(m&&m.profileImage){var av=document.querySelector('.avatar img');if(!av){av=document.createElement('img');av.alt='';document.querySelector('.avatar').appendChild(av)}av.src=m.profileImage}
       if(m&&m.updated){var d=new Date(m.updated);$('#upd').textContent='Automatisch aktualisiert: '+d.toLocaleString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' Uhr'}

@@ -26,11 +26,21 @@ jobs:
           TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
         run: node scripts/update.mjs
+      - name: Prüfen, ob sich Daten geändert haben
+        id: changed
+        run: |
+          if git diff --quiet -- data && [ -f og.png ]; then echo "yes=false" >> "$GITHUB_OUTPUT"; else echo "yes=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Teilen-Vorschaubild (og.png) erzeugen
+        if: steps.changed.outputs.yes == 'true'
+        run: |
+          npm i --no-save --no-audit --no-fund playwright@1.48.2
+          npx playwright install --with-deps chromium
+          node scripts/og.mjs
       - name: Änderungen speichern
         run: |
-          if git diff --quiet -- data; then echo "Keine neuen Daten."; exit 0; fi
+          if git diff --quiet -- data og.png && [ -z "$(git ls-files --others --exclude-standard og.png)" ]; then echo "Keine neuen Daten."; exit 0; fi
           git config user.name "adventure-map-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
+          git add data og.png
           git commit -m "Daten aktualisiert: $(date -u +%Y-%m-%d)"
           git push

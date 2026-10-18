@@ -201,10 +201,38 @@ if (!checkFailed && missing.length > stored.length * 0.25) {
   }
   if (clipsDel) console.log('Gelöschte Clips entfernt:', missing.map(s => s.c.title).join(' | '));
 }
+// Kategorienamen für alle noch vorhandenen Clips nachschlagen
+const missingGames = [...new Set([...alive.values()].map(c => c.game_id).filter(id => id && !games[id]))];
+for (let i = 0; i < missingGames.length; i += 100) {
+  const q = new URLSearchParams(); missingGames.slice(i, i + 100).forEach(id => q.append('id', id));
+  try { for (const g of await helix('games', q)) games[g.id] = g.name; } catch (e) { console.warn('Kategorien:', e.message); }
+}
 for (const s of stored) {
   const a = alive.get(s.id);
-  if (a && s.c.views !== a.view_count) { s.c.views = a.view_count; clipsUpd++; }
-  if (a && a.title && s.c.title !== a.title.trim()) s.c.title = a.title.trim();   // umbenannte Clips
+  if (!a) continue;
+  if (s.c.views !== a.view_count) { s.c.views = a.view_count; clipsUpd++; }
+  if (a.title && s.c.title !== a.title.trim()) s.c.title = a.title.trim();   // umbenannte Clips
+  if (a.thumbnail_url) s.c.thumb = a.thumbnail_url;                          // Vorschaubild
+  if (a.game_id && games[a.game_id]) s.c.game = games[a.game_id];            // Kategorie
+}
+
+// 4) Kategorie je Stream: häufigste Kategorie seiner Clips
+for (const r of streams) {
+  const cnt = {};
+  for (const c of r.clips || []) if (c.game) cnt[c.game] = (cnt[c.game] || 0) + 1;
+  const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+  if (top) r.category = top[0]; else delete r.category;
+}
+
+// 5) Orte aus Clip-Titeln: z. B. "Tanz in Venedig". Mindestens 2 passende Clips,
+//    bei IRL-Streams reicht einer. Orte aus dem Streamtitel haben immer Vorrang.
+let fromClips = 0;
+for (const r of streams) {
+  if (r.location) continue;
+  const cnt = new Map();
+  for (const c of r.clips || []) { const l = locate(c.title || ''); if (l) { const k = l.name; cnt.set(k, { l, n: (cnt.get(k)?.n || 0) + 1 }); } }
+  const best = [...cnt.values()].sort((a, b) => b.n - a.n)[0];
+  if (best && (best.n >= 2 || (best.n >= 1 && r.category === 'IRL'))) { r.location = { ...best.l, from: 'clips' }; fromClips++; }
 }
 
 for (const r of streams) (r.clips || []).sort((a, b) => b.views - a.views);
@@ -220,5 +248,5 @@ if (json !== old) await writeFile(DATA, json);
 if (json !== old || profileChanged) {
   await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, ...profile }, null, 1) + '\n');
 }
-console.log(`VODs geprüft: ${videos.length} · neue Streams: ${added} · aktualisiert: ${updated} · Orte nachgetragen: ${located}`);
+console.log(`VODs geprüft: ${videos.length} · neue Streams: ${added} · aktualisiert: ${updated} · Orte nachgetragen: ${located} (aus Clip-Titeln: ${fromClips})`);
 console.log(`Clips geprüft: ${clips.length} neue · ${stored.length} gespeicherte · neu: ${clipsNew} · gelöscht: ${clipsDel} · Aufrufe aktualisiert: ${clipsUpd} · ohne Stream: ${clipsLost}`);
