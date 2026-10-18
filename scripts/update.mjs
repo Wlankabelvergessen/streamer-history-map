@@ -149,11 +149,19 @@ for (const c of clips) {
   }
   if (!r) { clipsLost++; continue; }
   r.clips = r.clips || [];
-  r.clips.push({
+  const entry = {
     title: (c.title || 'Clip').trim(), url: `https://www.twitch.tv/${LOGIN}/clip/${slug}`,
     views: c.view_count, by: c.creator_name || '', dur: Math.round(c.duration || 0), game: games[c.game_id] || '',
-  });
+  };
+  r.clips.push(entry);
+  known.set(slug, { r, c: entry });   // gleicher Clip kann in mehreren Seiten der Antwort auftauchen
   clipsNew++;
+}
+
+// Doppelte Clips entfernen (gleiche URL nur einmal behalten)
+{
+  const seen = new Set();
+  for (const r of streams) r.clips = (r.clips || []).filter(c => !seen.has(c.url) && seen.add(c.url));
 }
 
 // 3) Alle gespeicherten Clips prüfen: gelöschte entfernen, Aufrufe aktualisieren
