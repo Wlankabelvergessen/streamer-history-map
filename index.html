@@ -901,7 +901,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 
   <aside class="panel" id="panel" aria-label="Routen">
     <div id="v-list">
-      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="none">Ohne Ort</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option><option value="dist">Entfernung (Strecke)</option></select></div><p class="count mono" id="count"></p>
+      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="none">Ohne Ort</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div><p class="count mono" id="count"></p>
       <div class="list" id="list"></div>
       <p class="hint" id="listhint"></p>
     </div>
@@ -915,7 +915,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
         <div><label for="f-dur">Dauer (Min.)</label><input type="number" id="f-dur" min="1" max="1440" placeholder="180"></div>
       </div>
       <div><label for="f-desc">Was wurde gemacht?</label><textarea id="f-desc" maxlength="1500" placeholder="Kurze Zusammenfassung des Streams"></textarea></div>
-      <div class="src">
+      <div class="src" hidden>
         <label for="f-gpx" style="margin:0">Route</label>
         <input type="file" id="f-gpx" accept=".gpx,application/gpx+xml">
         <p>GPX hochladen (Datum, Start und Dauer werden daraus übernommen) oder die Route auf der Karte zeichnen.</p>
@@ -1107,8 +1107,9 @@ function showView(v){
   $('#panel').scrollTop=0;
 }
 function renderStats(){
-  var km=0,min=0,withRoute=0;state.routes.forEach(function(r){km+=r.km;min+=r.durationMin;if(hasRoute(r))withRoute++});
-  $('#stats').innerHTML='<div><b>'+state.routes.length+'</b><small>Streams</small></div><div><b>'+(min/60).toLocaleString('de-DE',{maximumFractionDigits:1})+'</b><small>Stunden</small></div><div><b>'+withRoute+'/'+state.routes.length+'</b><small>mit Route</small></div><div><b>'+km.toLocaleString('de-DE',{maximumFractionDigits:1})+'</b><small>km</small></div>';
+  var min=0,clips=0,places={};state.routes.forEach(function(r){min+=r.durationMin;clips+=(r.clips||[]).length;if(r.location)places[r.location.name.split(',')[0]]=1});
+  var f=function(n){return n.toLocaleString('de-DE',{maximumFractionDigits:1})};
+  $('#stats').innerHTML='<div><b>'+f(state.routes.length)+'</b><small>Streams</small></div><div><b>'+f(min/60)+'</b><small>Stunden</small></div><div><b>'+f(clips)+'</b><small>Clips</small></div><div><b>'+Object.keys(places).length+'</b><small>Städte</small></div>';
 }
 function renderList(){
   var q=state.query.trim().toLowerCase();
@@ -1129,7 +1130,6 @@ function renderList(){
     if(srt==='old')return key(a)<key(b)?-1:key(a)>key(b)?1:0;
     if(srt==='fol')d=num(b.followers)-num(a.followers);
     else if(srt==='time')d=b.durationMin-a.durationMin;
-    else if(srt==='dist')d=(b.km||0)-(a.km||0);
     if(d)return d;
     return key(a)<key(b)?1:key(a)>key(b)?-1:0;
   });
@@ -1138,12 +1138,12 @@ function renderList(){
     return '<button type="button" class="card" data-id="'+esc(r.id)+'" aria-pressed="'+(r.id===state.selectedId)+'">'+
       '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+' · '+esc(r.start||'')+routeTag(r)+'</div>'+
       '<h3>'+esc(r.title)+'</h3>'+
-      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(hasRoute(r)?'<span>'+esc(fmtKm(r.km))+'</span>':'')+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span>Ø '+r.avgViewers+' Zuschauer</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+' Follower</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+' Clips</span>':'')+'</div></button>';
+      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span>Ø '+r.avgViewers+' Zuschauer</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+' Follower</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+' Clips</span>':'')+'</div></button>';
   }).join(''):'<p class="empty">Keine Route gefunden.</p>';
   $('#listhint').textContent=canEdit(state.user)?'':(state.user?'Nur naschiitaschii und ihre Mods können Streams hinzufügen oder bearbeiten.':'naschiitaschii und ihre Mods können sich mit Twitch anmelden, um Routen und Clips zu ergänzen.');
   $('#listhint').hidden=canEdit(state.user);
 }
-function routeTag(r){if(hasRoute(r))return '';return r.location?'<span class="tag">ORT UNGEFÄHR</span>':'<span class="tag warn">ROUTE FEHLT</span>'}
+function routeTag(r){if(hasRoute(r))return '';return r.location?'<span class="tag">ORT UNGEFÄHR</span>':''}
 function renderListSelection(){var cs=document.querySelectorAll('.card');for(var i=0;i<cs.length;i++){cs[i].setAttribute('aria-pressed',cs[i].dataset.id===state.selectedId)}}
 function gmapsUrl(r){
   var p=r.points,n=p.length,w=[],max=8;
@@ -1158,12 +1158,12 @@ function renderDetail(r){
   var stops=(r.stops||[]).map(function(s,i){return '<li><button type="button" data-stop="'+i+'"><span class="n">'+(i+1)+'</span><span class="t">'+esc(s.time||'')+'</span><span><span class="nm">'+esc(s.name)+'</span><span class="nt">'+esc(s.note||'')+'</span></span></button></li>'}).join('');
   var CL=r.clips||[];
   var clips=CL.map(function(c,i){var u=safeUrl(c.url);if(!u)return'';var meta=c.views!=null?(c.views.toLocaleString('de-DE')+' Aufrufe'+(c.dur?' · '+c.dur+' s':'')+(c.by?' · von '+c.by:'')):new URL(u).hostname.replace(/^www\./,'');return '<a class="clip'+(i>=10?' more':'')+'" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"'+(i>=10?' hidden':'')+'><span class="ic">▶</span><span class="tt">'+esc(c.title||'Clip')+'<small>'+esc(meta)+' ↗</small></span></a>'}).join('')+(CL.length>10?'<button type="button" class="btn ghost" id="moreclips">Alle '+CL.length+' Clips anzeigen</button>':'');
-  var routeInfo=hasRoute(r)?'':'<p class="note routenote">'+(r.location?'Kein GPS-Track. Der Kreis zeigt nur den Ort aus dem Streamtitel ('+esc(r.location.name)+').':'Für diesen Stream ist noch keine Route und kein Ort erfasst.')+'</p>';
+  var routeInfo=r.location?'<p class="note routenote">Ort ungefähr, abgeleitet aus dem Streamtitel: '+esc(r.location.name)+'</p>':'';
   $('#v-detail').innerHTML=
     '<button type="button" class="back" id="back">← Alle Streams</button>'+
     '<div class="when"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+routeTag(r)+'</div>'+
     '<h2>'+esc(r.title)+'</h2>'+
-    '<div class="facts"><div><b>'+esc(fmtDur(r.durationMin))+'</b><small>Dauer</small></div><div><b>'+esc(r.start||'–')+(r.start?'–'+addMin(r.start,r.durationMin):'')+'</b><small>Uhrzeit</small></div><div><b>'+(hasRoute(r)?esc(fmtKm(r.km)):'–')+'</b><small>Strecke</small></div>'+
+    '<div class="facts"><div><b>'+esc(fmtDur(r.durationMin))+'</b><small>Dauer</small></div><div><b>'+esc(r.start||'–')+(r.start?'–'+addMin(r.start,r.durationMin):'')+'</b><small>Uhrzeit</small></div><div><b>'+CL.length.toLocaleString('de-DE')+'</b><small>Clips</small></div>'+
     (r.avgViewers!=null?'<div><b>'+r.avgViewers+'</b><small>Ø Zuschauer</small></div><div><b>'+r.maxViewers.toLocaleString('de-DE')+'</b><small>Max. Zuschauer</small></div><div><b>'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+'</b><small>Follower</small></div>':'')+
     '</div>'+
     routeInfo+
@@ -1171,7 +1171,7 @@ function renderDetail(r){
     (stops?'<div class="sec"><h3>Stationen</h3><ol class="stops">'+stops+'</ol></div>':'')+
     '<div class="sec"><h3>Clips'+(CL.length?' · '+CL.length:'')+'</h3>'+(clips?'<div class="clips">'+clips+'</div>':'<p class="note">Noch keine Clips verlinkt. <a href="https://www.twitch.tv/'+CHANNEL+'/clips?filter=clips&range=all" target="_blank" rel="noopener noreferrer">Clips auf Twitch ansehen ↗</a></p>')+'</div>'+
     '<div class="actions">'+(hasRoute(r)?'<a class="btn" href="'+esc(gmapsUrl(r))+'" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--fg)">In Google Maps öffnen ↗</a>':'')+
-    (canEdit(state.user)?'<button type="button" class="btn primary" id="edit">'+(hasRoute(r)?'Bearbeiten':'Route ergänzen')+'</button>':'')+
+    (canEdit(state.user)?'<button type="button" class="btn primary" id="edit">Bearbeiten</button>':'')+
     (own?'<button type="button" class="btn" id="copyjson">JSON kopieren</button><button type="button" class="btn danger" id="del">Löschen</button>':'')+'</div>'+
     ((r.avgViewers!=null||CL.length)?'<p class="note src-note">'+[r.avgViewers!=null?'Zuschauer & Follower: TwitchTracker':'',CL.length?'Clips: Twitch, nach Aufrufen sortiert':''].filter(Boolean).join(' · ')+'</p>':'');
 }
@@ -1205,7 +1205,7 @@ function parseGpx(text){
 function openForm(editId){
   var r=editId?byId(editId):null;state.editId=r?r.id:null;
   state.draft={points:r&&r.points?r.points.slice():[],meta:null};$('#v-form').reset();$('#f-err').textContent='';
-  $('#f-head').textContent=r?(hasRoute(r)?'Stream bearbeiten':'Route ergänzen'):'Neuer Stream';
+  $('#f-head').textContent=r?'Stream bearbeiten':'Neuer Stream';
   $('#f-title').value=r?r.title:'';$('#f-date').value=r?r.date:today();$('#f-start').value=r?(r.start||''):'';$('#f-dur').value=r?r.durationMin:'';
   $('#f-desc').value=r?(r.desc||''):'';$('#f-clips').value=r?(r.clips||[]).map(function(c){return c.title+' | '+c.url}).join('\n'):'';
   updateDraft();selGroup.clearLayers();
@@ -1230,7 +1230,7 @@ function submitForm(e){
   if(!title){err.textContent='Bitte einen Titel eingeben.';return}
   if(!date){err.textContent='Bitte ein Datum wählen.';return}
   if(!dur||dur<1){err.textContent='Bitte die Dauer in Minuten angeben.';return}
-  if(state.draft.points.length===1){err.textContent='Die Route braucht mindestens zwei Punkte, oder lass sie leer.';return}
+  
   var fields={title:title,date:date,start:$('#f-start').value||'',durationMin:dur,desc:$('#f-desc').value.trim(),points:state.draft.points.slice(),clips:parseClips($('#f-clips').value)};
   var r,ex=state.editId?byId(state.editId):null;
   if(ex&&!ex.owner){saveEdit(ex.id,fields);Object.assign(ex,fields);ex.km=dist(ex.points);r=ex}
