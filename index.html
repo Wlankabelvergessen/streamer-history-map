@@ -1377,7 +1377,7 @@ $('#f-gpx').addEventListener('change',function(e){
 
 /* ---------- Start ---------- */
 (function boot(){
-  try{var u=JSON.parse(store('shm.user')||'null');if(u&&u.login)state.user=u}catch(e){}
+  if(SHOW_LOGIN){try{var u=JSON.parse(store('shm.user')||'null');if(u&&u.login)state.user=u}catch(e){}}
   buildRoutes();initMap();drawLines();fitAll();renderStats();renderList();renderAuth();
   handleRedirect();
   // Aktuelle Daten laden (werden 2x täglich automatisch von Twitch aktualisiert). Ohne Server bleibt der eingebettete Stand.
