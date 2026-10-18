@@ -901,7 +901,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 
   <aside class="panel" id="panel" aria-label="Routen">
     <div id="v-list">
-      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="none">Ohne Ort</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div><p class="count mono" id="count"></p>
+      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="none">Ohne Ort</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="avg">Meiste Ø Zuschauer</option><option value="max">Meiste Max. Zuschauer</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div><p class="count mono" id="count"></p>
       <div class="list" id="list"></div>
       <p class="hint" id="listhint"></p>
     </div>
@@ -1129,6 +1129,8 @@ function renderList(){
     var d;
     if(srt==='old')return key(a)<key(b)?-1:key(a)>key(b)?1:0;
     if(srt==='fol')d=num(b.followers)-num(a.followers);
+    else if(srt==='avg')d=num(b.avgViewers)-num(a.avgViewers);
+    else if(srt==='max')d=num(b.maxViewers)-num(a.maxViewers);
     else if(srt==='time')d=b.durationMin-a.durationMin;
     if(d)return d;
     return key(a)<key(b)?1:key(a)>key(b)?-1:0;
@@ -1138,7 +1140,7 @@ function renderList(){
     return '<button type="button" class="card" data-id="'+esc(r.id)+'" aria-pressed="'+(r.id===state.selectedId)+'">'+
       '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+' · '+esc(r.start||'')+routeTag(r)+'</div>'+
       '<h3>'+esc(r.title)+'</h3>'+
-      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span>Ø '+r.avgViewers+' Zuschauer</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+' Follower</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+' Clips</span>':'')+'</div></button>';
+      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span'+(state.sort==='avg'?' class="hl"':'')+'>Ø '+r.avgViewers+' Zuschauer</span>':'')+(r.maxViewers!=null&&state.sort==='max'?'<span class="hl">Max. '+r.maxViewers.toLocaleString('de-DE')+'</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString('de-DE')+' Follower</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+' Clips</span>':'')+'</div></button>';
   }).join(''):'<p class="empty">Keine Route gefunden.</p>';
   $('#listhint').textContent=canEdit(state.user)?'':(state.user?'Nur naschiitaschii und ihre Mods können Streams hinzufügen oder bearbeiten.':'naschiitaschii und ihre Mods können sich mit Twitch anmelden, um Routen und Clips zu ergänzen.');
   $('#listhint').hidden=canEdit(state.user);
