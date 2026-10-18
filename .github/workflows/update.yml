@@ -1,0 +1,36 @@
+name: Streams und Clips aktualisieren
+
+on:
+  schedule:
+    # 2x täglich (UTC): 06:20 und 18:20 – entspricht 07/08:20 bzw. 19/20:20 Uhr deutscher Zeit
+    - cron: '20 6,18 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Twitch abfragen
+        env:
+          TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
+          TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+        run: node scripts/update.mjs
+      - name: Änderungen speichern
+        run: |
+          if git diff --quiet -- data; then echo "Keine neuen Daten."; exit 0; fi
+          git config user.name "adventure-map-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git commit -m "Daten aktualisiert: $(date -u +%Y-%m-%d)"
+          git push

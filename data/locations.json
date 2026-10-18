@@ -1,0 +1,68 @@
+[
+ {
+  "key": "japan-tag",
+  "name": "Düsseldorf, Japan-Tag (Rheinufer)",
+  "lat": 51.2265,
+  "lng": 6.771
+ },
+ {
+  "key": "japanviertel",
+  "name": "Düsseldorf, Japanviertel",
+  "lat": 51.225,
+  "lng": 6.788
+ },
+ {
+  "key": "dokom",
+  "name": "Düsseldorf, DoKomi (Messe)",
+  "lat": 51.2601,
+  "lng": 6.738
+ },
+ {
+  "key": "polaris",
+  "name": "Hamburg, Polaris (Messe)",
+  "lat": 53.5627,
+  "lng": 9.977
+ },
+ {
+  "key": "gamescom",
+  "name": "Köln, Gamescom (Koelnmesse)",
+  "lat": 50.9466,
+  "lng": 6.983
+ },
+ {
+  "key": "düsseldorf",
+  "name": "Düsseldorf",
+  "lat": 51.2277,
+  "lng": 6.7735
+ },
+ {
+  "key": "hamburg",
+  "name": "Hamburg",
+  "lat": 53.5511,
+  "lng": 9.9937
+ },
+ {
+  "key": "venlo",
+  "name": "Venlo (NL)",
+  "lat": 51.3704,
+  "lng": 6.1724
+ },
+ {
+  "key": "köln",
+  "name": "Köln",
+  "lat": 50.9375,
+  "lng": 6.9603
+ },
+ {
+  "key": "frankfurt",
+  "name": "Frankfurt am Main",
+  "lat": 50.1109,
+  "lng": 8.6821
+ },
+ {
+  "key": "venedig",
+  "name": "Venedig (IT)",
+  "lat": 45.4408,
+  "lng": 12.3155
+ }
+]
