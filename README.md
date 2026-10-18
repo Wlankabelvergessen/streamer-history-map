@@ -2,7 +2,7 @@
 
 Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Datum, Dauer, Zuschauerzahlen, ungefähre Orte (aus den Streamtiteln) und zugeordnete Twitch-Clips.
 
-- Streamdaten: TwitchTracker · Clips: Twitch
+- Streamliste bis 18.10.2026: TwitchTracker · seitdem und Clips: Twitch-API
 - Karte: © OpenStreetMap-Mitwirkende, Ländergrenzen: Natural Earth
 - Eine einzige Datei: `index.html`, läuft auf GitHub Pages ohne Build.
 
@@ -18,5 +18,4 @@ Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Da
 Benötigte Repository-Secrets: `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` (App von dev.twitch.tv/console).
 Manuell starten: *Actions → Streams und Clips aktualisieren → Run workflow*.
 
-Hinweis: Zuschauerzahlen liefert die Twitch-API nicht; sie stammen für ältere Streams von TwitchTracker.
 Neue Orte: Eintrag in `data/locations.json` ergänzen (`key` = Wort im Titel, kleingeschrieben).
