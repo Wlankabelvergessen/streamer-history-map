@@ -1388,16 +1388,20 @@ $('#f-gpx').addEventListener('change',function(e){
     }).catch(function(){});
     // LIVE-Status (über decapi.me, ohne Twitch-Token), alle 2 Minuten
     var liveCheck=function(){
-      var base='https://decapi.me/twitch/',ch=CHANNEL,get=function(p){return fetch(base+p+'/'+ch,{cache:'no-store'}).then(function(r){return r.ok?r.text():''})};
-      get('uptime').then(function(up){
-        var on=up&&!/offline|error|not found/i.test(up);
-        $('#live').hidden=!on;document.querySelector('.hero').classList.toggle('is-live',!!on);
+      // Live-Erkennung über Twitchs Vorschaubild: offline leitet Twitch auf ein 404-Platzhalterbild um
+      fetch('https://static-cdn.jtvnw.net/previews-ttv/live_user_'+CHANNEL+'-320x180.jpg?t='+Date.now(),{cache:'no-store'}).then(function(r){
+        var on=r.ok&&!/404_preview/.test(r.url);
+        $('#live').hidden=!on;document.querySelector('.hero').classList.toggle('is-live',on);
         if(!on)return;
-        var h=(up.match(/(\d+) hour/)||[])[1],m=(up.match(/(\d+) minute/)||[])[1];
-        var since=(h?h+' Std. ':'')+(m?m+' Min.':'');
-        Promise.all([get('title'),get('game')]).then(function(v){
-          var title=(v[0]||'').replace(/\s*[|│┃]?\s*!(subtember|subathon|rad|dc|insta|tt|yt|ig|clip)\b.*$/i,'').trim();
-          $('#live-t').textContent=[v[1],title,since?'seit '+since:''].filter(Boolean).join(' · ');
+        $('#live-t').textContent='Jetzt auf Twitch ansehen';
+        // Titel, Kategorie, Laufzeit: optional über decapi.me (kann überlastet sein, dann bleibt der Standardtext)
+        var get=function(p){return fetch('https://decapi.me/twitch/'+p+'/'+CHANNEL,{cache:'no-store'}).then(function(x){return x.ok?x.text():''}).then(function(s){return /error|offline|not found|too many/i.test(s)?'':s}).catch(function(){return ''})};
+        Promise.all([get('game'),get('title'),get('uptime')]).then(function(v){
+          var title=(v[1]||'').replace(/\s*[|│┃]?\s*!(subtember|subathon|rad|dc|insta|tt|yt|ig|clip)\b.*$/i,'').trim();
+          var h=(v[2].match(/(\d+) hour/)||[])[1],m=(v[2].match(/(\d+) minute/)||[])[1];
+          var since=h||m?'seit '+(h?h+' Std. ':'')+(m?m+' Min.':''):'';
+          var txt=[v[0],title,since].filter(Boolean).join(' · ');
+          if(txt)$('#live-t').textContent=txt;
         });
       }).catch(function(){});
     };
