@@ -295,6 +295,7 @@ const vodStart = new Map();
 }
 const vodDebug = { clips: alive.size, withVideo: [...alive.values()].filter(a => a.video_id).length, withOffset: [...alive.values()].filter(a => a.vod_offset != null).length, vodsFound: vodStart.size, sample: [...alive.values()].slice(0, 3).map(a => ({ v: a.video_id, o: a.vod_offset, c: a.created_at })) };
 console.log('VOD-Positionen:', JSON.stringify(vodDebug));
+await writeFile(new URL('../data/debug.json', import.meta.url), JSON.stringify(vodDebug, null, 1));
 const momentOf = a => (a.video_id && a.vod_offset != null && vodStart.has(a.video_id)) ? vodStart.get(a.video_id) + a.vod_offset * 1000 : +new Date(a.created_at);
 let clipsMoved = 0;
 for (const s of stored) {
