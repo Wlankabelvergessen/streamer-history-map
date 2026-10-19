@@ -293,6 +293,8 @@ const vodStart = new Map();
     catch (e) { console.warn('VOD-Abfrage:', e.message); }
   }
 }
+const vodDebug = { clips: alive.size, withVideo: [...alive.values()].filter(a => a.video_id).length, withOffset: [...alive.values()].filter(a => a.vod_offset != null).length, vodsFound: vodStart.size, sample: [...alive.values()].slice(0, 3).map(a => ({ v: a.video_id, o: a.vod_offset, c: a.created_at })) };
+console.log('VOD-Positionen:', JSON.stringify(vodDebug));
 const momentOf = a => (a.video_id && a.vod_offset != null && vodStart.has(a.video_id)) ? vodStart.get(a.video_id) + a.vod_offset * 1000 : +new Date(a.created_at);
 let clipsMoved = 0;
 for (const s of stored) {
@@ -357,7 +359,7 @@ const profileChanged = profile.profileImage !== meta.profileImage || profile.dis
 if (json !== old) await writeFile(DATA, json);
 const clipTotal = streams.reduce((s, r) => s + (r.clips || []).length, 0);
 if (json !== old || profileChanged) {
-  await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, clips: clipTotal, ...profile }, null, 1) + '\n');
+  await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, clips: clipTotal, ...profile, vodDebug }, null, 1) + '\n');
 }
 // Teilen-Vorschaubild nur neu erzeugen, wenn sich die Zahlen geändert haben (nicht bei jeder Zuschauer-Messung)
 const { existsSync } = await import('node:fs');
