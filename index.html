@@ -1389,7 +1389,7 @@ function renderDetail(r){
     (r.desc?'<p class="desc">'+esc(r.desc)+'</p>':'')+
     (stops?'<div class="sec"><h3>Stationen</h3><ol class="stops">'+stops+'</ol></div>':'')+
     '<div class="sec"><h3 class="cliph">Clips'+(CL.length?' · '+CL.length:'')+(CL.length>1?'<span class="seg" role="group" aria-label="Clips sortieren"><button type="button" data-csort="top" aria-pressed="'+!chrono+'">Beliebteste</button><button type="button" data-csort="time" aria-pressed="'+chrono+'">Chronologisch</button></span>':'')+'</h3>'+(clips?'<div class="clips">'+clips+'</div>':'<p class="note">Noch keine Clips verlinkt. <a href="https://www.twitch.tv/'+CHANNEL+'/clips?filter=clips&range=all" target="_blank" rel="noopener noreferrer">Clips auf Twitch ansehen ↗</a></p>')+'</div>'+
-    '<div class="actions">'+(hasRoute(r)?'<a class="btn" href="'+esc(gmapsUrl(r))+'" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--fg)">In Google Maps öffnen ↗</a>':'')+
+    '<div class="actions">'+
     (canEdit(state.user)?'<button type="button" class="btn primary" id="redit">'+(hasRoute(r)?'Route bearbeiten':'Route zeichnen')+'</button>':'')+'</div>'+
     ((r.avgViewers!=null||CL.length)?'<p class="note src-note">'+[r.avgViewers!=null?'Zuschauer & Follower: TwitchTracker':'',CL.length?'Clips: Twitch, '+(chrono?'vom Streamanfang bis zum Ende':'nach Aufrufen sortiert'):''].filter(Boolean).join(' · ')+'</p>':'');
 }
