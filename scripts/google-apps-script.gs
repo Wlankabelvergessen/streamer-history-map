@@ -2,7 +2,7 @@
  * Naschii's Adventure Map – Taktgeber für die automatische Aktualisierung
  *
  * 1) Stößt alle 15 Minuten den GitHub-Workflow "Streams und Clips aktualisieren" an.
- * 2) Nimmt gezeichnete Routen von der Webseite entgegen (doPost), prüft Twitch-Login und
+ * 2) Nimmt gezeichnete Routen und den Update-Knopf der Webseite entgegen (doPost), prüft Twitch-Login und
  *    Bearbeitungsrecht (naschiitaschii, EDITORS, Mods des Kanals) und stößt "Route speichern" an.
  *
  * Einrichtung Taktgeber (einmalig):
@@ -82,7 +82,26 @@ function doPost(e) {
 
     // 2. Darf diese Person bearbeiten?
     if (!(login === CHANNEL || EDITORS.indexOf(login) >= 0 || istMod(who.user_id, token))) {
-      return antwort({ ok: false, code: 'forbidden', error: 'Nur naschiitaschii, ihre Mods und eingetragene Bearbeiter dürfen Routen speichern.' });
+      return antwort({ ok: false, code: 'forbidden', error: 'Nur Kanalbetreiber, Mods und Berechtigte dürfen das.' });
+    }
+
+    // 2b. Update-Knopf auf der Seite: Aktualisierung von Hand anstoßen (höchstens alle 2 Minuten)
+    if (body.action === 'update') {
+      const cache = CacheService.getScriptCache();
+      if (cache.get('manual-update')) return antwort({ ok: false, code: 'wait', error: 'Gerade erst angestoßen. Bitte 2 Minuten warten.' });
+      const ghTok = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+      const r = UrlFetchApp.fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, {
+        method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+        headers: { Authorization: 'Bearer ' + ghTok, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+        payload: JSON.stringify({ ref: 'main' }),
+      });
+      if (r.getResponseCode() !== 204) {
+        console.log('GitHub (Update-Knopf): ' + r.getResponseCode() + ' ' + r.getContentText());
+        return antwort({ ok: false, code: 'github', error: 'GitHub hat das Update abgelehnt (' + r.getResponseCode() + '). Vermutlich ist der GitHub-Token abgelaufen.' });
+      }
+      cache.put('manual-update', login, 120);
+      console.log('Update von Hand angestoßen von ' + login);
+      return antwort({ ok: true, at: new Date().toISOString(), by: login });
     }
 
     // 3. Grobe Prüfung der Daten (die genaue Prüfung macht scripts/save-route.mjs)
