@@ -6,7 +6,12 @@ on:
     # Ungerade Minuten, weil GitHub zur vollen Viertelstunde überlastet ist und Läufe dann oft ausfallen.
     # Zuverlässiger Takt kommt von außen: Google Apps Script (scripts/google-apps-script.gs) stößt alle 15 Min. an.
     - cron: '7,22,37,52 * * * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: 'Für jeden Stream einzeln nach Clips suchen (einmaliger Nachhol-Lauf)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -27,6 +32,7 @@ jobs:
         env:
           TWITCH_CLIENT_ID: ${{ secrets.TWITCH_CLIENT_ID }}
           TWITCH_CLIENT_SECRET: ${{ secrets.TWITCH_CLIENT_SECRET }}
+          BACKFILL: ${{ inputs.backfill && '1' || '' }}
         run: node scripts/update.mjs
       - name: Prüfen, ob sich Daten geändert haben
         id: changed

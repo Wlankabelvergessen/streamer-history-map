@@ -166,6 +166,22 @@ for (const r of streams) if (!r.location) { const l = locate(r.title); if (l) { 
 // 2) Clips der letzten CLIP_DAYS Tage
 const since = new Date(Date.now() - CLIP_DAYS * 86400000).toISOString();
 const clips = await helix('clips', { broadcaster_id: user.id, started_at: since, ended_at: new Date().toISOString(), first: '100' });
+// Einmaliger Nachhol-Lauf (BACKFILL=1): für jeden Stream einzeln nach Clips fragen.
+// Twitch liefert bei langen Zeiträumen nur die meistgesehenen Clips, so fehlen sonst Clips mit wenigen Aufrufen.
+if (process.env.BACKFILL === '1' || process.env.BACKFILL === 'true') {
+  const seenIds = new Set(clips.map(c => c.id));
+  let extra = 0;
+  for (const r of streams) {
+    const s = startOf(r); if (isNaN(s)) continue;
+    const from = new Date(+s - 10 * 60000).toISOString(), to = new Date(+s + (r.durationMin + 30) * 60000).toISOString();
+    try {
+      for (const c of await helix('clips', { broadcaster_id: user.id, started_at: from, ended_at: to, first: '100' })) {
+        if (!seenIds.has(c.id)) { seenIds.add(c.id); clips.push(c); extra++; }
+      }
+    } catch (e) { console.warn('Nachhol-Abfrage fehlgeschlagen für', r.id, e.message); }
+  }
+  console.log('Nachhol-Lauf: ' + extra + ' Clips aus den Stream-Zeiträumen geholt (neue und bekannte).');
+}
 const gameIds = [...new Set(clips.map(c => c.game_id).filter(Boolean))];
 const games = {};
 for (let i = 0; i < gameIds.length; i += 100) {
