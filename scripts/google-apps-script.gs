@@ -17,7 +17,7 @@
  *   Nach jeder Code-Änderung: Bereitstellen → Bereitstellungen verwalten → Bearbeiten (Stift) → Version "Neue Version".
  */
 
-const REPO = 'Wlankabelvergessen/streamer-history-map';
+const REPO = 'naschiis-adventure-map/naschiis-adventure-map.github.io';
 const WORKFLOW = 'update.yml';
 const SAVE_WORKFLOW = 'save-route.yml';
 const CHANNEL = 'naschiitaschii';

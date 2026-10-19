@@ -28,10 +28,10 @@ Orte: `data/locations.json` enthält ~100 Städte/Orte. Neuer Eintrag = `key` (W
 GitHub startet geplante Läufe nicht garantiert. Ein externer Dienst kann den Lauf zusätzlich anstoßen:
 
 1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → *Generate new token*
-   - Repository access: *Only select repositories* → `streamer-history-map`
+   - Repository access: *Only select repositories* → `naschiis-adventure-map.github.io`
    - Permissions → Repository → **Actions: Read and write**
 2. Auf [cron-job.org](https://cron-job.org) einen Job anlegen:
-   - URL: `https://api.github.com/repos/Wlankabelvergessen/streamer-history-map/actions/workflows/update.yml/dispatches`
+   - URL: `https://api.github.com/repos/naschiis-adventure-map/naschiis-adventure-map.github.io/actions/workflows/update.yml/dispatches`
    - Zeitplan: alle 15 Minuten · Methode: **POST**
    - Header: `Authorization: Bearer <TOKEN>` · `Accept: application/vnd.github+json` · `Content-Type: application/json`
    - Body: `{"ref":"main"}`
