@@ -3,8 +3,9 @@ name: Streams und Clips aktualisieren
 on:
   schedule:
     # alle 15 Minuten: erfasst laufende Streams (Zuschauer, Dauer) und neue Clips.
-    # GitHub startet geplante Läufe teils verspätet – durch das enge Raster fällt das kaum ins Gewicht.
-    - cron: '*/15 * * * *'
+    # Ungerade Minuten, weil GitHub zur vollen Viertelstunde überlastet ist und Läufe dann oft ausfallen.
+    # Zusätzlich kann ein externer Dienst (cron-job.org) den Lauf über die API anstoßen (siehe README).
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch: {}
 
 permissions:
