@@ -2,8 +2,9 @@ name: Streams und Clips aktualisieren
 
 on:
   schedule:
-    # 2x täglich (UTC): 06:20 und 18:20 – entspricht 07/08:20 bzw. 19/20:20 Uhr deutscher Zeit
-    - cron: '20 6,18 * * *'
+    # alle 15 Minuten: erfasst laufende Streams (Zuschauer, Dauer) und neue Clips.
+    # GitHub startet geplante Läufe teils verspätet – durch das enge Raster fällt das kaum ins Gewicht.
+    - cron: '*/15 * * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -29,13 +30,14 @@ jobs:
       - name: Prüfen, ob sich Daten geändert haben
         id: changed
         run: |
-          if git diff --quiet -- data && [ -f og.png ]; then echo "yes=false" >> "$GITHUB_OUTPUT"; else echo "yes=true" >> "$GITHUB_OUTPUT"; fi
+          if [ -f .og-needed ]; then echo "yes=true" >> "$GITHUB_OUTPUT"; else echo "yes=false" >> "$GITHUB_OUTPUT"; fi
       - name: Teilen-Vorschaubild (og.png) erzeugen
         if: steps.changed.outputs.yes == 'true'
         run: |
           npm i --no-save --no-audit --no-fund playwright@1.48.2
           npx playwright install --with-deps chromium
           node scripts/og.mjs
+          rm -f .og-needed
       - name: Änderungen speichern
         run: |
           if git diff --quiet -- data og.png && [ -z "$(git ls-files --others --exclude-standard og.png)" ]; then echo "Keine neuen Daten."; exit 0; fi

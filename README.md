@@ -8,7 +8,9 @@ Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Da
 
 ## Automatische Aktualisierung
 
-`.github/workflows/update.yml` läuft 2× täglich und führt `scripts/update.mjs` aus:
+`.github/workflows/update.yml` läuft alle 15 Minuten und führt `scripts/update.mjs` aus:
+
+- erfasst laufende Streams direkt (auch ohne öffentliches VOD) und misst Ø/Max-Zuschauer und Follower-Zuwachs,
 
 - holt neue Streams (VODs) und Clips von naschiitaschii über die offizielle Twitch-API,
 - prüft alle gespeicherten Clips: auf Twitch gelöschte werden entfernt, Aufrufe und Titel aktualisiert,

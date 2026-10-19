@@ -95,9 +95,45 @@ TOKEN = await token();
 const [user] = await helix('users', { login: LOGIN });
 if (!user) throw new Error('Kanal nicht gefunden: ' + LOGIN);
 
+// 0) Laufenden Stream erfassen (die Action läuft alle 15 Minuten).
+//    So landet jeder Stream in der Liste – auch wenn Twitch kein öffentliches VOD anbietet –
+//    und Ø/Max-Zuschauer sowie Follower-Zuwachs werden selbst gemessen.
+async function followerTotal() {
+  const r = await fetch('https://api.twitch.tv/helix/channels/followers?first=1&broadcaster_id=' + user.id, { headers: { 'Client-Id': CLIENT_ID, Authorization: 'Bearer ' + TOKEN } });
+  if (!r.ok) return null;
+  const j = await r.json();
+  return typeof j.total === 'number' ? j.total : null;
+}
+let added = 0, updated = 0, liveNote = 'offline';
+const [live] = await helix('streams', { user_id: user.id, type: 'live' });
+if (live) {
+  const start = new Date(live.started_at);
+  const nowMin = Math.max(1, Math.round((Date.now() - start) / 60000));
+  let r = streams.find(x => x.streamId === live.id)
+       || streams.find(x => !x.streamId && Math.abs(startOf(x) - start) <= MATCH_MIN * 60000);
+  if (!r) {
+    const b = berlin(start);
+    r = { id: `ls-${live.id}`, source: 'live', title: '', date: b.date, start: b.time, durationMin: nowMin, desc: '', points: [], stops: [], clips: [] };
+    streams.push(r); added++;
+  }
+  r.streamId = live.id;
+  if (r.source !== 'twitchtracker') {
+    r.title = cleanTitle(live.title);
+    const s = r.viewerSamples || { n: 0, sum: 0, max: 0 };
+    s.n++; s.sum += live.viewer_count; s.max = Math.max(s.max, live.viewer_count);
+    r.viewerSamples = s; r.avgViewers = Math.round(s.sum / s.n); r.maxViewers = s.max;
+    const f = await followerTotal().catch(() => null);
+    if (f != null) { if (r.followersStart == null) r.followersStart = f; r.followers = f - r.followersStart; }
+  }
+  r.durationMin = Math.max(r.durationMin || 0, nowMin);
+  if (live.game_name) r.game = live.game_name;
+  r.live = true;
+  liveNote = `LIVE seit ${nowMin} Min. · ${live.viewer_count} Zuschauer · ${live.game_name || ''}`;
+}
+for (const r of streams) if (r.live && (!live || r.streamId !== live.id)) delete r.live;
+
 // 1) Streams aus den VODs (Twitch hält sie je nach Status 7–60 Tage vor)
 const videos = await helix('videos', { user_id: user.id, type: 'archive', first: '100' });
-let added = 0, updated = 0;
 for (const v of videos) {
   const start = new Date(v.created_at);
   const dur = durationMin(v.duration);
@@ -207,6 +243,36 @@ for (let i = 0; i < missingGames.length; i += 100) {
   const q = new URLSearchParams(); missingGames.slice(i, i + 100).forEach(id => q.append('id', id));
   try { for (const g of await helix('games', q)) games[g.id] = g.name; } catch (e) { console.warn('Kategorien:', e.message); }
 }
+// Clips umhängen: liegt die Erstellzeit eindeutig im Zeitfenster eines anderen Streams, gehört der Clip dorthin.
+// (Clips, die später aus dem VOD geschnitten wurden, liegen in keinem Fenster und bleiben, wo sie sind.)
+// Streams mit "openEnd" (nachgetragen, Dauer unbekannt) reichen bis zum nächsten Stream, höchstens 12 Std.
+const byStart = [...streams].sort((a, b) => startOf(a) - startOf(b));
+const windowOf = r => {
+  const s = +startOf(r);
+  if (r.openEnd) { const nx = byStart.find(x => +startOf(x) > s); return [s - 5 * 60000, Math.min(nx ? +startOf(nx) - 60000 : Infinity, s + 12 * 3600000)]; }
+  return [s - 5 * 60000, s + ((r.durationMin || 0) + 10) * 60000];
+};
+let clipsMoved = 0;
+for (const s of stored) {
+  const a = alive.get(s.id);
+  if (!a || !a.created_at) continue;
+  s.c.at = a.created_at;
+  const t = +new Date(a.created_at);
+  const [o0, o1] = windowOf(s.r);
+  if (t >= o0 && t <= o1) continue;
+  const target = streams.find(x => x !== s.r && (([w0, w1]) => t >= w0 && t <= w1)(windowOf(x)));
+  if (!target) continue;
+  s.r.clips = s.r.clips.filter(c => c !== s.c);
+  (target.clips = target.clips || []).push(s.c);
+  s.r = target; clipsMoved++;
+}
+// Nachgetragene Streams: Dauer mindestens bis zum letzten Clip
+for (const r of streams) if (r.openEnd) {
+  const last = Math.max(0, ...(r.clips || []).map(c => c.at ? +new Date(c.at) : 0));
+  if (last) r.durationMin = Math.max(r.durationMin || 0, Math.round((last - startOf(r)) / 60000) + 5);
+}
+if (clipsMoved) console.log('Clips umgehängt:', clipsMoved);
+
 for (const s of stored) {
   const a = alive.get(s.id);
   if (!a) continue;
@@ -221,7 +287,8 @@ for (const r of streams) {
   const cnt = {};
   for (const c of r.clips || []) if (c.game) cnt[c.game] = (cnt[c.game] || 0) + 1;
   const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
-  if (top) r.category = top[0]; else delete r.category;
+  if (r.game) r.category = r.game;               // live gemessene Kategorie hat Vorrang
+  else if (top) r.category = top[0]; else delete r.category;
 }
 
 // 5) Orte aus Clip-Titeln: z. B. "Tanz in Venedig". Mindestens 2 passende Clips,
@@ -245,8 +312,15 @@ try { meta = JSON.parse(await readFile(META, 'utf8')); } catch {}
 const profile = { profileImage: user.profile_image_url || meta.profileImage || null, displayName: user.display_name || meta.displayName || LOGIN };
 const profileChanged = profile.profileImage !== meta.profileImage || profile.displayName !== meta.displayName;
 if (json !== old) await writeFile(DATA, json);
+const clipTotal = streams.reduce((s, r) => s + (r.clips || []).length, 0);
 if (json !== old || profileChanged) {
-  await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, ...profile }, null, 1) + '\n');
+  await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, clips: clipTotal, ...profile }, null, 1) + '\n');
 }
+// Teilen-Vorschaubild nur neu erzeugen, wenn sich die Zahlen geändert haben (nicht bei jeder Zuschauer-Messung)
+const { existsSync } = await import('node:fs');
+if (meta.streams !== streams.length || meta.clips !== clipTotal || !existsSync(new URL('../og.png', import.meta.url))) {
+  await writeFile(new URL('../.og-needed', import.meta.url), '1');
+}
+console.log('Live:', liveNote);
 console.log(`VODs geprüft: ${videos.length} · neue Streams: ${added} · aktualisiert: ${updated} · Orte nachgetragen: ${located} (aus Clip-Titeln: ${fromClips})`);
 console.log(`Clips geprüft: ${clips.length} neue · ${stored.length} gespeicherte · neu: ${clipsNew} · gelöscht: ${clipsDel} · Aufrufe aktualisiert: ${clipsUpd} · ohne Stream: ${clipsLost}`);
