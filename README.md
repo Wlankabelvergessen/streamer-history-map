@@ -1,5 +1,7 @@
 # Naschii’s Adventure Map
 
+**Seite:** https://naschiis-adventure-map.github.io
+
 Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Datum, Dauer, Zuschauerzahlen, ungefähre Orte (aus den Streamtiteln) und zugeordnete Twitch-Clips.
 
 - Streamliste bis 18.10.2026: TwitchTracker · seitdem und Clips: Twitch-API
