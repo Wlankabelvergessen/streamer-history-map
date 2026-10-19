@@ -1,0 +1,38 @@
+name: Route speichern
+
+# Wird vom Google Apps Script angestoßen, nachdem es Twitch-Login und Bearbeitungsrecht geprüft hat.
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: 'Route als JSON ({ id, route, by })'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  save:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Prüfen und speichern
+        env:
+          PAYLOAD: ${{ inputs.payload }}
+        run: |
+          git config user.name "adventure-map-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Bei gleichzeitigen Änderungen: neuesten Stand holen, Route neu eintragen, erneut versuchen
+          for i in 1 2 3 4 5; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            node scripts/save-route.mjs || exit 1
+            git add data/routes.json
+            git diff --cached --quiet && { echo "Keine Änderung."; exit 0; }
+            git commit -qm "Route gespeichert"
+            git push -q origin HEAD:main && exit 0
+            sleep $((RANDOM % 6 + 3))
+          done
+          exit 1
