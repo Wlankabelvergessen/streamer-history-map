@@ -1013,6 +1013,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 #map.mode-free{cursor:crosshair}
 #map.mode-points,#map.mode-stop,#map.armed{cursor:copy}
 #map.dropping{outline:3px dashed var(--accent);outline-offset:-3px}
+.card.flash{box-shadow:inset 3px 0 0 var(--accent);background:#f5a9d61a;transition:background .6s}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1205,7 +1206,7 @@ function showGroup(g){
   var el=hoverTip.getElement();L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);
   el.addEventListener('mouseenter',function(){clearTimeout(tipTimer)});el.addEventListener('mouseleave',function(){hideTip()});
 }
-function showInList(name){hideTip(true);setQuery(name);if(state.selectedId)deselect();else showView('list')}
+function showInList(name){hideTip(true);listScroll=0;lastCard=null;setQuery(name);if(state.selectedId)deselect();else showView('list')}
 function drawLines(){
   Object.keys(lines).forEach(function(k){map.removeLayer(lines[k])});lines={};
   Object.keys(groups).forEach(function(k){map.removeLayer(groups[k].marker)});groups={};hideTip(true);
@@ -1248,7 +1249,7 @@ function animateLine(line){
 var stopMarkers=[];
 function select(id){
   if(state.editing)return;
-  var r=byId(id);if(!r)return;state.selectedId=id;
+  var r=byId(id);if(!r)return;lastCard=id;state.selectedId=id;
   dimAll(id);hideTip(true);
   selGroup.clearLayers();stopMarkers=[];
   clipMarkers={};
@@ -1267,10 +1268,20 @@ function deselect(){
 }
 
 /* ---------- Ansichten ---------- */
+var curView='list',listScroll=0;
 function showView(v){
+  var pn=$('#panel');
+  if(curView==='list'&&v!=='list')listScroll=pn.scrollTop;   // Position in der Liste merken
   $('#v-list').hidden=v!=='list';$('#v-detail').hidden=v!=='detail';$('#v-form').hidden=v!=='form';$('#v-route').hidden=v!=='route';
-  $('#panel').scrollTop=0;
+  if(v==='list'&&curView!=='list'){
+    pn.scrollTop=listScroll;
+    // zuletzt angesehenen Stream sichtbar halten und kurz markieren
+    var c=lastCard&&document.querySelector('.card[data-id="'+CSS.escape(lastCard)+'"]');
+    if(c){var cr=c.getBoundingClientRect(),pr=pn.getBoundingClientRect();if(cr.top<pr.top+60||cr.bottom>pr.bottom)c.scrollIntoView({block:'center'});c.classList.add('flash');setTimeout(function(){c.classList.remove('flash')},1200)}
+  }else if(v!=='list')pn.scrollTop=0;
+  curView=v;
 }
+var lastCard=null;
 function renderStats(){
   var min=0,clips=0,places={};state.routes.forEach(function(r){min+=r.durationMin;clips+=(r.clips||[]).length;if(r.location)places[r.location.name.split(',')[0]]=1});
   var f=function(n){return n.toLocaleString('de-DE',{maximumFractionDigits:1})};
