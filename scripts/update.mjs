@@ -293,9 +293,6 @@ const vodStart = new Map();
     catch (e) { console.warn('VOD-Abfrage:', e.message); }
   }
 }
-const vodDebug = { clips: alive.size, withVideo: [...alive.values()].filter(a => a.video_id).length, withOffset: [...alive.values()].filter(a => a.vod_offset != null).length, vodsFound: vodStart.size, sample: [...alive.values()].slice(0, 3).map(a => ({ v: a.video_id, o: a.vod_offset, c: a.created_at })) };
-console.log('VOD-Positionen:', JSON.stringify(vodDebug));
-await writeFile(new URL('../data/debug.json', import.meta.url), JSON.stringify(vodDebug, null, 1));
 const momentOf = a => (a.video_id && a.vod_offset != null && vodStart.has(a.video_id)) ? vodStart.get(a.video_id) + a.vod_offset * 1000 : +new Date(a.created_at);
 let clipsMoved = 0;
 for (const s of stored) {
@@ -306,8 +303,18 @@ for (const s of stored) {
   if (t !== +new Date(a.created_at)) s.c.moment = new Date(t).toISOString(); else delete s.c.moment;
   const [o0, o1] = windowOf(s.r);
   if (t >= o0 && t <= o1) continue;
-  const target = streams.find(x => x !== s.r && (([w0, w1]) => t >= w0 && t <= w1)(windowOf(x)));
-  if (!target) continue;
+  let target = streams.find(x => x !== s.r && (([w0, w1]) => t >= w0 && t <= w1)(windowOf(x)));
+  if (!target && a.game_id && games[a.game_id]) {
+    // Clip wurde nach dem Stream aus einem VOD geschnitten (liegt in keinem Zeitfenster):
+    // zum letzten Stream davor (max. 14 Tage) mit derselben Kategorie, falls der aktuelle sie nicht hat.
+    const g = games[a.game_id];
+    const hasCat = r => r.category === g || r.game === g || (r.clips || []).some(c => c !== s.c && c.game === g && c.at && (([w0, w1]) => +new Date(c.at) >= w0 && +new Date(c.at) <= w1)(windowOf(r)));
+    if (!hasCat(s.r)) {
+      const cand = byStart.filter(x => windowOf(x)[1] <= t && t - windowOf(x)[1] <= 14 * 86400000 && hasCat(x));
+      target = cand[cand.length - 1];
+    }
+  }
+  if (!target || target === s.r) continue;
   s.r.clips = s.r.clips.filter(c => c !== s.c);
   (target.clips = target.clips || []).push(s.c);
   s.r = target; clipsMoved++;
@@ -360,7 +367,7 @@ const profileChanged = profile.profileImage !== meta.profileImage || profile.dis
 if (json !== old) await writeFile(DATA, json);
 const clipTotal = streams.reduce((s, r) => s + (r.clips || []).length, 0);
 if (json !== old || profileChanged) {
-  await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, clips: clipTotal, ...profile, vodDebug }, null, 1) + '\n');
+  await writeFile(META, JSON.stringify({ updated: json !== old ? new Date().toISOString() : meta.updated, streams: streams.length, clips: clipTotal, ...profile }, null, 1) + '\n');
 }
 // Teilen-Vorschaubild nur neu erzeugen, wenn sich die Zahlen geändert haben (nicht bei jeder Zuschauer-Messung)
 const { existsSync } = await import('node:fs');
