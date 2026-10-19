@@ -1475,7 +1475,7 @@ function progressOf(p,ll){
   return at;
 }
 function sortStops(p,stops){return stops.slice().sort(function(a,b){return progressOf(p,[a.lat,a.lng])-progressOf(p,[b.lat,b.lng])})}
-function clipTime(c){if(!c.at)return '';var d=new Date(c.at);return isNaN(d)?'':d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr'}
+function clipTime(c){var w=c.moment||c.at;if(!w)return '';var d=new Date(w);return isNaN(d)?'':d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+' Uhr'}
 function clipCard(c,link){
   var th=c.thumb&&safeUrl(c.thumb),u=safeUrl(c.url);
   return (th?'<img class="ct-img" src="'+esc(th)+'" alt="" onerror="this.removeAttribute(\'src\')">':'<span class="ct-img"></span>')+
@@ -1704,7 +1704,7 @@ function autoPlace(){
   // nur die 10 meistgesehenen Clips, sonst stapeln sich die Marker
   (r.clips||[]).slice().sort(function(a,b){return (b.views||0)-(a.views||0)}).slice(0,10).forEach(function(c){
     var sg=slugOf(c.url);if(!sg||ed.clips[sg]||!c.at)return;
-    var t=new Date(c.at).getTime();if(isNaN(t))return;
+    var t=new Date(c.moment||c.at).getTime();if(isNaN(t))return;
     var pp=pointAtFrac(ed.points,(t-t0)/dur);ed.clips[sg]=[+pp[0].toFixed(6),+pp[1].toFixed(6)];n++;
   });
   renderEd();toast(n?n+(n===1?' Clip':' Clips')+' nach Uhrzeit verteilt. Jetzt nach Bedarf verschieben.':'Die Top-10-Clips sind schon platziert.');

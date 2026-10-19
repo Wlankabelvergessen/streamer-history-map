@@ -282,12 +282,25 @@ const windowOf = r => {
   if (r.openEnd) { const nx = byStart.find(x => +startOf(x) > s); return [s - 5 * 60000, Math.min(nx ? +startOf(nx) - 60000 : Infinity, s + 12 * 3600000)]; }
   return [s - 5 * 60000, s + ((r.durationMin || 0) + 10) * 60000];
 };
+// Clips, die später aus dem VOD geschnitten wurden: der eigentliche Moment im Stream ist
+// Startzeit des VODs + Position des Clips im VOD (vod_offset). Das ist genauer als die Erstellzeit.
+const vodStart = new Map();
+{
+  const ids = [...new Set([...alive.values()].filter(a => a.video_id && a.vod_offset != null).map(a => a.video_id))];
+  for (let i = 0; i < ids.length; i += 100) {
+    const q = new URLSearchParams(); ids.slice(i, i + 100).forEach(id => q.append('id', id));
+    try { for (const v of await helix('videos', q)) if (v.type === 'archive') vodStart.set(v.id, +new Date(v.created_at)); }
+    catch (e) { console.warn('VOD-Abfrage:', e.message); }
+  }
+}
+const momentOf = a => (a.video_id && a.vod_offset != null && vodStart.has(a.video_id)) ? vodStart.get(a.video_id) + a.vod_offset * 1000 : +new Date(a.created_at);
 let clipsMoved = 0;
 for (const s of stored) {
   const a = alive.get(s.id);
   if (!a || !a.created_at) continue;
   s.c.at = a.created_at;
-  const t = +new Date(a.created_at);
+  const t = momentOf(a);
+  if (t !== +new Date(a.created_at)) s.c.moment = new Date(t).toISOString(); else delete s.c.moment;
   const [o0, o1] = windowOf(s.r);
   if (t >= o0 && t <= o1) continue;
   const target = streams.find(x => x !== s.r && (([w0, w1]) => t >= w0 && t <= w1)(windowOf(x)));
