@@ -54,7 +54,8 @@ jobs:
           git commit -m "Daten aktualisiert: $(date -u +%Y-%m-%d)"
           # Falls zwischendurch jemand anderes gepusht hat: neuesten Stand holen und erneut versuchen
           for i in 1 2 3; do
-            git pull --rebase --autostash origin main && git push && exit 0
+            git pull --rebase --autostash -X theirs origin main && git push && exit 0
+            git rebase --abort 2>/dev/null || true
             sleep 5
           done
           exit 1
