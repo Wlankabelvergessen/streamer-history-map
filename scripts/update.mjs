@@ -304,15 +304,13 @@ for (const s of stored) {
   const [o0, o1] = windowOf(s.r);
   if (t >= o0 && t <= o1) continue;
   let target = streams.find(x => x !== s.r && (([w0, w1]) => t >= w0 && t <= w1)(windowOf(x)));
-  if (!target && a.game_id && games[a.game_id]) {
-    // Clip wurde nach dem Stream aus einem VOD geschnitten (liegt in keinem Zeitfenster):
-    // zum letzten Stream davor (max. 14 Tage) mit derselben Kategorie, falls der aktuelle sie nicht hat.
-    const g = games[a.game_id];
-    const hasCat = r => r.category === g || r.game === g || (r.clips || []).some(c => c !== s.c && c.game === g && c.at && (([w0, w1]) => +new Date(c.at) >= w0 && +new Date(c.at) <= w1)(windowOf(r)));
-    if (!hasCat(s.r)) {
-      const cand = byStart.filter(x => windowOf(x)[1] <= t && t - windowOf(x)[1] <= 14 * 86400000 && hasCat(x));
-      target = cand[cand.length - 1];
-    }
+  if (!target) {
+    // Clip wurde nach dem Stream aus einem VOD geschnitten (liegt in keinem Zeitfenster).
+    // Meist wird das letzte VOD geclippt: letzter Stream davor (max. 3 Tage), bevorzugt mit passender Kategorie.
+    const g = a.game_id && games[a.game_id];
+    const hasCat = r => !g || r.category === g || r.game === g || (r.clips || []).some(c => c !== s.c && c.game === g && c.at && (([w0, w1]) => +new Date(c.at) >= w0 && +new Date(c.at) <= w1)(windowOf(r)));
+    const cand = byStart.filter(x => windowOf(x)[1] <= t && t - windowOf(x)[1] <= 3 * 86400000);
+    if (cand.length) target = [...cand].reverse().find(hasCat) || cand[cand.length - 1];
   }
   if (!target || target === s.r) continue;
   s.r.clips = s.r.clips.filter(c => c !== s.c);
