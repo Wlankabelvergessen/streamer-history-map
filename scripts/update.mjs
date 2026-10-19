@@ -180,6 +180,20 @@ if (process.env.BACKFILL === '1' || process.env.BACKFILL === 'true') {
       }
     } catch (e) { console.warn('Nachhol-Abfrage fehlgeschlagen für', r.id, e.message); }
   }
+  // Streams, für die nichts kam: breiter suchen (1 Tag davor bis 1 Tag danach)
+  let wide = 0;
+  for (const r of streams) {
+    const s = startOf(r); if (isNaN(s)) continue;
+    const has = clips.some(c => { const t = new Date(c.created_at); return t >= s - 10 * 60000 && t <= +s + (r.durationMin + 30) * 60000; });
+    if (has || (r.clips || []).length) continue;
+    try {
+      const got = await helix('clips', { broadcaster_id: user.id, started_at: new Date(+s - 86400000).toISOString(), ended_at: new Date(+s + (r.durationMin * 60000) + 86400000).toISOString(), first: '100' });
+      const inside = got.filter(c => { const t = new Date(c.created_at); return t >= s - 10 * 60000 && t <= +s + (r.durationMin + 30) * 60000; });
+      console.log(`Breite Suche ${r.id}: ${got.length} Clips im ±1-Tag-Fenster, davon ${inside.length} im Stream`);
+      for (const c of got) if (!seenIds.has(c.id)) { seenIds.add(c.id); clips.push(c); extra++; wide++; }
+    } catch (e) { console.warn('Breite Suche fehlgeschlagen für', r.id, e.message); }
+  }
+  console.log('Breite Suche: ' + wide + ' weitere Clips.');
   console.log('Nachhol-Lauf: ' + extra + ' Clips aus den Stream-Zeiträumen geholt (neue und bekannte).');
 }
 const gameIds = [...new Set(clips.map(c => c.game_id).filter(Boolean))];
