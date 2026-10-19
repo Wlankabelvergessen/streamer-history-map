@@ -1,7 +1,30 @@
 {
- "updated": "2026-10-19T20:28:13.915Z",
+ "updated": "2026-10-19T20:54:22.730Z",
  "streams": 407,
  "clips": 3352,
  "profileImage": "https://static-cdn.jtvnw.net/jtv_user_pictures/cfeb114c-0252-4633-abc1-60e2a0a375cd-profile_image-300x300.png",
- "displayName": "Naschiitaschii"
+ "displayName": "Naschiitaschii",
+ "vodDebug": {
+  "clips": 3352,
+  "withVideo": 0,
+  "withOffset": 0,
+  "vodsFound": 0,
+  "sample": [
+   {
+    "v": "",
+    "o": null,
+    "c": "2026-10-18T14:17:58Z"
+   },
+   {
+    "v": "",
+    "o": null,
+    "c": "2026-10-18T13:11:04Z"
+   },
+   {
+    "v": "",
+    "o": null,
+    "c": "2026-10-18T13:39:07Z"
+   }
+  ]
+ }
 }
