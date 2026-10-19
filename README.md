@@ -22,3 +22,17 @@ Benötigte Repository-Secrets: `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` (App v
 Manuell starten: *Actions → Streams und Clips aktualisieren → Run workflow*.
 
 Orte: `data/locations.json` enthält ~100 Städte/Orte. Neuer Eintrag = `key` (Wort im Titel, kleingeschrieben), `name`, `lat`, `lng`; `"prefix": true` erlaubt auch Wortanfänge. Neue Einträge wirken beim nächsten Lauf auch rückwirkend.
+
+## Zuverlässiger Takt mit cron-job.org (optional)
+
+GitHub startet geplante Läufe nicht garantiert. Ein externer Dienst kann den Lauf zusätzlich anstoßen:
+
+1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → *Generate new token*
+   - Repository access: *Only select repositories* → `streamer-history-map`
+   - Permissions → Repository → **Actions: Read and write**
+2. Auf [cron-job.org](https://cron-job.org) einen Job anlegen:
+   - URL: `https://api.github.com/repos/Wlankabelvergessen/streamer-history-map/actions/workflows/update.yml/dispatches`
+   - Zeitplan: alle 15 Minuten · Methode: **POST**
+   - Header: `Authorization: Bearer <TOKEN>` · `Accept: application/vnd.github+json` · `Content-Type: application/json`
+   - Body: `{"ref":"main"}`
+3. Testlauf in cron-job.org: Antwort **204** = erfolgreich.
