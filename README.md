@@ -36,3 +36,7 @@ GitHub startet geplante Läufe nicht garantiert. Ein externer Dienst kann den La
    - Header: `Authorization: Bearer <TOKEN>` · `Accept: application/vnd.github+json` · `Content-Type: application/json`
    - Body: `{"ref":"main"}`
 3. Testlauf in cron-job.org: Antwort **204** = erfolgreich.
+
+### Alternative: Google Apps Script
+
+Code: `scripts/google-apps-script.gs` – auf script.google.com in ein neues Projekt einfügen, `GITHUB_TOKEN` als Skripteigenschaft anlegen, einmal `einrichten` ausführen.

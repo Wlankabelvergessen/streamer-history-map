@@ -4,7 +4,7 @@ on:
   schedule:
     # alle 15 Minuten: erfasst laufende Streams (Zuschauer, Dauer) und neue Clips.
     # Ungerade Minuten, weil GitHub zur vollen Viertelstunde überlastet ist und Läufe dann oft ausfallen.
-    # Zusätzlich kann ein externer Dienst (cron-job.org) den Lauf über die API anstoßen (siehe README).
+    # Zuverlässiger Takt kommt von außen: Google Apps Script (scripts/google-apps-script.gs) stößt alle 15 Min. an.
     - cron: '7,22,37,52 * * * *'
   workflow_dispatch: {}
 
