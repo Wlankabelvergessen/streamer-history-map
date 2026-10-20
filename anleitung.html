@@ -115,6 +115,18 @@ kbd{font:600 12px 'IBM Plex Mono';border:1px solid var(--line);border-bottom-wid
 .legend .co{position:static;flex:none}
 .foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font:500 12px 'IBM Plex Mono';color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .foot a{color:var(--muted)}
+.nums{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;font:500 11px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:#f1cfe6}
+.nums span{padding:4px 11px;border-radius:999px;background:#1c0f21;border:1px solid #f5a9d655}
+.nums b{font:600 14px 'IBM Plex Mono',monospace;color:#fff;letter-spacing:0;margin-right:4px}
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;position:relative}
+.flow .card{position:relative}
+.flow .card:not(:last-child)::after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--accent);font-weight:700;z-index:1}
+.fl-t{display:inline-block;margin-bottom:6px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border:1px solid #f5a9d680;border-radius:4px;padding:0 6px}
+.card.manual{border-style:dashed;border-color:#b7a3bc88}
+.card ol{padding-left:20px}
+.schema .s-ht{display:flex;align-items:center;gap:8px}
+.schema .s-av{display:block;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffd3ec,#c9579f);box-shadow:0 0 0 2px #e91916}
+@media (max-width:720px){.flow{grid-template-columns:1fr 1fr}.flow .card::after{display:none}}
 @media (max-width:720px){
   .intro,.split,.grid2,.grid3,.legend{grid-template-columns:1fr}
   h2{font-size:26px}
@@ -167,12 +179,14 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 <div class="intro">
   <div>
     <p class="kicker">Kurz erklärt</p>
-    <p class="big"><b>Naschiis Reisetagebuch:</b> alle Streams seit 2022 auf einer Karte – wo sie war, wie lange, was passiert ist, und über 3.300 Clips zum direkt Anschauen.</p>
+    <p class="big"><b>Naschiis Reisetagebuch:</b> alle Streams seit 2022 auf einer Karte – wo sie war, wie lange, was passiert ist, und alle Clips zum direkt Anschauen. Die Seite pflegt sich selbst.</p>
+    <div class="nums"><span><b id="n-streams">408</b> Streams</span><span><b id="n-hours">2.668</b> Stunden</span><span><b id="n-clips">3.357</b> Clips</span></div>
     <div class="acts"><a class="btnl p" href="./">🗺️ Zur Karte</a></div>
   </div>
   <div class="card">
     <ul>
       <li><b>Stöbern:</b> Karte, Liste, Kalender oder 🎲 Zufallsclip</li>
+      <li><b>Suchen:</b> Streams <i>und</i> Clips über ein Suchfeld</li>
       <li><b>Anschauen:</b> Clips spielen direkt auf der Seite</li>
       <li><b>Immer aktuell:</b> neue Streams und Clips kommen alle 15 Minuten von selbst</li>
       <li><b>Kostenlos</b>, ohne Werbung, ohne Anmeldung</li>
@@ -187,21 +201,23 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
   <p class="lead">Was du links auswählst, zeigt die Karte sofort – und umgekehrt. Am Handy liegt die Karte oben und die Liste darunter.</p>
   <figure class="figure">
     <div class="schema">
-      <div class="s-h"><span>Naschii’s Adventure Map</span><small class="mono" style="color:var(--muted);font-size:9px;margin-top:2px">407 STREAMS · 2.666,7 STUNDEN · 3.352 CLIPS</small><b class="co" style="left:6px;top:6px">1</b><b class="co" style="right:6px;top:6px">2</b></div>
-      <div class="s-l"><i style="height:18px"></i><i></i><i></i><i></i><i></i><b class="co" style="right:-10px;top:4px">3</b><b class="co" style="right:-10px;top:60px">4</b></div>
+      <div class="s-h"><div class="s-ht"><i class="s-av"></i><span>Naschii’s Adventure Map</span></div><small class="mono" style="color:var(--muted);font-size:9px;margin-top:3px">408 STREAMS · 2.668 STUNDEN · 3.357 CLIPS · <b style="color:#fff;background:#e91916;border-radius:6px;padding:0 4px">● LIVE</b> · AKTUALISIERT</small><b class="co" style="left:6px;top:6px">1</b><b class="co" style="right:6px;top:6px">2</b></div>
+      <div class="s-l"><i style="height:18px"></i><i></i><i></i><i></i><i></i><b class="co" style="right:-10px;top:4px">3</b><b class="co" style="right:-10px;top:60px">4</b><b class="co" style="right:6px;bottom:6px">9</b></div>
       <div class="s-m"><svg viewBox="0 0 300 170" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"><path d="M20 150 C60 100 90 130 130 80 S210 50 260 40" fill="none" stroke="#7d2a63" stroke-width="7" stroke-linecap="round"/><path d="M20 150 C60 100 90 130 130 80 S210 50 260 40" fill="none" stroke="#f5a9d6" stroke-width="3.5" stroke-linecap="round"/><circle cx="85" cy="50" r="14" fill="#f5a9d6" stroke="#fff" stroke-width="2"/><text x="85" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#2a0f22" font-family="IBM Plex Mono">12</text><rect x="118" y="68" width="22" height="22" rx="6" fill="#1c0f21" stroke="#f5a9d6" stroke-width="2"/><path d="M126 73 l9 6 l-9 6z" fill="#fff"/></svg><b class="co" style="left:6px;top:6px">5</b><b class="co" style="left:6px;top:34px">6</b><b class="co" style="left:47%;top:58%">7</b></div>
       <div class="s-r"><b class="co" style="left:50%;top:45%;transform:translateX(-50%)">8</b></div>
-      <div class="s-f"></div>
+      <div class="s-f"><b class="co" style="left:50%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;font-size:10px">10</b></div>
     </div>
     <div class="legend">
-      <div><b class="co">1</b><span><b>Header</b> mit Profilbild, Gesamtzahlen und Stand der Daten. Oben links <span class="ui-btn">DE | EN</span>.</span></div>
+      <div><b class="co">1</b><span><b>Header:</b> Profilbild (Klick öffnet Twitch), Gesamtzahlen, LIVE-Anzeige und „Automatisch aktualisiert“. Oben links <span class="ui-btn">DE | EN</span>.</span></div>
       <div><b class="co">2</b><span><span class="ui-btn t">Mit Twitch anmelden</span> – nur für Naschii, Mods und Berechtigte.</span></div>
-      <div><b class="co">3</b><span><b>Suche, Filter, Sortierung</b>, dazu <span class="ui-btn">📅 Kalender</span> und <span class="ui-btn">🎲 Zufälliger Clip</span>.</span></div>
+      <div><b class="co">3</b><span><b>Suche, Filter, Sortierung</b>, darunter <span class="ui-btn">📅 Kalender</span>, <span class="ui-btn">🎲 Zufälliger Clip</span> und die Trefferzahl.</span></div>
       <div><b class="co">4</b><span><b>Stream-Karten:</b> ein Klick öffnet die Details.</span></div>
       <div><b class="co">5</b><span><b>Zoom</b> mit <kbd>+</kbd> <kbd>−</kbd>, Mausrad oder zwei Fingern.</span></div>
       <div><b class="co">6</b><span><b>Ortsblasen:</b> Zahl = Anzahl Streams an diesem Ort.</span></div>
       <div><b class="co">7</b><span><b>Routen &amp; Clips:</b> rosa Linie, Play-Marker auf der Strecke.</span></div>
       <div><b class="co">8</b><span><b>Rahmen</b> mit Collage aus Clip-Vorschaubildern.</span></div>
+      <div><b class="co">9</b><span><span class="ui-btn p">↑ Nach oben</span> erscheint beim Scrollen und springt an den Listenanfang.</span></div>
+      <div><b class="co">10</b><span><b>Fußleiste:</b> Anleitung, Impressum, Datenschutz – öffnen sich im Kartenbereich, die Liste bleibt stehen.</span></div>
     </div>
   </figure>
 </section>
@@ -216,11 +232,12 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <figcaption>Route mit Stationen, Clip-Markern und Vorschau beim Drüberfahren</figcaption>
     </figure>
     <ul>
-      <li><span class="ui-grp">12</span> <b>Ortsblase:</b> Maus drüber zeigt die Streams an diesem Ort, ein Klick öffnet einen. „In der Liste zeigen →“ filtert links alle Streams des Ortes.</li>
-      <li><b>Rosa Linie:</b> der Weg, den Naschii gegangen ist – von Mods gezeichnet.</li>
-      <li><span class="ui-num">1</span> <b>Stationen</b> mit Namen, z. B. „Altstadt“.</li>
+      <li><span class="ui-grp">12</span> <b>Ortsblase:</b> Maus drüber zeigt die Streams an diesem Ort (bis zu 12, neueste zuerst), ein Klick auf einen Eintrag öffnet ihn. „Alle … in der Liste zeigen →“ filtert links alle Streams des Ortes. Bei nur einem Stream öffnet ein Klick auf die Blase ihn direkt.</li>
+      <li><b>Rosa Linie:</b> der Weg, den Naschii gegangen ist – von Naschii oder ihren Mods gezeichnet. Klick auf die Linie öffnet den Stream.</li>
+      <li><span class="ui-num">1</span> <b>Stationen</b> mit Namen, z. B. „Altstadt“ – Maus drüber zeigt den Namen.</li>
       <li><span class="ui-play">▶</span> <b>Clip-Marker</b> genau dort, wo der Clip entstand. Maus drüber zeigt Bild, Titel, Uhrzeit und Aufrufe, ein Klick spielt ihn ab.</li>
-      <li><span class="ui-tag">ORT UNGEFÄHR</span> = aus dem Streamtitel erkannt, auf Stadtebene.</li>
+      <li><span class="ui-tag">ORT UNGEFÄHR</span> = aus dem Streamtitel oder Clip-Titeln erkannt, auf Stadtebene.</li>
+      <li>Ein ausgewählter Stream wird hervorgehoben, alles andere tritt zurück.</li>
     </ul>
   </div>
 </section>
@@ -229,31 +246,32 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 <section class="s" id="finden">
   <p class="kicker">Streams finden</p>
   <h2>Suchen, Filtern, Sortieren</h2>
-  <p class="lead">Alle drei lassen sich kombinieren. Die Trefferzahl steht rechts neben „Zufälliger Clip“, z. B. „29 von 408 Streams · 44 Clips“.</p>
+  <p class="lead">Über 400 Streams sind schnell durchsucht. Alle drei lassen sich kombinieren. Die Trefferzahl steht rechts neben „Zufälliger Clip“ – ohne Filter z. B. „408 Streams“, beim Suchen „29 von 408 Streams · 44 Clips“.</p>
   <div class="grid2">
     <div class="card"><h3><span class="n">1</span>Suchen</h3>
-      <p style="margin-bottom:8px">Ins Feld <span class="ui-sel" style="padding-right:8px;color:var(--muted)">Suchen: Titel, Ort, Datum, Clip</span> tippen:</p>
+      <p style="margin-bottom:8px">Ins Feld <span class="ui-sel" style="padding-right:8px;color:var(--muted)">Suchen: Titel, Ort, Datum, Clip</span> tippen – die Liste filtert sich sofort. Gesucht wird in Titel, Beschreibung, Ort, Kategorie, Stationen, Datum und in den Clips.</p>
       <table><tr><th>Eingabe</th><th>findet</th></tr>
-        <tr><td class="mono">Venedig</td><td>alle Streams in Venedig</td></tr>
-        <tr><td class="mono">Oktober 2026</td><td>alle Streams eines Monats</td></tr>
+        <tr><td class="mono">Venedig</td><td>alle Streams in oder über Venedig</td></tr>
+        <tr><td class="mono">Oktober 2026</td><td>alle Streams eines Monats (Monatsnamen gehen)</td></tr>
         <tr><td class="mono">2025-12</td><td>Monat als Jahr-Monat</td></tr>
         <tr><td class="mono">Fortnite</td><td>eine Kategorie</td></tr>
         <tr><td class="mono">Kürbis</td><td>Wörter aus Titel oder Beschreibung</td></tr>
-        <tr><td class="mono">Kevin</td><td>passende <b>Clips</b> (Titel oder Clipper) – oben als Liste, Klick spielt ab</td></tr>
+        <tr><td class="mono">Kevin</td><td>passende <b>Clips</b> (Titel oder Clipper) – siehe <a href="#clipsuche">Clips suchen</a></td></tr>
       </table>
       <p style="margin-top:8px;font-size:13px;color:var(--muted)">Löschen: das <b style="color:#fff">×</b> im Suchfeld oder <kbd>Esc</kbd>.</p></div>
     <div class="card"><h3><span class="n">2</span>Filtern &amp; <span class="n">3</span>Sortieren</h3>
-      <p><span class="ui-sel">Alle</span> → Mit Ort · Mit Route · Ohne Ort</p>
-      <p style="margin:6px 0 10px"><span class="ui-sel">Alle Kategorien</span> → z. B. Just Chatting, Fortnite, IRL – mit Anzahl</p>
+      <p><span class="ui-sel">Alle</span> → <b>Mit Ort</b> (Ort bekannt oder Route) · <b>Mit Route</b> (nur gezeichnete Routen) · <b>Ohne Ort</b></p>
+      <p style="margin:6px 0 10px"><span class="ui-sel">Alle Kategorien</span> → jede Twitch-Kategorie mit Anzahl, die häufigsten zuerst, z. B. <span id="catex">Just Chatting (81), Fortnite (55), IRL (46)</span></p>
       <table><tr><th>Sortierung</th><th>zeigt oben</th></tr>
-        <tr><td>Neueste zuerst</td><td>den letzten Stream</td></tr>
+        <tr><td>Neueste zuerst</td><td>den letzten Stream (Standard)</td></tr>
         <tr><td>Älteste zuerst</td><td>den ersten (30.07.2022)</td></tr>
-        <tr><td>Meiste Ø Zuschauer</td><td>höchsten Schnitt</td></tr>
+        <tr><td>Meiste Ø Zuschauer</td><td>höchsten Zuschauerschnitt</td></tr>
         <tr><td>Meiste Max. Zuschauer</td><td>höchsten Spitzenwert</td></tr>
         <tr><td>Meiste Follower</td><td>größten Follower-Zuwachs</td></tr>
         <tr><td>Längste Streamzeit</td><td>die längsten Streams</td></tr>
       </table></div>
   </div>
+
   <div id="clipsuche" style="scroll-margin-top:64px;margin-top:22px">
   <h3>🎬 Clips suchen</h3>
   <div class="split">
@@ -273,12 +291,13 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     </ul>
   </div>
   </div>
-  <h3 style="margin-top:20px">So liest du eine Stream-Karte</h3>
+
+  <h3 style="margin-top:22px">So liest du eine Stream-Karte</h3>
   <div class="split">
     <div class="mcard"><div><div class="d"><i></i>Fr., 16. Oktober 2026 · 16:13 <span class="ui-tag r">ROUTE</span></div><h4>☀️ Schönes Wetter genießen in Düsseldorf ☀️</h4><div class="m"><span>5 Std. 33 Min.</span><span>Düsseldorf</span><span>Ø 201 Zuschauer</span><span>55 Clips</span></div></div><div class="side"><div class="cb"><b></b>IRL</div><div class="thumbm"></div></div></div>
     <ul>
       <li>Datum und Startzeit, Kennzeichen <span class="ui-tag r">ROUTE</span>, <span class="ui-tag">ORT UNGEFÄHR</span> oder <span class="ui-live">● LIVE</span></li>
-      <li>Dauer, Ort, Zuschauerschnitt, Anzahl Clips</li>
+      <li>Dauer, Ort, Zuschauerschnitt, Anzahl Clips – beim Sortieren nach Zuschauern oder Followern ist der passende Wert rosa hervorgehoben</li>
       <li>Rechts die <b>Kategorie mit Twitch-Coverbild</b> und das Vorschaubild des Top-Clips</li>
       <li>Oben in der Liste: <b>„Heute vor einem Jahr“</b> – der Stream von genau diesem Tag</li>
       <li>Weit runtergescrollt? <span class="ui-btn p">↑ Nach oben</span> unten rechts springt an den Anfang der Liste</li>
@@ -290,19 +309,21 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 <section class="s" id="stream">
   <p class="kicker">Stream ansehen</p>
   <h2>Alles zu einem Stream</h2>
+  <p class="lead">Ein Klick auf eine Stream-Karte, eine Ortsblase oder eine Route öffnet die Details links, die Karte springt zum Ort oder zur Route.</p>
   <div class="grid2">
     <div class="card"><h3>Die Details</h3><ul>
-      <li><b>Top-Clip</b> groß mit Bild – Klick spielt ihn ab</li>
-      <li><b>Fakten:</b> Dauer, Uhrzeit, Clips, Ø und Max. Zuschauer, Follower-Zuwachs</li>
-      <li><b>Was wurde gemacht?</b> – kurze Beschreibung, wenn eingetragen</li>
-      <li><b>Ort</b> und nummerierte <b>Stationen</b> der Route</li>
-      <li><span class="ui-btn">← Alle Streams</span> führt genau an die Stelle in der Liste zurück, an der du warst</li>
+      <li><b>Top-Clip</b> groß mit Bild – Klick spielt ihn direkt auf der Seite ab</li>
+      <li><b>Fakten:</b> Dauer, Uhrzeit von–bis, Anzahl Clips, Ø und Max. Zuschauer, Follower-Zuwachs</li>
+      <li><b>Was wurde gemacht?</b> – kurze Beschreibung, wenn Mods sie eingetragen haben</li>
+      <li><b>Ort</b> („Ort ungefähr“ oder ⌂ von Hand gesetzt) und nummerierte <b>Stationen</b> der Route – Klick auf eine Station zoomt dorthin</li>
+      <li><span class="ui-btn">← Alle Streams</span> führt genau an die Stelle in der Liste zurück, an der du warst; der zuletzt angesehene Stream leuchtet kurz rosa auf</li>
     </ul></div>
     <div class="card"><h3>Die Clips</h3><ul>
       <li>Zuerst die <b>Top 10</b>, Rest über <span class="ui-btn">Alle Clips anzeigen</span></li>
-      <li>Umschalter <span class="ui-btn p">Beliebteste</span> <span class="ui-btn">Chronologisch</span>: meiste Aufrufe oben – oder vom Streamanfang bis zum Ende, mit Uhrzeit</li>
-      <li>Die Wahl merkt sich die Seite</li>
-      <li>Clips mit 📍 sind auf der Route markiert – Maus drüber lässt den Marker aufleuchten</li>
+      <li>Umschalter <span class="ui-btn p">Beliebteste</span> <span class="ui-btn">Chronologisch</span>: meiste Aufrufe oben – oder vom Streamanfang oben bis zum Ende unten, mit Uhrzeit</li>
+      <li>Die Wahl merkt sich die Seite für alle Streams</li>
+      <li>Pro Clip: Titel, Aufrufe, Länge, wer geclippt hat – Klick spielt ihn im <a href="#player">Player</a></li>
+      <li>Clips mit 📍 sind auf der Route markiert – Maus drüber lässt den Marker auf der Karte aufleuchten</li>
     </ul></div>
   </div>
 </section>
@@ -314,10 +335,10 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
   <div class="split">
     <figure class="figure"><svg viewBox="0 0 240 150" width="100%"><rect width="240" height="150" rx="9" fill="#1a1220" stroke="#f5a9d6"/><text x="10" y="17" font-size="8" font-weight="600" fill="#fff" font-family="IBM Plex Sans">Tanz am Rheinufer</text><text x="10" y="27" font-size="5.5" fill="#b7a3bc" font-family="IBM Plex Mono">19:40 UHR · 37 AUFRUFE · VON BEATSNICKERS</text><circle cx="228" cy="15" r="7" fill="#251a2b" stroke="#3a2a42"/><text x="228" y="18" text-anchor="middle" font-size="8" fill="#fff">×</text><defs><linearGradient id="pg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#3b1d40"/><stop offset="1" stop-color="#9146ff"/></linearGradient></defs><rect x="1" y="34" width="238" height="92" fill="url(#pg)"/><circle cx="120" cy="80" r="15" fill="#ffffff22" stroke="#fff"/><path d="M115 72 l13 8 l-13 8z" fill="#fff"/><rect x="8" y="132" width="13" height="11" rx="3" fill="#251a2b" stroke="#3a2a42"/><text x="14.5" y="140" text-anchor="middle" font-size="7" fill="#fff">‹</text><text x="27" y="140.5" font-size="6" fill="#b7a3bc" font-family="IBM Plex Mono">2 / 55</text><rect x="48" y="132" width="13" height="11" rx="3" fill="#251a2b" stroke="#3a2a42"/><text x="54.5" y="140" text-anchor="middle" font-size="7" fill="#fff">›</text><rect x="168" y="132" width="64" height="11" rx="3" fill="#251a2b" stroke="#3a2a42"/><text x="200" y="139.8" text-anchor="middle" font-size="5.8" fill="#fff" font-family="IBM Plex Sans">Auf Twitch öffnen ↗</text></svg><figcaption>Player mit Blättern durch alle Clips des Streams</figcaption></figure>
     <ul>
-      <li>Klick auf einen Clip – in der Liste, auf den Top-Clip oder einen <span class="ui-play">▶</span>-Marker – öffnet den <b>Twitch-Player auf der Seite</b>.</li>
+      <li>Klick auf einen Clip – in der Liste, auf den Top-Clip, in den Suchtreffern oder auf einen <span class="ui-play">▶</span>-Marker – öffnet den <b>Twitch-Player auf der Seite</b>.</li>
       <li><b>‹ ›</b> oder Pfeiltasten blättern, <kbd>Esc</kbd> schließt.</li>
-      <li><span class="ui-btn">Auf Twitch öffnen ↗</span> oder <kbd>Strg</kbd>+Klick öffnet Twitch.</li>
-      <li>Der Player lädt <b>erst nach dem Klick</b>. Aufrufe zählen ganz normal bei Twitch.</li>
+      <li><span class="ui-btn">Auf Twitch öffnen ↗</span> oder <kbd>Strg</kbd>+Klick öffnet den Clip bei Twitch.</li>
+      <li>Der Player lädt <b>erst nach dem Klick</b> (Datenschutz). Aufrufe zählen ganz normal bei Twitch.</li>
     </ul>
   </div>
 </section>
@@ -326,13 +347,14 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 <section class="s" id="entdecken">
   <p class="kicker">Entdecken</p>
   <h2>Kalender, Rückblick und Zufallsclip</h2>
+  <p class="lead">Die Knöpfe <span class="ui-btn">📅 Kalender</span> und <span class="ui-btn">🎲 Zufälliger Clip</span> stehen direkt über der Stream-Liste.</p>
   <div class="card"><h3>📅 Kalender</h3>
     <div class="calm" id="calm"></div>
-    <p style="margin-top:10px">Jedes Jahr als Raster: Monate untereinander, Tage nebeneinander. Je länger gestreamt, desto kräftiger das Rosa; heute ist umrandet. Klick auf einen Tag öffnet den Stream. Suche und Filter wirken mit – Kategorie <i>IRL</i> zeigt z. B. nur IRL-Tage.</p></div>
+    <p style="margin-top:10px">Jedes Jahr als Raster: Monate untereinander, Tage nebeneinander. Je länger gestreamt, desto kräftiger das Rosa; heute ist umrandet. Klick auf einen Tag öffnet den Stream – bei mehreren Streams zeigt die Liste alle dieses Tages. Suche und Filter wirken mit – Kategorie <i>IRL</i> zeigt z. B. nur IRL-Tage. Nochmal auf <span class="ui-btn">📅 Kalender</span> klicken = zurück zur Liste.</p></div>
   <div class="grid2" style="margin-top:14px">
     <div class="card"><h3>✨ Heute vor einem Jahr</h3>
       <div style="border:1px solid #f5a9d655;border-radius:8px;background:#f5a9d60f;padding:8px 12px;margin:4px 0 8px"><span class="mono" style="font-size:10px;color:var(--accent);letter-spacing:.08em">VOR EINEM JAHR UM DIESE ZEIT</span><div style="font:700 17px 'Barlow Condensed'">😵‍💫 STRESS UND KRIESE 😵‍💫</div></div>
-      <p>Oben in der Liste: der Stream von genau heute vor 1–4 Jahren (sonst ±3 Tage).</p></div>
+      <p>Oben in der Liste: der Stream von genau heute vor 1–4 Jahren. Gab es keinen, einer aus ±3 Tagen. Ein Klick öffnet ihn. Beim Suchen oder Filtern ist die Box ausgeblendet.</p></div>
     <div class="card"><h3>🎲 Zufälliger Clip</h3>
       <p><span class="ui-btn">🎲 Zufälliger Clip</span> spielt einen von über 3.300 Clips und springt zum passenden Stream. <span class="ui-btn">🎲 Noch einer</span> im Player holt den nächsten – perfekt zum Stöbern.</p></div>
   </div>
@@ -343,58 +365,123 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
   <p class="kicker">Gut zu wissen</p>
   <h2>LIVE, Teilen, Handy, Sprache</h2>
   <div class="grid2">
-    <div class="card"><h3>🔴 LIVE</h3><p>Ist Naschii live, erscheint im Header <span class="ui-live">● LIVE</span> mit Kategorie, Titel und Laufzeit. Ein Klick führt in den Stream.</p></div>
+    <div class="card"><h3>🔴 LIVE</h3><p>Ist Naschii live, erscheint im Header <span class="ui-live">● LIVE</span> mit Kategorie, Titel und Laufzeit, und das Profilbild bekommt einen roten Ring. Ein Klick führt direkt in den Stream. Wird alle 2 Minuten geprüft.</p></div>
     <div class="card"><h3>🔗 Teilen</h3><p>Den Link in Discord, WhatsApp oder X posten – es erscheint automatisch ein Vorschaubild mit den aktuellen Zahlen.</p></div>
-    <div class="card"><h3>📱 Handy</h3><p>Karte oben, Liste darunter. Antippen statt Drüberfahren: Vorschauen öffnen sich beim ersten Tippen.</p></div>
-    <div class="card"><h3>🌍 Deutsch / English</h3><p>Oben links <span class="ui-btn">DE | EN</span>. Die Sprache wird automatisch erkannt und gemerkt. Stream- und Clip-Titel bleiben im Original.</p></div>
+    <div class="card"><h3>📱 Handy</h3><p>Oben die Karte, darunter die Liste. Alles per Antippen: Vorschauen öffnen sich beim ersten Tippen, Clips beim zweiten. Marker antippen zeigt die Vorschau, „Clip ansehen“ spielt ab.</p></div>
+    <div class="card"><h3>🌍 Deutsch / English</h3><p>Oben links <span class="ui-btn">DE | EN</span>. Die Sprache wird nach dem Browser gewählt und gemerkt. Stream- und Clip-Titel bleiben im Original; Anleitung und Datenschutz gibt es nur auf Deutsch.</p></div>
   </div>
 </section>
 
 <!-- Mods -->
 <section class="s" id="mods">
   <p class="kicker">Für Kanalbetreiber, Mods &amp; Berechtigte</p>
-  <h2>Routen zeichnen und Streams ergänzen</h2>
-  <p class="lead">Mit <span class="ui-btn t">Mit Twitch anmelden</span> einloggen – Mods werden automatisch erkannt. Dann im Stream auf <span class="ui-btn p">Route zeichnen</span> klicken. Nach dem Speichern ist alles in 1–2 Minuten für alle sichtbar.</p>
+  <h2>Routen zeichnen und Clips platzieren</h2>
+  <p class="lead">Ohne GPS, einfach wie in Paint: Strecke auf die Karte malen, Stationen setzen, Clips an die richtige Stelle ziehen. Nach dem Speichern sehen es alle Besucher nach 1–2 Minuten.</p>
+  <div class="grid2">
+    <div class="card"><h3>Wer darf bearbeiten?</h3><ul>
+      <li><b>Kanalbetreiber</b></li>
+      <li><b>Mods</b> – werden beim Login automatisch über Twitch erkannt</li>
+      <li><b>Berechtigte</b> bzw. freigegebene Personen</li>
+    </ul><p style="margin-top:8px;font-size:14px">Alle anderen können sich anmelden, sehen aber keinen Bearbeiten-Knopf. Beim Speichern prüft der Server die Rechte noch einmal.</p></div>
+    <div class="card"><h3>So geht’s los</h3><ol>
+      <li>Oben rechts <span class="ui-btn t">Mit Twitch anmelden</span>. Neben dem Namen steht dann <span class="ui-tag r">KANAL</span>, <span class="ui-tag r">MOD</span> oder <span class="ui-tag r">BEARBEITER</span>.</li>
+      <li>Stream öffnen und <span class="ui-btn p">Route zeichnen</span> bzw. <i>Route bearbeiten</i> klicken.</li>
+      <li>Zeichnen, Clips ziehen, <b>Speichern</b>. Nach 1–2 Minuten ist es öffentlich.</li>
+    </ol></div>
+  </div>
+  <h3 style="margin-top:18px">Die vier Werkzeuge</h3>
   <div class="card"><table>
-    <tr><th style="width:26%">Werkzeug</th><th>So geht’s</th></tr>
-    <tr><td><b>✋ Verschieben</b></td><td>Karte bewegen; Punkte, Stationen und Clips mit der Maus verschieben. Rechtsklick entfernt.</td></tr>
-    <tr><td><b>✏️ Punkte</b></td><td>Klick setzt den nächsten Punkt, Klick auf die Linie fügt einen dazwischen ein. Doppelklick löscht.</td></tr>
-    <tr><td><b>〰️ Freihand</b></td><td>Maustaste halten und die Strecke wie mit einem Stift nachmalen.</td></tr>
-    <tr><td><b>📍 Station</b></td><td>Klick auf die Route setzt eine nummerierte Station, Name links eintragen.</td></tr>
+    <tr><th style="width:24%">Werkzeug</th><th>So geht’s</th></tr>
+    <tr><td><b>✋ Verschieben</b></td><td>Karte bewegen und zoomen; Punkte, Stationen und Clips mit der Maus verschieben. Rechtsklick entfernt einen Punkt oder Clip.</td></tr>
+    <tr><td><b>✏️ Punkte</b></td><td>Jeder Klick setzt den nächsten Punkt, Klick auf die Linie fügt einen dazwischen ein. Punkt ziehen = verschieben, Doppelklick = löschen.</td></tr>
+    <tr><td><b>〰️ Freihand</b></td><td>Maustaste halten und die Strecke wie mit einem Stift nachmalen. Jeder neue Strich wird am Ende angehängt.</td></tr>
+    <tr><td><b>📍 Station</b></td><td>Klick auf die Route setzt eine nummerierte Station, Name links eintragen. Die Nummern folgen automatisch der Strecke.</td></tr>
   </table></div>
   <div class="grid3" style="margin-top:14px">
-    <div class="card"><h3>Clips platzieren</h3><ul><li>Clip aus der Liste <b>auf die Route ziehen</b> (Handy: antippen, dann Karte tippen)</li><li><span class="ui-btn">Top-10-Clips nach Uhrzeit verteilen</span> setzt die beliebtesten grob richtig</li></ul></div>
-    <div class="card"><h3>Beschreibung &amp; Ort</h3><ul><li><b>Was wurde gemacht?</b> – kurzer Text, auch ohne Route</li><li><b>Ort</b> per <span class="ui-btn">⌂ Auf Karte setzen</span> setzen oder korrigieren</li></ul></div>
-    <div class="card"><h3>Hilfen</h3><ul><li><span class="ui-btn">↶ Rückgängig</span> oder <kbd>Strg</kbd>+<kbd>Z</kbd></li><li><span class="ui-btn">⟳ Daten jetzt aktualisieren</span> – sofortiges Update, falls die Automatik hängt</li></ul></div>
+    <div class="card"><h3>Clips platzieren</h3><ul><li>Clip aus der Liste <b>auf die Karte ziehen</b> – er rastet auf der Route ein (Handy: antippen, dann Karte tippen)</li><li><span class="ui-btn">Top-10-Clips nach Uhrzeit verteilen</span> setzt die beliebtesten grob an die passende Stelle, danach nur nachschieben</li><li>Das <b>×</b> neben einem Clip nimmt ihn von der Karte</li></ul></div>
+    <div class="card"><h3>Hilfen</h3><ul><li><span class="ui-btn">↶ Rückgängig</span> oder <kbd>Strg</kbd>+<kbd>Z</kbd></li><li><b>Route leeren</b> löscht Linie und Stationen (fragt vorher nach)</li><li><b>Abbrechen</b> verwirft Änderungen erst nach Rückfrage</li><li>Unten steht live, wie viele Punkte und Kilometer die Route hat</li><li>Am Handy werden Header und Fußleiste beim Bearbeiten ausgeblendet</li></ul></div>
+    <div class="card"><h3>Was wurde gemacht?</h3><ul><li>Kurzer Text im Editor, bis 1.500 Zeichen – auch für Streams ganz ohne Route</li><li>Erscheint in den Details unter den Fakten</li><li>Wird von der Suche gefunden, z. B. „Eis“</li></ul></div>
   </div>
-  <div class="tip"><b class="i">i</b><div>Wer etwas speichert, wird nicht öffentlich genannt. Die Seite fragt bei Twitch nur ab, ob jemand Mod ist – sie kann nichts posten oder ändern.</div></div>
+  <div class="tip"><b class="i">!</b><div><b>Route komplett entfernen:</b> Route leeren, alle Clips per × von der Karte nehmen und speichern – der Stream erscheint wieder ohne Route. Läuft die Twitch-Anmeldung ab, bleibt deine Zeichnung offen: einfach neu anmelden und erneut speichern.</div></div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card"><h3>⌂ Ort setzen oder korrigieren</h3><ol>
+      <li>Ortsnamen eintragen.</li>
+      <li><span class="ui-btn">⌂ Auf Karte setzen</span> und auf die Karte klicken – der Marker lässt sich verschieben.</li>
+      <li>Speichern.</li>
+    </ol><p style="margin-top:8px;font-size:14px">Der eigene Ort ersetzt den automatisch erkannten („Ort ungefähr“). Nur einen neuen Namen eintragen = automatischen Ort umbenennen. <b>×</b> = zurück zum automatischen Ort.</p></div>
+    <div class="card"><h3>⟳ Daten jetzt aktualisieren</h3><ul>
+      <li>Nach dem Login direkt unter dem Namen – nur für Kanalbetreiber, Mods und Berechtigte</li>
+      <li>Stößt sofort dasselbe Update an wie der 15-Minuten-Takt</li>
+      <li>Nach 1–2 Minuten holt die Seite die neuen Daten selbst und meldet „Daten aktualisiert“ oder „Keine neuen Daten“</li>
+      <li>Höchstens ein Klick alle 2 Minuten</li>
+      <li>Für den Normalfall nicht nötig – die Automatik läuft von selbst</li>
+    </ul></div>
+  </div>
+  <div class="tip"><b class="i">i</b><div><b>Datenschutz für Bearbeiter:</b> Wer eine Route, Beschreibung oder einen Ort speichert, wird nicht öffentlich genannt; der Twitch-Name steht nur im nicht öffentlichen Protokoll des Prüfdienstes. Der Login bleibt nur im eigenen Browser, Abmelden löscht ihn. Die Seite fragt bei Twitch nur ab, ob jemand Mod ist – sie kann nichts posten oder ändern.</div></div>
 </section>
 
 <!-- Automatik -->
 <section class="s" id="automatik">
   <p class="kicker">Läuft von selbst</p>
-  <h2>Darum muss sich niemand kümmern</h2>
-  <div class="grid3">
-    <div class="card"><h3>📺 Streams</h3><p>Werden alle 15 Minuten erkannt – auch während sie laufen. Dauer, Kategorie, Vorschaubild automatisch.</p></div>
-    <div class="card"><h3>👀 Zuschauer</h3><p>Ø, Maximum und Follower-Zuwachs werden während des Streams selbst gemessen.</p></div>
-    <div class="card"><h3>🎬 Clips</h3><p>Neue kommen dazu, gelöschte verschwinden, Titel und Aufrufe bleiben aktuell, Zuordnung zum Stream automatisch.</p></div>
-    <div class="card"><h3>📍 Orte</h3><p>Aus Stream- und Clip-Titeln erkannt, rund 100 Orte bekannt – auch rückwirkend.</p></div>
-    <div class="card"><h3>✨ Anzeige</h3><p>Header-Zahlen, LIVE-Leiste, Kategorie-Coverbilder, Teilen-Vorschaubild, Collage.</p></div>
-    <div class="card"><h3>💸 Kosten</h3><p>0 € – alles läuft auf kostenlosen Diensten, ohne Werbung.</p></div>
+  <h2>So aktualisiert sich die Seite</h2>
+  <p class="lead">Alle 15 Minuten fragt die Seite bei Twitch nach, was sich geändert hat, und veröffentlicht neue Daten von selbst. Niemand muss dafür etwas anklicken.</p>
+  <div class="flow">
+    <div class="card"><span class="fl-t">alle 15 Min.</span><h3>⏱ Taktgeber</h3><p>Ein Google Apps Script stößt das Update an – läuft in der Google-Cloud, auch wenn alle PCs aus sind.</p></div>
+    <div class="card"><span class="fl-t">ca. 30 Sek.</span><h3>⚙️ GitHub Action</h3><p>Ein Skript fragt die offizielle Twitch-Schnittstelle ab: Stream, Clips, Follower, Profil.</p></div>
+    <div class="card"><span class="fl-t">nur bei Änderung</span><h3>💾 Speichern</h3><p>Neue Werte landen in den Datendateien. Ohne Änderung wird nichts gespeichert.</p></div>
+    <div class="card"><span class="fl-t">ca. 1 Min.</span><h3>🌐 Seite aktuell</h3><p>GitHub Pages veröffentlicht neu. Besucher sehen den neuen Stand beim nächsten Laden.</p></div>
   </div>
+
+  <h3 style="margin-top:20px">Was passiert wann?</h3>
+  <div class="card"><table>
+    <tr><th style="width:22%">Wann</th><th>Was</th></tr>
+    <tr><td><b>alle 2 Min.</b></td><td>Die geöffnete Seite prüft, ob Naschii live ist, und zeigt dann die rote <span class="ui-live">● LIVE</span>-Anzeige mit Kategorie, Titel und Laufzeit.</td></tr>
+    <tr><td><b>alle 15 Min.</b></td><td>Neuer oder laufender Stream wird erfasst, Zuschauer werden gemessen, neue Clips der letzten 30 Tage kommen dazu, alle Clips werden auf Löschung, neue Titel und Aufrufe geprüft.</td></tr>
+    <tr><td><b>nach Streamende</b></td><td>Dauer, Ø und Max. Zuschauer und Follower-Zuwachs stehen fest. Kategorie, Ort und Vorschaubild werden gesetzt.</td></tr>
+    <tr><td><b>bei neuen Zahlen</b></td><td>Header-Zahlen, „Automatisch aktualisiert“-Zeit und das Teilen-Vorschaubild für Discord, WhatsApp &amp; Co. werden erneuert.</td></tr>
+    <tr><td><b>nach „Speichern“</b></td><td>Eine gezeichnete Route, Beschreibung oder ein Ort ist nach ca. 1–2 Minuten für alle sichtbar.</td></tr>
+    <tr><td><b>per Knopf</b></td><td>Kanalbetreiber, Mods und Berechtigte können mit <span class="ui-btn">⟳ Daten jetzt aktualisieren</span> sofort ein Update auslösen.</td></tr>
+  </table></div>
+
+  <h3 style="margin-top:20px">Was die Seite alles selbst erledigt</h3>
+  <div class="grid3">
+    <div class="card"><h3>📺 Streams</h3><ul><li>Neuer Stream wird <b>während er läuft</b> erkannt, auch ohne VOD</li><li>Startzeit, Titel, Dauer und Ende werden mitgeschrieben</li><li>Kategorie aus Twitch oder aus den Clips</li><li>Vorschaubild aus dem beliebtesten Clip</li></ul></div>
+    <div class="card"><h3>👀 Zuschauer &amp; Follower</h3><ul><li>Zuschauer alle 15 Min. gemessen: <b>Ø</b> und <b>Maximum</b></li><li><b>Follower-Zuwachs</b> pro Stream</li><li>Alle Sortierungen nutzen die Werte sofort</li></ul></div>
+    <div class="card"><h3>🎬 Clips</h3><ul><li>Neue Clips kommen dazu, <b>gelöschte</b> verschwinden</li><li>Umbenannte Titel, Aufrufe und Kategorie werden nachgezogen</li><li><b>Zuordnung</b> zum Stream über die Uhrzeit; später geclippte VOD-Clips zum letzten Stream davor</li><li>Doppelte Einträge werden aussortiert</li></ul></div>
+    <div class="card"><h3>📍 Orte</h3><ul><li>Aus dem <b>Streamtitel</b> erkannt (rund <span id="n-locs">100</span> Orte bekannt)</li><li>Oder aus <b>Clip-Titeln</b>, z. B. „Tanz in Venedig“</li><li>Neue Orte gelten <b>rückwirkend</b></li><li>Streams am selben Ort werden zur Ortsblase gebündelt</li></ul></div>
+    <div class="card"><h3>✨ Seite &amp; Anzeige</h3><ul><li>Header-Zahlen, Profilbild, Stand-Zeitpunkt</li><li>LIVE-Anzeige (alle 2 Min.)</li><li>Teilen-Vorschaubild</li><li>Kategorie-Coverbilder von Twitch, auch für neue Spiele</li><li>Clip-Collage im Rahmen</li></ul></div>
+    <div class="card"><h3>🗺 Routen</h3><ul><li>Gespeicherte Route nach <b>1–2 Min.</b> für alle sichtbar</li><li><b>Rechteprüfung</b> automatisch per Twitch</li><li>Auch Beschreibung und eigener Ort</li><li>Routen bleiben bei jedem Update erhalten</li></ul></div>
+  </div>
+
+  <div class="grid2" style="margin-top:14px">
+    <div class="card manual"><h3>✋ Bleibt Handarbeit</h3><ul>
+      <li><b>Neue Ortsnamen:</b> Kennt die Seite einen Ort im Streamtitel noch nicht, muss er einmal in die Ortsliste. Danach wirkt er auch rückwirkend.</li>
+      <li><b>Routen zeichnen</b> ist freiwillig – im Routen-Editor.</li>
+      <li><b>Kontrolle ab und zu:</b> Läuft der Taktgeber noch? Ein Blick auf „Automatisch aktualisiert“ im Header genügt.</li>
+      <li><b>Token erneuern:</b> Der GitHub-Token des Taktgebers läuft am <b>21.10.2027</b> ab.</li>
+    </ul></div>
+    <div class="card"><h3>💸 Kosten &amp; Sicherheit</h3><ul>
+      <li><b>0 € im Monat:</b> GitHub Pages, GitHub Actions, Google Apps Script und die Twitch-Schnittstelle sind kostenlos, ohne Werbung</li>
+      <li>Zugangsdaten nur in GitHub-Secrets und Apps Script, nie im Code. Jedes Speichern prüft den Login auf dem Server</li>
+      <li>Jede Änderung ist auf GitHub versioniert und lässt sich zurückdrehen</li>
+      <li>Schriften lokal, keine Verbindung zu Google Fonts. Impressum und Datenschutz unten verlinkt</li>
+    </ul></div>
+  </div>
+  <div class="tip"><b class="i">i</b><div>„Automatisch aktualisiert“ zeigt die letzte <b>Änderung</b> der Daten – geprüft wird trotzdem alle 15 Minuten. Steht dort länger eine alte Zeit, obwohl gestreamt wurde, hilft der Knopf <span class="ui-btn">⟳ Daten jetzt aktualisieren</span>.</div></div>
 </section>
 
 <!-- FAQ -->
 <section class="s" id="faq">
   <p class="kicker">Fragen</p>
   <h2>Häufige Fragen</h2>
-  <details><summary>Warum hat ein Stream keine Clips?</summary><p>Twitch liefert für ihn keine – entweder wurde nichts geclippt oder die Clips wurden gelöscht. Clips gibt es bei Naschii ab Januar 2025.</p></details>
-  <details><summary>Warum mehr Clips als bei TwitchTracker?</summary><p>TwitchTracker zeigt nur Clips ab 10 Aufrufen. Hier sind alle Clips drin, auch kleine mit 1–9 Aufrufen.</p></details>
-  <details><summary>Gehört jeder Clip zum richtigen Stream?</summary><p>Über 99 % entstanden während des Streams und hängen nachweislich richtig. Wenige wurden später aus dem VOD geschnitten und kommen zum letzten Stream davor.</p></details>
-  <details><summary>Woher kommen die Zuschauerzahlen?</summary><p>Für ältere Streams von TwitchTracker, für neue misst die Seite selbst alle 15 Minuten.</p></details>
-  <details><summary>Was heißt „Ort ungefähr“?</summary><p>Der Ort wurde aus Titeln erkannt und liegt auf Stadtebene. Genaue Wege gibt es nur mit gezeichneter Route.</p></details>
-  <details><summary>Ein Clip startet stumm?</summary><p>Manche Browser (vor allem Safari am iPhone) blockieren Ton beim automatischen Start – einmal aufs Lautsprecher-Symbol tippen.</p></details>
-  <details><summary>Ich sehe eine Änderung noch nicht.</summary><p>Neue Daten brauchen bis zu 15 Minuten plus ca. 1 Minute. Danach neu laden (<kbd>Strg</kbd>+<kbd>F5</kbd>).</p></details>
+  <details><summary>Warum hat ein Stream keine Clips?</summary><p>Twitch liefert für ihn keine – entweder wurde nichts geclippt oder die Clips wurden gelöscht. Clips gibt es bei Naschii ab Januar 2025, ältere Streams haben daher meist keine.</p></details>
+  <details><summary>Warum mehr Clips als bei TwitchTracker?</summary><p>TwitchTracker zeigt nur Clips ab 10 Aufrufen (rund 1.000). Hier sind alle Clips drin, auch kleine mit 1–9 Aufrufen. Ab 10 Aufrufen sind es auf beiden Seiten fast gleich viele.</p></details>
+  <details><summary>Gehört jeder Clip zum richtigen Stream?</summary><p>Über 99 % entstanden während des Streams und hängen nachweislich richtig. Wenige wurden später aus dem VOD geschnitten und kommen zum letzten Stream davor, bevorzugt mit passender Kategorie.</p></details>
+  <details><summary>Woher kommen die Zuschauer- und Followerzahlen?</summary><p>Für die Streams bis 18.10.2026 von TwitchTracker. Seitdem misst die Seite selbst alle 15 Minuten während des Streams (Ø, Maximum, Follower-Zuwachs).</p></details>
+  <details><summary>Was heißt „Ort ungefähr“?</summary><p>Der Ort wurde aus dem Streamtitel oder aus Clip-Titeln erkannt, z. B. „Venedig“, und liegt auf Stadtebene. Genaue Wege gibt es nur, wenn jemand eine Route gezeichnet hat.</p></details>
+  <details><summary>Ich finde einen Clip nicht.</summary><p>Mindestens 2 Buchstaben aus dem Clip-Titel oder den Namen des Clippers suchen. Steht ein Filter oder eine Kategorie auf etwas anderem als „Alle“, werden nur Clips aus diesen Streams gezeigt.</p></details>
+  <details><summary>Ein Clip startet stumm?</summary><p>Manche Browser (vor allem Safari am iPhone) blockieren Ton beim automatischen Start – einmal aufs Lautsprecher-Symbol im Player tippen.</p></details>
+  <details><summary>Ich sehe eine Änderung noch nicht.</summary><p>Neue Daten brauchen bis zu 15 Minuten plus ca. 1 Minute zum Veröffentlichen. Danach einmal neu laden (<kbd>Strg</kbd>+<kbd>F5</kbd>).</p></details>
 </section>
 
 <!-- Spickzettel -->
@@ -408,22 +495,37 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     <tr><td><b>Streams eines Monats</b></td><td>z. B. „August 2026“ suchen</td></tr>
     <tr><td><b>Streams eines Tages</b></td><td><i>📅 Kalender</i> → Tag anklicken</td></tr>
     <tr><td><b>Bestimmten Clip finden</b></td><td>Clip-Titel oder Clipper-Namen suchen</td></tr>
-    <tr><td><b>Etwas Lustiges</b></td><td><i>🎲 Zufälliger Clip</i></td></tr>
-    <tr><td><b>Zurück zum Listenanfang</b></td><td><i>↑ Nach oben</i> unten rechts in der Liste</td></tr>
+    <tr><td><b>Clips zum Stöbern</b></td><td><i>🎲 Zufälliger Clip</i> über der Liste</td></tr>
     <tr><td><b>Clips in Reihenfolge</b></td><td>Im Stream auf <i>Chronologisch</i> stellen</td></tr>
-    <tr><td><b>Ist Naschii live?</b></td><td>rote LIVE-Leiste im Header</td></tr>
+    <tr><td><b>Zurück zur Liste</b></td><td><i>← Alle Streams</i> – die Position bleibt erhalten</td></tr>
+    <tr><td><b>Zurück zum Listenanfang</b></td><td><i>↑ Nach oben</i> unten rechts in der Liste</td></tr>
+    <tr><td><b>Ist Naschii live?</b></td><td>rote LIVE-Anzeige im Header anklicken</td></tr>
     <tr><td><b>Route zeichnen</b></td><td>mit Twitch anmelden → Stream öffnen → <i>Route zeichnen</i></td></tr>
+    <tr><td><b>Update erzwingen</b></td><td>anmelden → <i>⟳ Daten jetzt aktualisieren</i></td></tr>
   </table></div>
 </section>
 
-<div class="foot"><a href="./">← Zur Karte</a><a href="https://www.twitch.tv/naschiitaschii/about" target="_blank" rel="noopener noreferrer">Impressum</a><a href="datenschutz.html">Datenschutz</a></div>
+<div class="foot"><a href="./">← Zur Karte</a><a href="https://www.twitch.tv/naschiitaschii/about" target="_blank" rel="noopener noreferrer">Impressum</a><a href="datenschutz.html">Datenschutz</a><span>Stand: <span id="n-upd">Oktober 2026</span></span></div>
 </main>
 <script>
-// Kalender-Beispiel: zwei Monate mit Beispieldaten
+// Kalender-Beispiel mit Beispieldaten
 (function(){var el=document.getElementById('calm');if(!el)return;var h='<span></span>';for(var d=1;d<=31;d++)h+='<span style="text-align:center">'+(d===1||d%5===0?d:'')+'</span>';
 var seed=5,r=function(){seed=(seed*16807)%2147483647;return seed/2147483647};
 ['Aug','Sep','Okt'].forEach(function(m,mi){h+='<span>'+m+'</span>';for(var d=1;d<=31;d++){var x=r(),c=x<.42?'':x<.6?'l1':x<.78?'l2':x<.92?'l3':'l4';if(mi===2&&d>20)c='';h+='<i class="'+c+(mi===2&&d===20?' t':'')+'"></i>'}});
 el.innerHTML=h})();
+// Aktuelle Zahlen aus den Daten der Seite
+(function(){
+  var f=function(n,d){return n.toLocaleString('de-DE',{maximumFractionDigits:d||0})},set=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v};
+  fetch('data/streams.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(s){
+    if(!Array.isArray(s)||!s.length)return;
+    var min=0,clips=0,cat={};s.forEach(function(r){min+=r.durationMin||0;clips+=(r.clips||[]).length;if(r.category)cat[r.category]=(cat[r.category]||0)+1});
+    set('n-streams',f(s.length));set('n-hours',f(min/60));set('n-clips',f(clips));
+    var top=Object.keys(cat).sort(function(a,b){return cat[b]-cat[a]}).slice(0,4).map(function(k){return k+' ('+cat[k]+')'});
+    if(top.length)set('catex',top.join(', '));
+  }).catch(function(){});
+  fetch('data/locations.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(l){var n=Array.isArray(l)?l.length:Object.keys(l||{}).length;if(n)set('n-locs',f(Math.round(n/10)*10))}).catch(function(){});
+  fetch('data/meta.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(m){if(m&&m.updated){var d=new Date(m.updated);if(!isNaN(d))set('n-upd',d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}))}}).catch(function(){});
+})();
 </script>
 </body>
 </html>
