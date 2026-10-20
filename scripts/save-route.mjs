@@ -1,6 +1,7 @@
 // Schreibt eine gezeichnete Route in data/routes.json.
 // Aufruf durch den Workflow "Route speichern" mit der Umgebungsvariable PAYLOAD
-// ({ id, route, by }), die das Google Apps Script nach Prüfung von Login und Rechten schickt.
+// ({ id, route }), die das Google Apps Script nach Prüfung von Login und Rechten schickt.
+// Wer gespeichert hat, wird bewusst nicht abgelegt (Datenschutz) – das steht nur im privaten Apps-Script-Protokoll.
 import { readFile, writeFile } from 'node:fs/promises';
 
 const FILE = 'data/routes.json';
@@ -8,9 +9,8 @@ const fail = (m) => { console.error('Abgelehnt: ' + m); process.exit(1); };
 
 let p;
 try { p = JSON.parse(process.env.PAYLOAD || ''); } catch { fail('PAYLOAD ist kein JSON'); }
-const { id, route, by } = p || {};
+const { id, route } = p || {};
 if (typeof id !== 'string' || !/^[\w-]{1,80}$/.test(id)) fail('ungültige Stream-ID');
-if (typeof by !== 'string' || !/^\w{1,40}$/.test(by)) fail('ungültiger Bearbeiter');
 
 const num = (v, lo, hi) => typeof v === 'number' && isFinite(v) && v >= lo && v <= hi;
 const pt = (a) => Array.isArray(a) && a.length === 2 && num(a[0], -90, 90) && num(a[1], -180, 180);
@@ -34,7 +34,6 @@ if (route !== null) {
       if (!/^[\w-]{1,120}$/.test(k) || !pt(v)) fail('Clip-Position ungültig');
       return [k, [r5(v[0]), r5(v[1])]];
     })),
-    by,
     at: new Date().toISOString(),
   };
 }
@@ -47,4 +46,4 @@ if (clean) all[id] = clean; else delete all[id];
 const keys = Object.keys(all).sort();
 const body = keys.map((k) => `  ${JSON.stringify(k)}: ${JSON.stringify(all[k])}`).join(',\n');
 await writeFile(FILE, keys.length ? `{\n${body}\n}\n` : '{}\n');
-console.log(`${clean ? 'Gespeichert' : 'Gelöscht'}: ${id} (von ${by}) · ${clean ? clean.points.length + ' Punkte, ' + clean.stops.length + ' Stationen, ' + Object.keys(clean.clips).length + ' Clips' : ''}`);
+console.log(`${clean ? 'Gespeichert' : 'Gelöscht'}: ${id} · ${clean ? clean.points.length + ' Punkte, ' + clean.stops.length + ' Stationen, ' + Object.keys(clean.clips).length + ' Clips' : ''}`);

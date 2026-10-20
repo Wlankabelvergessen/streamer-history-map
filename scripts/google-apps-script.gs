@@ -108,7 +108,7 @@ function doPost(e) {
     const id = String(body.id || '');
     if (!/^[\w-]{1,80}$/.test(id)) return antwort({ ok: false, error: 'Ungültiger Stream.' });
     const route = body.route === null ? null : body.route;
-    const payload = JSON.stringify({ id: id, route: route, by: login });
+    const payload = JSON.stringify({ id: id, route: route });   // Bearbeiter wird nicht veröffentlicht
     if (payload.length > 60000) return antwort({ ok: false, error: 'Route zu groß. Bitte gröber zeichnen.' });
 
     // 4. GitHub-Workflow "Route speichern" anstoßen
