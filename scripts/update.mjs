@@ -342,6 +342,28 @@ for (const r of streams) {
   else if (top) r.category = top[0]; else delete r.category;
 }
 
+// 4b) Coverbilder der Stream-Kategorien (Twitch-Boxart) in data/categories.json – nur fehlende nachschlagen
+{
+  const CATS = new URL('../data/categories.json', import.meta.url);
+  let cats = {};
+  try { cats = JSON.parse(await readFile(CATS, 'utf8')); } catch {}
+  const want = [...new Set(streams.map(r => r.category).filter(Boolean))];
+  const missing = want.filter(n => !cats[n]);
+  for (let i = 0; i < missing.length; i += 100) {
+    const q = new URLSearchParams(); missing.slice(i, i + 100).forEach(n => q.append('name', n));
+    try {
+      for (const g of await helix('games', q)) {
+        const name = missing.find(n => n.toLowerCase() === String(g.name).toLowerCase()) || g.name;
+        cats[name] = { id: g.id, box: String(g.box_art_url || '').replace('{width}', '52').replace('{height}', '72') };
+      }
+    } catch (e) { console.warn('Kategorie-Bilder:', e.message); }
+  }
+  const keys = Object.keys(cats).sort();
+  const out = '{\n' + keys.map(k => `  ${JSON.stringify(k)}: ${JSON.stringify(cats[k])}`).join(',\n') + '\n}\n';
+  let oldCats = ''; try { oldCats = await readFile(CATS, 'utf8'); } catch {}
+  if (out !== oldCats) { await writeFile(CATS, out); console.log('Kategorie-Bilder: ' + keys.length + ' (' + missing.length + ' neu gesucht)'); }
+}
+
 // 4b) Coverbilder der Kategorien (Twitch-Boxart) in data/categories.json – nur fehlende nachschlagen
 {
   const CATS = new URL('../data/categories.json', import.meta.url);
