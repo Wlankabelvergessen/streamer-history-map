@@ -840,6 +840,11 @@ body.doc .app>.map-wrap{visibility:hidden}
 .totop{grid-area:panel;align-self:end;justify-self:end;z-index:6;margin:0 16px 14px 0;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;border:1px solid var(--accent);background:var(--panel);color:var(--accent);font:600 12.5px var(--f-body);cursor:pointer;box-shadow:0 6px 18px #0009}
 .totop:hover{background:var(--accent);color:var(--ink,#2a0f22)}
 .totop[hidden]{display:none}
+@media (min-width:821px){
+  .totop{grid-area:map;justify-self:start;align-self:end;position:relative;z-index:1100;margin:0 0 14px 12px;background:var(--accent);color:var(--ink,#2a0f22);border-color:#fff;box-shadow:0 0 0 3px #f5a9d640,0 6px 18px #000a}
+  .totop:hover{background:#fff;color:var(--ink,#2a0f22)}
+  body.doc .totop{display:none}
+}
 @media (max-width:820px){.totop{margin:0 10px 10px 0;padding:6px 11px}.totop span{display:none}}
 /* Gut greifbarer Schieberegler (Chrome, Edge, Safari) */
 ::-webkit-scrollbar{width:14px;height:12px}
