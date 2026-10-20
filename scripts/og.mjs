@@ -65,5 +65,18 @@ const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
 await page.setContent(html, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
 await page.screenshot({ path: new URL('../og.png', import.meta.url).pathname });
-await browser.close();
 console.log('og.png erstellt');
+
+// Browser-Tab-Icon (favicon) und Handy-Startbildschirm-Icon aus dem Twitch-Profilbild, rund mit rosa Rand
+if (meta.profileImage) {
+  for (const [file, size, ring, round] of [['favicon.png', 64, 4, true], ['apple-touch-icon.png', 180, 0, false]]) {
+    const p = await browser.newPage({ viewport: { width: size, height: size } });
+    await p.setContent(`<!doctype html><html><body style="margin:0;background:transparent">
+      <img id="i" src="${esc(meta.profileImage)}" style="display:block;width:${size}px;height:${size}px;box-sizing:border-box;object-fit:cover;border-radius:${round ? '50%' : '0'};border:${ring}px solid #f5a9d6;background:#c9579f"></body></html>`, { waitUntil: 'load', timeout: 20000 }).catch(() => {});
+    await p.evaluate(() => document.getElementById('i').decode()).catch(() => {});
+    await p.screenshot({ path: new URL('../' + file, import.meta.url).pathname, omitBackground: true });
+    await p.close();
+    console.log(file + ' erstellt');
+  }
+}
+await browser.close();

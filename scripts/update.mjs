@@ -413,7 +413,7 @@ if (json !== old || profileChanged) {
 }
 // Teilen-Vorschaubild nur neu erzeugen, wenn sich die Zahlen geändert haben (nicht bei jeder Zuschauer-Messung)
 const { existsSync } = await import('node:fs');
-if (meta.streams !== streams.length || meta.clips !== clipTotal || !existsSync(new URL('../og.png', import.meta.url))) {
+if (meta.streams !== streams.length || meta.clips !== clipTotal || profileChanged || !existsSync(new URL('../og.png', import.meta.url)) || !existsSync(new URL('../favicon.png', import.meta.url))) {
   await writeFile(new URL('../.og-needed', import.meta.url), '1');
 }
 console.log('Live:', liveNote);
