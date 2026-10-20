@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anleitung · Naschii’s Adventure Map</title>
+<meta name="description" content="So funktioniert Naschii’s Adventure Map: Karte, Suche, Clip-Player, Kalender, Zufallsclip – und der Routen-Editor für Mods.">
+<meta name="theme-color" content="#3b1d40">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--bg:#120c16;--panel:#1a1220;--panel2:#251a2b;--line:#3a2a42;--fg:#f4ebf3;--muted:#b7a3bc;--accent:#f5a9d6;--deep:#c9579f;--plum:#3b1d40;--cloud:#e9c1de;--cloud2:#c98fbd;--ink:#2a0f22;--twitch:#9146ff;--live:#e91916}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 'IBM Plex Sans',system-ui,sans-serif}
+a{color:var(--accent)}
+h1,h2,h3,h4,p{margin:0}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* Kopf mit Wolken wie auf der Map */
+header{position:relative;overflow:hidden;background:radial-gradient(120% 140% at 50% 0%,#5a2a5e 0%,var(--plum) 45%,#1c0f21 100%);border-bottom:1px solid var(--line);padding:30px 16px 64px;text-align:center}
+header .sky{position:absolute;inset:0;pointer-events:none;background:
+ radial-gradient(1.5px 1.5px at 12% 22%,#fff8 50%,transparent 51%),radial-gradient(1px 1px at 23% 48%,#fff9 50%,transparent 51%),
+ radial-gradient(1.5px 1.5px at 37% 15%,#fffa 50%,transparent 51%),radial-gradient(1px 1px at 61% 30%,#fff8 50%,transparent 51%),
+ radial-gradient(1.5px 1.5px at 74% 12%,#fff9 50%,transparent 51%),radial-gradient(1px 1px at 86% 40%,#fffa 50%,transparent 51%)}
+header .sky::before{content:"";position:absolute;left:-5%;right:-5%;bottom:-2px;height:60px;background:
+ radial-gradient(closest-side,var(--cloud) 98%,transparent) -4% 100%/22% 120% no-repeat,
+ radial-gradient(closest-side,var(--cloud) 98%,transparent) 16% 130%/20% 110% no-repeat,
+ radial-gradient(closest-side,var(--cloud) 98%,transparent) 50% 150%/26% 100% no-repeat,
+ radial-gradient(closest-side,var(--cloud) 98%,transparent) 84% 125%/24% 120% no-repeat,
+ radial-gradient(closest-side,var(--cloud) 98%,transparent) 104% 100%/20% 120% no-repeat;opacity:.9}
+header h1{position:relative;font:400 clamp(28px,6vw,44px)/1.05 'Rubik Bubbles',sans-serif;color:var(--accent);-webkit-text-stroke:1.2px #7d2a63;text-shadow:0 3px 0 #7d2a63}
+header p{position:relative;margin-top:8px;font:500 12px 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:#f6dcee}
+
+/* Inhaltsverzeichnis als klebende Leiste */
+nav.toc{position:sticky;top:0;z-index:10;background:#120c16f0;backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+nav.toc div{max-width:900px;margin:0 auto;padding:10px 16px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin}
+nav.toc a{flex:none;padding:5px 11px;border:1px solid var(--line);border-radius:999px;color:var(--fg);text-decoration:none;font:500 12.5px 'IBM Plex Sans';white-space:nowrap}
+nav.toc a:hover{border-color:var(--accent);color:var(--accent)}
+main{max-width:900px;margin:0 auto;padding:24px 16px 56px}
+.back{display:inline-block;margin-bottom:14px;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--fg)}
+.intro{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:center;margin-bottom:8px}
+.intro p.big{font-size:18px;line-height:1.5;color:#fbeaf5}
+.intro .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btnl{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;text-decoration:none;font:600 14px 'IBM Plex Sans';border:1px solid var(--line);color:var(--fg);background:var(--panel2)}
+.btnl.p{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+section.s{margin-top:44px}
+.kicker{font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+h2{font:700 30px/1.1 'Barlow Condensed',sans-serif;letter-spacing:.01em;margin:4px 0 10px;color:#fff}
+h3{font:700 19px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.02em;margin:0 0 6px;color:#fff;display:flex;align-items:center;gap:8px}
+.lead{color:#e6d6e6;max-width:720px;margin-bottom:16px}
+p,li{color:#e6d6e6}
+ul,ol{margin:0;padding-left:20px}
+li{margin:3px 0}
+li::marker{color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.split{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:center}
+.figure{background:#0d0810;border:1px solid var(--line);border-radius:12px;padding:10px;overflow:hidden}
+.figure figcaption{font:500 11px 'IBM Plex Mono';color:var(--muted);letter-spacing:.06em;margin-top:6px;text-align:center}
+figure{margin:0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font:600 11px 'IBM Plex Mono';letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid #2c2033;vertical-align:top}
+tr:last-child td{border-bottom:0}
+.tip{display:flex;gap:10px;background:#f5a9d614;border:1px solid #f5a9d655;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:14px}
+.tip b.i{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--ink);font:700 11px 'IBM Plex Mono'}
+.n{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--ink);font:700 11px 'IBM Plex Mono'}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 16px;margin:8px 0}
+details summary{cursor:pointer;padding:12px 0;font-weight:600;color:#fff;list-style:none;display:flex;justify-content:space-between;gap:10px}
+details summary::after{content:"+";color:var(--accent);font-weight:700}
+details[open] summary::after{content:"–"}
+details p{padding:0 0 12px}
+kbd{font:600 12px 'IBM Plex Mono';border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--panel2)}
+/* UI-Nachbauten */
+.ui-btn{display:inline-block;padding:1px 9px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);font:500 13px 'IBM Plex Sans';white-space:nowrap;color:var(--fg)}
+.ui-btn.p{background:var(--accent);border-color:var(--accent);color:var(--ink);font-weight:600}
+.ui-btn.t{background:var(--twitch);border-color:var(--twitch);color:#fff;font-weight:600}
+.ui-tag{display:inline-block;font:600 10px 'IBM Plex Mono';letter-spacing:.08em;border:1px solid var(--line);border-radius:4px;padding:0 6px;color:var(--muted);white-space:nowrap}
+.ui-tag.r{color:var(--accent);border-color:#f5a9d680}
+.ui-live{display:inline-flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;background:var(--live);color:#fff;font:600 12px 'IBM Plex Sans'}
+.ui-sel{display:inline-block;padding:0 22px 0 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);font:500 13px 'IBM Plex Sans';position:relative;white-space:nowrap}
+.ui-sel::after{content:"▾";position:absolute;right:6px;color:var(--muted)}
+.ui-num{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--ink);font:700 11px 'IBM Plex Mono';border:2px solid #fff;vertical-align:-4px}
+.ui-play{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#1c0f21;border:2px solid var(--accent);color:#fff;font-size:9px;vertical-align:-4px}
+.ui-grp{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd3ec,var(--accent) 55%,var(--deep));color:var(--ink);font:700 11px 'IBM Plex Mono';border:2px solid #fff;vertical-align:-6px}
+/* Stream-Karte */
+.mcard{display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.mcard .d{font:500 11px 'IBM Plex Mono';color:var(--muted);letter-spacing:.05em;text-transform:uppercase;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.mcard .d i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.mcard h4{font:700 20px/1.15 'Barlow Condensed';margin:4px 0}
+.mcard .m{font:500 11.5px 'IBM Plex Mono';color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+.mcard .side{display:flex;flex-direction:column;gap:6px}
+.mcard .cb{display:flex;align-items:center;gap:6px;font:600 14px 'Barlow Condensed';color:var(--accent)}
+.mcard .cb b{width:18px;height:24px;border-radius:2px;background:linear-gradient(160deg,#9146ff,#36d1b5)}
+.thumbm{aspect-ratio:16/9;border-radius:6px;border:1px solid var(--line);background:linear-gradient(135deg,#4a2350,#c9579f 55%,#ffd3ec)}
+/* Kalender-Nachbau */
+.calm{display:grid;grid-template-columns:30px repeat(31,minmax(0,1fr));gap:2px;font:500 9.5px 'IBM Plex Mono';color:var(--muted);align-items:center}
+.calm i{display:block;aspect-ratio:1;border-radius:2px;background:#ffffff0d}
+.calm i.l1{background:#f5a9d64d}.calm i.l2{background:#f5a9d68c}.calm i.l3{background:#f5a9d6c4}.calm i.l4{background:var(--accent)}
+.calm i.t{box-shadow:inset 0 0 0 1.5px #fff}
+.schema{display:grid;grid-template-columns:30% 1fr 8%;grid-template-rows:62px 170px 30px;gap:6px;padding:8px;background:#0d0810;border:1px solid var(--line);border-radius:12px;font-size:12px}
+.schema>div{position:relative;border-radius:8px;border:1px solid var(--line);padding:6px;background:var(--panel)}
+.schema .s-h{grid-column:1/4;background:linear-gradient(#4a2350,#2a1430);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.schema .s-h span{font:400 clamp(13px,2.6vw,20px) 'Rubik Bubbles';color:var(--accent);-webkit-text-stroke:.6px #7d2a63}
+.schema .s-l{display:flex;flex-direction:column;gap:5px}
+.schema .s-l i{display:block;height:24px;border-radius:4px;background:var(--panel2);border:1px solid var(--line)}
+.schema .s-m{background:#1f2027;overflow:hidden;padding:0}
+.schema .s-r,.schema .s-f{background:linear-gradient(#4a2350,#2a1430)}
+.schema .s-f{grid-column:1/4}
+.co{position:absolute;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#fff;color:var(--ink);font:700 11px 'IBM Plex Mono';box-shadow:0 0 0 2px var(--accent)}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:12px;font-size:14px}
+.legend div{display:flex;gap:8px;align-items:flex-start}
+.legend .co{position:static;flex:none}
+.foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font:500 12px 'IBM Plex Mono';color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.foot a{color:var(--muted)}
+@media (max-width:720px){
+  .intro,.split,.grid2,.grid3,.legend{grid-template-columns:1fr}
+  h2{font-size:26px}
+  .schema{grid-template-rows:54px 130px 24px}
+}
+</style>
+</head>
+<body>
+<header><div class="sky"></div><h1>Naschii’s Adventure Map</h1><p>Anleitung</p></header>
+<nav class="toc" aria-label="Inhalt"><div>
+  <a href="#ueberblick">Überblick</a><a href="#karte">Karte</a><a href="#finden">Streams finden</a><a href="#stream">Stream ansehen</a><a href="#player">Clip-Player</a><a href="#entdecken">Entdecken</a><a href="#mehr">LIVE · Teilen · Handy</a><a href="#mods">Für Mods</a><a href="#automatik">Automatik</a><a href="#faq">Fragen</a><a href="#spick">Spickzettel</a>
+</div></nav>
+<main>
+<a class="back" href="./">← Zurück zur Karte</a>
+
+<div class="intro">
+  <div>
+    <p class="kicker">Kurz erklärt</p>
+    <p class="big"><b>Naschiis Reisetagebuch:</b> alle Streams seit 2022 auf einer Karte – wo sie war, wie lange, was passiert ist, und über 3.300 Clips zum direkt Anschauen.</p>
+    <div class="acts"><a class="btnl p" href="./">🗺️ Zur Karte</a><a class="btnl" href="handbuch.pdf" download>📄 Handbuch als PDF</a></div>
+  </div>
+  <div class="card">
+    <ul>
+      <li><b>Stöbern:</b> Karte, Liste, Kalender oder 🎲 Zufallsclip</li>
+      <li><b>Anschauen:</b> Clips spielen direkt auf der Seite</li>
+      <li><b>Immer aktuell:</b> neue Streams und Clips kommen alle 15 Minuten von selbst</li>
+      <li><b>Kostenlos</b>, ohne Werbung, ohne Anmeldung</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Überblick -->
+<section class="s" id="ueberblick">
+  <p class="kicker">Die Seite auf einen Blick</p>
+  <h2>Links die Liste, rechts die Karte</h2>
+  <p class="lead">Was du links auswählst, zeigt die Karte sofort – und umgekehrt. Am Handy liegt die Karte oben und die Liste darunter.</p>
+  <figure class="figure">
+    <div class="schema">
+      <div class="s-h"><span>Naschii’s Adventure Map</span><small class="mono" style="color:var(--muted);font-size:9px;margin-top:2px">407 STREAMS · 2.666,7 STUNDEN · 3.352 CLIPS</small><b class="co" style="left:6px;top:6px">1</b><b class="co" style="right:6px;top:6px">2</b></div>
+      <div class="s-l"><i style="height:18px"></i><i></i><i></i><i></i><i></i><b class="co" style="right:-10px;top:4px">3</b><b class="co" style="right:-10px;top:60px">4</b></div>
+      <div class="s-m"><svg viewBox="0 0 300 170" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"><path d="M20 150 C60 100 90 130 130 80 S210 50 260 40" fill="none" stroke="#7d2a63" stroke-width="7" stroke-linecap="round"/><path d="M20 150 C60 100 90 130 130 80 S210 50 260 40" fill="none" stroke="#f5a9d6" stroke-width="3.5" stroke-linecap="round"/><circle cx="85" cy="50" r="14" fill="#f5a9d6" stroke="#fff" stroke-width="2"/><text x="85" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#2a0f22" font-family="IBM Plex Mono">12</text><rect x="118" y="68" width="22" height="22" rx="6" fill="#1c0f21" stroke="#f5a9d6" stroke-width="2"/><path d="M126 73 l9 6 l-9 6z" fill="#fff"/></svg><b class="co" style="left:6px;top:6px">5</b><b class="co" style="left:6px;top:34px">6</b><b class="co" style="left:47%;top:58%">7</b></div>
+      <div class="s-r"><b class="co" style="left:50%;top:45%;transform:translateX(-50%)">8</b></div>
+      <div class="s-f"></div>
+    </div>
+    <div class="legend">
+      <div><b class="co">1</b><span><b>Header</b> mit Profilbild, Gesamtzahlen und Stand der Daten. Oben links <span class="ui-btn">DE | EN</span>.</span></div>
+      <div><b class="co">2</b><span><span class="ui-btn t">Mit Twitch anmelden</span> – nur für Naschii, Mods und Berechtigte.</span></div>
+      <div><b class="co">3</b><span><b>Suche, Filter, Sortierung</b>, dazu <span class="ui-btn">📅 Kalender</span> und <span class="ui-btn">🎲 Zufälliger Clip</span>.</span></div>
+      <div><b class="co">4</b><span><b>Stream-Karten:</b> ein Klick öffnet die Details.</span></div>
+      <div><b class="co">5</b><span><b>Zoom</b> mit <kbd>+</kbd> <kbd>−</kbd>, Mausrad oder zwei Fingern.</span></div>
+      <div><b class="co">6</b><span><b>Ortsblasen:</b> Zahl = Anzahl Streams an diesem Ort.</span></div>
+      <div><b class="co">7</b><span><b>Routen &amp; Clips:</b> rosa Linie, Play-Marker auf der Strecke.</span></div>
+      <div><b class="co">8</b><span><b>Rahmen</b> mit Collage aus Clip-Vorschaubildern.</span></div>
+    </div>
+  </figure>
+</section>
+
+<!-- Karte -->
+<section class="s" id="karte">
+  <p class="kicker">Karte</p>
+  <h2>Orte, Routen und Clips auf der Karte</h2>
+  <div class="split">
+    <figure class="figure">
+      <svg viewBox="0 0 300 190" width="100%"><rect width="300" height="190" rx="8" fill="#1f2027"/><g stroke="#2e3038" stroke-width="6" fill="none"><path d="M0 52 H300"/><path d="M0 140 H300"/><path d="M78 0 V190"/><path d="M220 0 V190"/></g><path d="M24 168 L92 120 L150 130 L196 80 L268 28" fill="none" stroke="#7d2a63" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 168 L92 120 L150 130 L196 80 L268 28" fill="none" stroke="#f5a9d6" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="168" r="10" fill="#f5a9d6" stroke="#fff" stroke-width="2"/><text x="24" y="172" text-anchor="middle" font-size="10" font-weight="700" fill="#2a0f22" font-family="IBM Plex Mono">1</text><circle cx="196" cy="80" r="10" fill="#f5a9d6" stroke="#fff" stroke-width="2"/><text x="196" y="84" text-anchor="middle" font-size="10" font-weight="700" fill="#2a0f22" font-family="IBM Plex Mono">2</text><circle cx="268" cy="28" r="10" fill="#fff" stroke="#f5a9d6" stroke-width="2"/><text x="268" y="32" text-anchor="middle" font-size="10" font-weight="700" fill="#2a0f22" font-family="IBM Plex Mono">3</text><rect x="80" y="108" width="24" height="24" rx="7" fill="#c9579f" stroke="#f5a9d6" stroke-width="2"/><path d="M88 114 l10 6 l-10 6z" fill="#fff"/><rect x="138" y="118" width="24" height="24" rx="7" fill="#1c0f21" stroke="#f5a9d6" stroke-width="2"/><path d="M146 124 l10 6 l-10 6z" fill="#fff"/><g><rect x="22" y="12" width="124" height="84" rx="8" fill="#1a1220" stroke="#f5a9d6"/><rect x="23" y="13" width="122" height="46" rx="7" fill="#7a4a6e"/><text x="30" y="73" font-size="9" font-weight="600" fill="#fff" font-family="IBM Plex Sans">Tanz am Rheinufer</text><text x="30" y="86" font-size="7" fill="#b7a3bc" font-family="IBM Plex Mono">19:40 Uhr · 37 Aufrufe</text></g><path d="M92 96 L92 108" stroke="#f5a9d6"/><circle cx="250" cy="150" r="13" fill="#f5a9d6" stroke="#fff" stroke-width="2"/><text x="250" y="154" text-anchor="middle" font-size="10" font-weight="700" fill="#2a0f22" font-family="IBM Plex Mono">12</text></svg>
+      <figcaption>Route mit Stationen, Clip-Markern und Vorschau beim Drüberfahren</figcaption>
+    </figure>
+    <ul>
+      <li><span class="ui-grp">12</span> <b>Ortsblase:</b> Maus drüber zeigt die Streams an diesem Ort, ein Klick öffnet einen. „In der Liste zeigen →“ filtert links alle Streams des Ortes.</li>
+      <li><b>Rosa Linie:</b> der Weg, den Naschii gegangen ist – von Mods gezeichnet.</li>
+      <li><span class="ui-num">1</span> <b>Stationen</b> mit Namen, z. B. „Altstadt“.</li>
+      <li><span class="ui-play">▶</span> <b>Clip-Marker</b> genau dort, wo der Clip entstand. Maus drüber zeigt Bild, Titel, Uhrzeit und Aufrufe, ein Klick spielt ihn ab.</li>
+      <li><span class="ui-tag">ORT UNGEFÄHR</span> = aus dem Streamtitel erkannt, auf Stadtebene.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Finden -->
+<section class="s" id="finden">
+  <p class="kicker">Streams finden</p>
+  <h2>Suchen, Filtern, Sortieren</h2>
+  <p class="lead">Alle drei lassen sich kombinieren. Die Trefferzahl steht direkt darunter, z. B. „37 von 407 Streams“.</p>
+  <div class="grid2">
+    <div class="card"><h3><span class="n">1</span>Suchen</h3>
+      <p style="margin-bottom:8px">Ins Feld <span class="ui-sel" style="padding-right:8px;color:var(--muted)">Suchen: Titel, Ort, Datum</span> tippen:</p>
+      <table><tr><th>Eingabe</th><th>findet</th></tr>
+        <tr><td class="mono">Venedig</td><td>alle Streams in Venedig</td></tr>
+        <tr><td class="mono">Oktober 2026</td><td>alle Streams eines Monats</td></tr>
+        <tr><td class="mono">2025-12</td><td>Monat als Jahr-Monat</td></tr>
+        <tr><td class="mono">Fortnite</td><td>eine Kategorie</td></tr>
+        <tr><td class="mono">Kürbis</td><td>Wörter aus Titel oder Beschreibung</td></tr>
+      </table>
+      <p style="margin-top:8px;font-size:13px;color:var(--muted)">Löschen: das <b style="color:#fff">×</b> im Suchfeld oder <kbd>Esc</kbd>.</p></div>
+    <div class="card"><h3><span class="n">2</span>Filtern &amp; <span class="n">3</span>Sortieren</h3>
+      <p><span class="ui-sel">Alle</span> → Mit Ort · Mit Route · Ohne Ort</p>
+      <p style="margin:6px 0 10px"><span class="ui-sel">Alle Kategorien</span> → z. B. Just Chatting, Fortnite, IRL – mit Anzahl</p>
+      <table><tr><th>Sortierung</th><th>zeigt oben</th></tr>
+        <tr><td>Neueste zuerst</td><td>den letzten Stream</td></tr>
+        <tr><td>Älteste zuerst</td><td>den ersten (30.07.2022)</td></tr>
+        <tr><td>Meiste Ø Zuschauer</td><td>höchsten Schnitt</td></tr>
+        <tr><td>Meiste Max. Zuschauer</td><td>höchsten Spitzenwert</td></tr>
+        <tr><td>Meiste Follower</td><td>größten Follower-Zuwachs</td></tr>
+        <tr><td>Längste Streamzeit</td><td>die längsten Streams</td></tr>
+      </table></div>
+  </div>
+  <h3 style="margin-top:20px">So liest du eine Stream-Karte</h3>
+  <div class="split">
+    <div class="mcard"><div><div class="d"><i></i>Fr., 16. Oktober 2026 · 16:13 <span class="ui-tag r">ROUTE</span></div><h4>☀️ Schönes Wetter genießen in Düsseldorf ☀️</h4><div class="m"><span>5 Std. 33 Min.</span><span>Düsseldorf</span><span>Ø 201 Zuschauer</span><span>55 Clips</span></div></div><div class="side"><div class="cb"><b></b>IRL</div><div class="thumbm"></div></div></div>
+    <ul>
+      <li>Datum und Startzeit, Kennzeichen <span class="ui-tag r">ROUTE</span>, <span class="ui-tag">ORT UNGEFÄHR</span> oder <span class="ui-live">● LIVE</span></li>
+      <li>Dauer, Ort, Zuschauerschnitt, Anzahl Clips</li>
+      <li>Rechts die <b>Kategorie mit Twitch-Coverbild</b> und das Vorschaubild des Top-Clips</li>
+      <li>Oben in der Liste: <b>„Heute vor einem Jahr“</b> – der Stream von genau diesem Tag</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Stream -->
+<section class="s" id="stream">
+  <p class="kicker">Stream ansehen</p>
+  <h2>Alles zu einem Stream</h2>
+  <div class="grid2">
+    <div class="card"><h3>Die Details</h3><ul>
+      <li><b>Top-Clip</b> groß mit Bild – Klick spielt ihn ab</li>
+      <li><b>Fakten:</b> Dauer, Uhrzeit, Clips, Ø und Max. Zuschauer, Follower-Zuwachs</li>
+      <li><b>Was wurde gemacht?</b> – kurze Beschreibung, wenn eingetragen</li>
+      <li><b>Ort</b> und nummerierte <b>Stationen</b> der Route</li>
+      <li><span class="ui-btn">← Alle Streams</span> führt genau an die Stelle in der Liste zurück, an der du warst</li>
+    </ul></div>
+    <div class="card"><h3>Die Clips</h3><ul>
+      <li>Zuerst die <b>Top 10</b>, Rest über <span class="ui-btn">Alle Clips anzeigen</span></li>
+      <li>Umschalter <span class="ui-btn p">Beliebteste</span> <span class="ui-btn">Chronologisch</span>: meiste Aufrufe oben – oder vom Streamanfang bis zum Ende, mit Uhrzeit</li>
+      <li>Die Wahl merkt sich die Seite</li>
+      <li>Clips mit 📍 sind auf der Route markiert – Maus drüber lässt den Marker aufleuchten</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- Player -->
+<section class="s" id="player">
+  <p class="kicker">Clip-Player</p>
+  <h2>Clips direkt auf der Seite anschauen</h2>
+  <div class="split">
+    <figure class="figure"><svg viewBox="0 0 240 150" width="100%"><rect width="240" height="150" rx="9" fill="#1a1220" stroke="#f5a9d6"/><text x="10" y="17" font-size="8" font-weight="600" fill="#fff" font-family="IBM Plex Sans">Tanz am Rheinufer</text><text x="10" y="27" font-size="5.5" fill="#b7a3bc" font-family="IBM Plex Mono">19:40 UHR · 37 AUFRUFE · VON BEATSNICKERS</text><circle cx="228" cy="15" r="7" fill="#251a2b" stroke="#3a2a42"/><text x="228" y="18" text-anchor="middle" font-size="8" fill="#fff">×</text><defs><linearGradient id="pg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#3b1d40"/><stop offset="1" stop-color="#9146ff"/></linearGradient></defs><rect x="1" y="34" width="238" height="92" fill="url(#pg)"/><circle cx="120" cy="80" r="15" fill="#ffffff22" stroke="#fff"/><path d="M115 72 l13 8 l-13 8z" fill="#fff"/><rect x="8" y="132" width="13" height="11" rx="3" fill="#251a2b" stroke="#3a2a42"/><text x="14.5" y="140" text-anchor="middle" font-size="7" fill="#fff">‹</text><text x="27" y="140.5" font-size="6" fill="#b7a3bc" font-family="IBM Plex Mono">2 / 55</text><rect x="48" y="132" width="13" height="11" rx="3" fill="#251a2b" stroke="#3a2a42"/><text x="54.5" y="140" text-anchor="middle" font-size="7" fill="#fff">›</text><rect x="168" y="132" width="64" height="11" rx="3" fill="#251a2b" stroke="#3a2a42"/><text x="200" y="139.8" text-anchor="middle" font-size="5.8" fill="#fff" font-family="IBM Plex Sans">Auf Twitch öffnen ↗</text></svg><figcaption>Player mit Blättern durch alle Clips des Streams</figcaption></figure>
+    <ul>
+      <li>Klick auf einen Clip – in der Liste, auf den Top-Clip oder einen <span class="ui-play">▶</span>-Marker – öffnet den <b>Twitch-Player auf der Seite</b>.</li>
+      <li><b>‹ ›</b> oder Pfeiltasten blättern, <kbd>Esc</kbd> schließt.</li>
+      <li><span class="ui-btn">Auf Twitch öffnen ↗</span> oder <kbd>Strg</kbd>+Klick öffnet Twitch.</li>
+      <li>Der Player lädt <b>erst nach dem Klick</b>. Aufrufe zählen ganz normal bei Twitch.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Entdecken -->
+<section class="s" id="entdecken">
+  <p class="kicker">Entdecken</p>
+  <h2>Kalender, Rückblick und Zufallsclip</h2>
+  <div class="card"><h3>📅 Kalender</h3>
+    <div class="calm" id="calm"></div>
+    <p style="margin-top:10px">Jedes Jahr als Raster: Monate untereinander, Tage nebeneinander. Je länger gestreamt, desto kräftiger das Rosa; heute ist umrandet. Klick auf einen Tag öffnet den Stream. Suche und Filter wirken mit – Kategorie <i>IRL</i> zeigt z. B. nur IRL-Tage.</p></div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card"><h3>✨ Heute vor einem Jahr</h3>
+      <div style="border:1px solid #f5a9d655;border-radius:8px;background:#f5a9d60f;padding:8px 12px;margin:4px 0 8px"><span class="mono" style="font-size:10px;color:var(--accent);letter-spacing:.08em">VOR EINEM JAHR UM DIESE ZEIT</span><div style="font:700 17px 'Barlow Condensed'">😵‍💫 STRESS UND KRIESE 😵‍💫</div></div>
+      <p>Oben in der Liste: der Stream von genau heute vor 1–4 Jahren (sonst ±3 Tage).</p></div>
+    <div class="card"><h3>🎲 Zufälliger Clip</h3>
+      <p><span class="ui-btn">🎲 Zufälliger Clip</span> spielt einen von über 3.300 Clips und springt zum passenden Stream. <span class="ui-btn">🎲 Noch einer</span> im Player holt den nächsten – perfekt zum Stöbern.</p></div>
+  </div>
+</section>
+
+<!-- Mehr -->
+<section class="s" id="mehr">
+  <p class="kicker">Gut zu wissen</p>
+  <h2>LIVE, Teilen, Handy, Sprache</h2>
+  <div class="grid2">
+    <div class="card"><h3>🔴 LIVE</h3><p>Ist Naschii live, erscheint im Header <span class="ui-live">● LIVE</span> mit Kategorie, Titel und Laufzeit. Ein Klick führt in den Stream.</p></div>
+    <div class="card"><h3>🔗 Teilen</h3><p>Den Link in Discord, WhatsApp oder X posten – es erscheint automatisch ein Vorschaubild mit den aktuellen Zahlen.</p></div>
+    <div class="card"><h3>📱 Handy</h3><p>Karte oben, Liste darunter. Antippen statt Drüberfahren: Vorschauen öffnen sich beim ersten Tippen.</p></div>
+    <div class="card"><h3>🌍 Deutsch / English</h3><p>Oben links <span class="ui-btn">DE | EN</span>. Die Sprache wird automatisch erkannt und gemerkt. Stream- und Clip-Titel bleiben im Original.</p></div>
+  </div>
+</section>
+
+<!-- Mods -->
+<section class="s" id="mods">
+  <p class="kicker">Für Kanalbetreiber, Mods &amp; Berechtigte</p>
+  <h2>Routen zeichnen und Streams ergänzen</h2>
+  <p class="lead">Mit <span class="ui-btn t">Mit Twitch anmelden</span> einloggen – Mods werden automatisch erkannt. Dann im Stream auf <span class="ui-btn p">Route zeichnen</span> klicken. Nach dem Speichern ist alles in 1–2 Minuten für alle sichtbar.</p>
+  <div class="card"><table>
+    <tr><th style="width:26%">Werkzeug</th><th>So geht’s</th></tr>
+    <tr><td><b>✋ Verschieben</b></td><td>Karte bewegen; Punkte, Stationen und Clips mit der Maus verschieben. Rechtsklick entfernt.</td></tr>
+    <tr><td><b>✏️ Punkte</b></td><td>Klick setzt den nächsten Punkt, Klick auf die Linie fügt einen dazwischen ein. Doppelklick löscht.</td></tr>
+    <tr><td><b>〰️ Freihand</b></td><td>Maustaste halten und die Strecke wie mit einem Stift nachmalen.</td></tr>
+    <tr><td><b>📍 Station</b></td><td>Klick auf die Route setzt eine nummerierte Station, Name links eintragen.</td></tr>
+  </table></div>
+  <div class="grid3" style="margin-top:14px">
+    <div class="card"><h3>Clips platzieren</h3><ul><li>Clip aus der Liste <b>auf die Route ziehen</b> (Handy: antippen, dann Karte tippen)</li><li><span class="ui-btn">Top-10-Clips nach Uhrzeit verteilen</span> setzt die beliebtesten grob richtig</li></ul></div>
+    <div class="card"><h3>Beschreibung &amp; Ort</h3><ul><li><b>Was wurde gemacht?</b> – kurzer Text, auch ohne Route</li><li><b>Ort</b> per <span class="ui-btn">⌂ Auf Karte setzen</span> setzen oder korrigieren</li></ul></div>
+    <div class="card"><h3>Hilfen</h3><ul><li><span class="ui-btn">↶ Rückgängig</span> oder <kbd>Strg</kbd>+<kbd>Z</kbd></li><li><span class="ui-btn">⟳ Daten jetzt aktualisieren</span> – sofortiges Update, falls die Automatik hängt</li></ul></div>
+  </div>
+  <div class="tip"><b class="i">i</b><div>Wer etwas speichert, wird nicht öffentlich genannt. Die Seite fragt bei Twitch nur ab, ob jemand Mod ist – sie kann nichts posten oder ändern.</div></div>
+</section>
+
+<!-- Automatik -->
+<section class="s" id="automatik">
+  <p class="kicker">Läuft von selbst</p>
+  <h2>Darum muss sich niemand kümmern</h2>
+  <div class="grid3">
+    <div class="card"><h3>📺 Streams</h3><p>Werden alle 15 Minuten erkannt – auch während sie laufen. Dauer, Kategorie, Vorschaubild automatisch.</p></div>
+    <div class="card"><h3>👀 Zuschauer</h3><p>Ø, Maximum und Follower-Zuwachs werden während des Streams selbst gemessen.</p></div>
+    <div class="card"><h3>🎬 Clips</h3><p>Neue kommen dazu, gelöschte verschwinden, Titel und Aufrufe bleiben aktuell, Zuordnung zum Stream automatisch.</p></div>
+    <div class="card"><h3>📍 Orte</h3><p>Aus Stream- und Clip-Titeln erkannt, rund 100 Orte bekannt – auch rückwirkend.</p></div>
+    <div class="card"><h3>✨ Anzeige</h3><p>Header-Zahlen, LIVE-Leiste, Kategorie-Coverbilder, Teilen-Vorschaubild, Collage.</p></div>
+    <div class="card"><h3>💸 Kosten</h3><p>0 € – alles läuft auf kostenlosen Diensten, ohne Werbung.</p></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="s" id="faq">
+  <p class="kicker">Fragen</p>
+  <h2>Häufige Fragen</h2>
+  <details><summary>Warum hat ein Stream keine Clips?</summary><p>Twitch liefert für ihn keine – entweder wurde nichts geclippt oder die Clips wurden gelöscht. Clips gibt es bei Naschii ab Januar 2025.</p></details>
+  <details><summary>Warum mehr Clips als bei TwitchTracker?</summary><p>TwitchTracker zeigt nur Clips ab 10 Aufrufen. Hier sind alle Clips drin, auch kleine mit 1–9 Aufrufen.</p></details>
+  <details><summary>Gehört jeder Clip zum richtigen Stream?</summary><p>Über 99 % entstanden während des Streams und hängen nachweislich richtig. Wenige wurden später aus dem VOD geschnitten und kommen zum letzten Stream davor.</p></details>
+  <details><summary>Woher kommen die Zuschauerzahlen?</summary><p>Für ältere Streams von TwitchTracker, für neue misst die Seite selbst alle 15 Minuten.</p></details>
+  <details><summary>Was heißt „Ort ungefähr“?</summary><p>Der Ort wurde aus Titeln erkannt und liegt auf Stadtebene. Genaue Wege gibt es nur mit gezeichneter Route.</p></details>
+  <details><summary>Ein Clip startet stumm?</summary><p>Manche Browser (vor allem Safari am iPhone) blockieren Ton beim automatischen Start – einmal aufs Lautsprecher-Symbol tippen.</p></details>
+  <details><summary>Ich sehe eine Änderung noch nicht.</summary><p>Neue Daten brauchen bis zu 15 Minuten plus ca. 1 Minute. Danach neu laden (<kbd>Strg</kbd>+<kbd>F5</kbd>).</p></details>
+</section>
+
+<!-- Spickzettel -->
+<section class="s" id="spick">
+  <p class="kicker">Spickzettel</p>
+  <h2>Schnell gefunden</h2>
+  <div class="card"><table>
+    <tr><td><b>Ort finden</b></td><td>Ortsname suchen oder Maus über die Ortsblase</td></tr>
+    <tr><td><b>Bester Stream</b></td><td>Sortieren: <i>Meiste Ø Zuschauer</i></td></tr>
+    <tr><td><b>Alle IRL-Streams</b></td><td>Kategorie <i>IRL</i> wählen</td></tr>
+    <tr><td><b>Streams eines Monats</b></td><td>z. B. „August 2026“ suchen</td></tr>
+    <tr><td><b>Streams eines Tages</b></td><td><i>📅 Kalender</i> → Tag anklicken</td></tr>
+    <tr><td><b>Etwas Lustiges</b></td><td><i>🎲 Zufälliger Clip</i></td></tr>
+    <tr><td><b>Clips in Reihenfolge</b></td><td>Im Stream auf <i>Chronologisch</i> stellen</td></tr>
+    <tr><td><b>Ist Naschii live?</b></td><td>rote LIVE-Leiste im Header</td></tr>
+    <tr><td><b>Route zeichnen</b></td><td>mit Twitch anmelden → Stream öffnen → <i>Route zeichnen</i></td></tr>
+  </table></div>
+</section>
+
+<div class="foot"><a href="./">← Zur Karte</a><a href="handbuch.pdf" download>Handbuch als PDF</a><a href="https://www.twitch.tv/naschiitaschii/about" target="_blank" rel="noopener noreferrer">Impressum</a><a href="datenschutz.html">Datenschutz</a></div>
+</main>
+<script>
+// Kalender-Beispiel: zwei Monate mit Beispieldaten
+(function(){var el=document.getElementById('calm');if(!el)return;var h='<span></span>';for(var d=1;d<=31;d++)h+='<span style="text-align:center">'+(d===1||d%5===0?d:'')+'</span>';
+var seed=5,r=function(){seed=(seed*16807)%2147483647;return seed/2147483647};
+['Aug','Sep','Okt'].forEach(function(m,mi){h+='<span>'+m+'</span>';for(var d=1;d<=31;d++){var x=r(),c=x<.42?'':x<.6?'l1':x<.78?'l2':x<.92?'l3':'l4';if(mi===2&&d>20)c='';h+='<i class="'+c+(mi===2&&d===20?' t':'')+'"></i>'}});
+el.innerHTML=h})();
+</script>
+</body>
+</html>
