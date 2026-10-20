@@ -1063,6 +1063,17 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .chipbtn{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font:500 12.5px var(--f-body)}
 .chipbtn:hover{border-color:var(--muted)}
 .chipbtn[aria-pressed="true"]{border-color:var(--accent);background:#f5a9d61f;color:var(--accent)}
+#cliphits:empty{display:none}
+#cliphits{margin:8px 16px 4px;border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden}
+.ch-head{display:flex;align-items:center;gap:8px;padding:8px 12px;font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-bottom:1px solid var(--line)}
+.ch-item{all:unset;box-sizing:border-box;display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+.ch-item:hover,.ch-item:focus-visible{background:#f5a9d614}
+.ch-item img,.ch-item .ph{width:72px;height:41px;border-radius:5px;object-fit:cover;background:linear-gradient(135deg,#3b1d40,#9146ff)}
+.ch-item b{display:block;font:600 13.5px/1.25 var(--f-body);color:var(--fg);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ch-item small{display:block;margin-top:2px;font:500 10.5px var(--f-mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-item mark{background:#f5a9d64d;color:inherit;border-radius:2px}
+.ch-more{all:unset;box-sizing:border-box;display:block;width:100%;padding:8px 12px;text-align:center;font:600 12.5px var(--f-body);color:var(--accent);cursor:pointer}
+.ch-more:hover{background:#f5a9d614}
 .card.memo{row-gap:4px;margin:8px 16px 4px;width:calc(100% - 32px);border:1px solid #f5a9d655;border-radius:10px;background:#f5a9d60f}
 .memo-k{grid-column:1/-1;display:block;font:600 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
 #cal{padding:6px 16px 18px}
@@ -1123,9 +1134,10 @@ body.editing .grp-wrap{pointer-events:none}
 
   <aside class="panel" id="panel" aria-label="Routen">
     <div id="v-list">
-      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="none">Ohne Ort</option></select><select id="cat" aria-label="Nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="avg">Meiste Ø Zuschauer</option><option value="max">Meiste Max. Zuschauer</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div>
+      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum, Clip" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="none">Ohne Ort</option></select><select id="cat" aria-label="Nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="avg">Meiste Ø Zuschauer</option><option value="max">Meiste Max. Zuschauer</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div>
       <div class="tools2"><button type="button" class="chipbtn" id="calbtn" aria-pressed="false">📅 <span>Kalender</span></button><button type="button" class="chipbtn" id="rndbtn">🎲 <span>Zufälliger Clip</span></button><p class="count mono" id="count"></p></div>
       <div id="memo"></div>
+      <div id="cliphits"></div>
       <div class="list" id="list"></div>
       <div id="cal" hidden></div>
       <p class="hint" id="listhint"></p>
@@ -1415,7 +1427,8 @@ function renderList(){
     if(state.cat&&r.category!==state.cat)return false;
     if(!q)return true;
     var hay=[r.title,r.desc,fmtDate(r.date),r.date,r.location?r.location.name:'',r.category||''].concat((r.stops||[]).map(function(s){return s.name})).join(' ').toLowerCase();
-    return hay.indexOf(q)>=0;
+    if(hay.indexOf(q)>=0)return true;
+    return q.length>=2&&(r.clips||[]).some(function(c){return clipMatch(c,q)});
   });
   var srt=state.sort||'new';
   var key=function(r){return r.date+' '+(r.start||'')};
@@ -1431,8 +1444,12 @@ function renderList(){
     return key(a)<key(b)?1:key(a)>key(b)?-1:0;
   });
   state.rows=rows;
-  $('#count').textContent=(rows.length===state.routes.length?'':rows.length+T(' von ',' of '))+state.routes.length+' Streams';
-  renderMemo();
+  var hits=[];
+  if(q.length>=2)rows.forEach(function(r){(r.clips||[]).forEach(function(c){if(clipMatch(c,q))hits.push({c:c,r:r})})});
+  hits.sort(function(a,b){return (b.c.views||0)-(a.c.views||0)});
+  state.clipHits=hits;
+  $('#count').textContent=(rows.length===state.routes.length?'':rows.length+T(' von ',' of '))+state.routes.length+' Streams'+(hits.length?' · '+hits.length.toLocaleString(LOC)+(hits.length===1?' Clip':' Clips'):'');
+  renderMemo();renderClipHits(q);
   var cal=state.view==='cal';$('#cal').hidden=!cal;$('#list').hidden=cal;$('#calbtn').setAttribute('aria-pressed',cal);
   if(cal){renderCal();return}
   $('#list').innerHTML=rows.length?rows.map(function(r){
@@ -1441,11 +1458,31 @@ function renderList(){
     return '<button type="button" class="card'+(side?' has-thumb':'')+'" data-id="'+esc(r.id)+'" aria-pressed="'+(r.id===state.selectedId)+'"><span class="cbody">'+
       '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+' · '+esc(r.start||'')+liveTag(r)+routeTag(r)+'</div>'+
       '<h3>'+esc(r.title)+'</h3>'+
-      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span'+(state.sort==='avg'?' class="hl"':'')+'>Ø '+r.avgViewers+T(' Zuschauer',' viewers')+'</span>':'')+(r.maxViewers!=null&&state.sort==='max'?'<span class="hl">Max. '+r.maxViewers.toLocaleString(LOC)+'</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString(LOC)+' '+T('Follower','followers')+'</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+(r.clips.length===1?' Clip':' Clips')+'</span>':'')+'</div></span>'+side+'</button>';
+      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+(r.avgViewers!=null?'<span'+(state.sort==='avg'?' class="hl"':'')+'>Ø '+r.avgViewers+T(' Zuschauer',' viewers')+'</span>':'')+(r.maxViewers!=null&&state.sort==='max'?'<span class="hl">Max. '+r.maxViewers.toLocaleString(LOC)+'</span>':'')+(r.followers!=null&&(state.sort==='fol')?'<span class="hl">'+(r.followers>0?'+':'')+r.followers.toLocaleString(LOC)+' '+T('Follower','followers')+'</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+(r.clips.length===1?' Clip':' Clips')+'</span>':'')+(function(){var n=q.length>=2?(r.clips||[]).filter(function(c){return clipMatch(c,q)}).length:0;return n?'<span class="hl">🎬 '+n+T(' passend',' matching')+'</span>':''})()+'</div></span>'+side+'</button>';
   }).join(''):'<p class="empty">'+T('Keine Streams gefunden.','No streams found.')+'</p>';
   $('#listhint').textContent=canEdit(state.user)?'':(state.user?T('Nur Kanalbetreiber, Mods und Berechtigte können Routen bearbeiten.','Only the channel owner, mods and authorised people can edit routes.'):T('Kanalbetreiber, Mods und Berechtigte können sich mit Twitch anmelden, um Routen zu ergänzen.','The channel owner, mods and authorised people can log in with Twitch to add routes.'));
   $('#listhint').hidden=!SHOW_LOGIN||canEdit(state.user);
 }
+/* ---------- Clip-Suche ---------- */
+function clipMatch(c,q){return ((c.title||'')+' '+(c.by||'')).toLowerCase().indexOf(q)>=0}
+function markQ(s,q){s=String(s||'');var i=s.toLowerCase().indexOf(q);if(!q||i<0)return esc(s);return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+q.length))+'</mark>'+esc(s.slice(i+q.length))}
+function renderClipHits(q){
+  var box=$('#cliphits'),h=state.clipHits||[];
+  if(!h.length||state.view==='cal'){box.innerHTML='';return}
+  var show=state.clipAll?h.length:Math.min(h.length,5);
+  box.innerHTML='<div class="ch-head">🎬 '+h.length.toLocaleString(LOC)+(h.length===1?T(' passender Clip',' matching clip'):T(' passende Clips',' matching clips'))+'</div>'+
+    h.slice(0,show).map(function(x,i){var th=x.c.thumb&&safeUrl(x.c.thumb);
+      return '<button type="button" class="ch-item" data-hit="'+i+'">'+(th?'<img src="'+esc(th)+'" alt="" loading="lazy" onerror="this.removeAttribute(\'src\')">':'<span class="ph"></span>')+
+      '<span><b>'+markQ(x.c.title||'Clip',q)+'</b><small>'+esc([fmtDate(x.r.date),x.c.views!=null?x.c.views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'',x.c.by&&x.c.by.toLowerCase().indexOf(q)>=0?T('von ','by ')+x.c.by:''].filter(Boolean).join(' · '))+'</small></span></button>'}).join('')+
+    (h.length>show?'<button type="button" class="ch-more" data-more="1">'+T('Alle '+h.length.toLocaleString(LOC)+' Clips anzeigen','Show all '+h.length.toLocaleString(LOC)+' clips')+'</button>':'');
+}
+$('#cliphits').addEventListener('click',function(e){
+  if(e.target.closest('[data-more]')){state.clipAll=true;renderClipHits(state.query.trim().toLowerCase());return}
+  var b=e.target.closest('[data-hit]');if(!b)return;
+  var h=state.clipHits||[],i=+b.dataset.hit;if(!h[i])return;
+  var list=h.map(function(x){var o={};for(var k in x.c)o[k]=x.c[k];o.__r=x.r;return o});
+  openPlayer(list,i,h[i].r);
+});
 /* ---------- Heute vor einem Jahr ---------- */
 function iso(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
 function renderMemo(){
@@ -1991,7 +2028,7 @@ function openPlayer(list,i,r,random){
 function showClip(){
   var c=PL.list[PL.i];if(!c)return;var sg=slugOf(c.url);
   $('#pl-title').textContent=c.title||'Clip';
-  var meta=[clipTime(c),c.views!=null?c.views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'',c.by?T('von ','by ')+c.by:'',PL.r?fmtDate(PL.r.date):''].filter(Boolean).join(' · ');
+  var meta=[clipTime(c),c.views!=null?c.views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'',c.by?T('von ','by ')+c.by:'',(c.__r||PL.r)?fmtDate((c.__r||PL.r).date):''].filter(Boolean).join(' · ');
   $('#pl-meta').textContent=meta;
   $('#pl-frame').innerHTML='<iframe src="https://clips.twitch.tv/embed?clip='+encodeURIComponent(sg)+'&parent='+encodeURIComponent(location.hostname)+'&autoplay=true&muted=false" allowfullscreen allow="autoplay; fullscreen" title="'+esc(c.title||'Clip')+'"></iframe>';
   $('#pl-tw').href=safeUrl(c.url)||'#';$('#pl-tw').textContent=T('Auf Twitch öffnen ↗','Open on Twitch ↗');
@@ -2118,7 +2155,7 @@ document.addEventListener('click',function(e){
       break;
   }
 });
-function setQuery(v){state.query=v;$('#q').value=v;$('#qclear').hidden=!v;renderList()}
+function setQuery(v){state.query=v;state.clipAll=false;$('#q').value=v;$('#qclear').hidden=!v;renderList()}
 $('#q').addEventListener('input',function(e){setQuery(e.target.value)});
 $('#q').addEventListener('keydown',function(e){if(e.key==='Escape'&&e.target.value){setQuery('');e.preventDefault()}});
 $('#flt').addEventListener('change',function(e){state.filter=e.target.value;renderList()});
@@ -2221,7 +2258,7 @@ function applyStatic(){
   document.querySelectorAll('[data-lang]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lang===LANG)});
   if(LANG!=='en')return;
   var set=function(sel,txt,attr){var e=$(sel);if(!e)return;if(attr)e.setAttribute(attr,txt);else e.textContent=txt};
-  set('#q','Search: title, place, date','placeholder');set('#q','Search streams','aria-label');
+  set('#q','Search: title, place, date, clip','placeholder');set('#q','Search streams','aria-label');
   set('#qclear','Clear search','aria-label');set('#qclear','Clear search','title');
   var fo={all:'All',loc:'With place',route:'With route',none:'Without place'};
   document.querySelectorAll('#flt option').forEach(function(o){if(fo[o.value])o.textContent=fo[o.value]});
