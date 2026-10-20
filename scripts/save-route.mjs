@@ -23,8 +23,17 @@ if (route !== null) {
   if (!Array.isArray(points) || points.length > 3000 || !points.every(pt)) fail('Punkte ungültig');
   if (!Array.isArray(stops) || stops.length > 60) fail('Stationen ungültig');
   const cs = Object.entries(clips);
+  const clean1 = (s, n) => String(s || '').replace(/[\u0000-\u0008\u000b-\u001f]/g, '').trim().slice(0, n);
+  const desc = clean1(route.desc, 1500);
+  let loc;
+  if (route.loc != null) {
+    if (!num(route.loc.lat, -90, 90) || !num(route.loc.lng, -180, 180)) fail('Ort ungültig');
+    loc = { name: clean1(route.loc.name, 60) || 'Ort', lat: r5(route.loc.lat), lng: r5(route.loc.lng) };
+  }
   if (cs.length > 600) fail('zu viele Clips');
   clean = {
+    ...(desc ? { desc } : {}),
+    ...(loc ? { loc } : {}),
     points: points.map(([a, b]) => [r5(a), r5(b)]),
     stops: stops.map((s) => {
       if (!s || !num(s.lat, -90, 90) || !num(s.lng, -180, 180)) fail('Station ungültig');
