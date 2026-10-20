@@ -828,15 +828,13 @@ h1,h2,h3,p{margin:0}
 .chip .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 
 /* Anleitung & Datenschutz im Kartenbereich (Rahmen und Collage bleiben stehen) */
-.docview{grid-row:1/-1;grid-column:1/-1;position:relative;z-index:500;display:flex;flex-direction:column;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.docview{grid-area:map;position:relative;z-index:500;display:flex;flex-direction:column;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .docview[hidden]{display:none}
 .docbar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--bg)}
 .docbar b{font:700 17px var(--f-head,'Barlow Condensed'),sans-serif;letter-spacing:.02em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.docbar .tabs{margin-left:auto;display:flex;gap:6px}
-.docbar .tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 .docview iframe{flex:1;min-height:0;width:100%;border:0;background:#120c16;display:block}
-body.doc .app>.map-wrap,body.doc .app>.panel{visibility:hidden}
-@media (max-width:820px){body.doc .app{grid-template-rows:minmax(0,1fr);min-height:78vh}.docbar .tabs{display:none}}
+body.doc .app>.map-wrap{visibility:hidden}
+@media (max-width:820px){body.doc .app{grid-template-rows:minmax(0,1fr) minmax(120px,34%)}}
 /* App-Raster */
 .app{flex:1;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(320px,400px) minmax(0,1fr);grid-template-areas:"panel map"}
 .panel{grid-area:panel;min-height:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-y:auto;overflow-x:hidden}
@@ -1055,7 +1053,9 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .pl-foot #pl-pos{font-size:12px;color:var(--muted)}
 .pl-foot #pl-tw{margin-left:auto;text-decoration:none;color:var(--fg)}
 @media (max-width:820px){.player{padding:0;place-items:end center}.pl-box{border-radius:14px 14px 0 0}}
-.tools2{display:flex;gap:8px;padding:10px 16px 0}
+.tools2{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line)}
+@media (max-width:420px){.tools2{padding:10px 12px;gap:6px}.tools2 .chipbtn{padding:5px 8px;font-size:12px}}
+.tools2 .count{margin-left:auto;padding:0;border:0;white-space:nowrap;letter-spacing:.04em}
 .chipbtn{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font:500 12.5px var(--f-body)}
 .chipbtn:hover{border-color:var(--muted)}
 .chipbtn[aria-pressed="true"]{border-color:var(--accent);background:#f5a9d61f;color:var(--accent)}
@@ -1120,8 +1120,7 @@ body.editing .grp-wrap{pointer-events:none}
   <aside class="panel" id="panel" aria-label="Routen">
     <div id="v-list">
       <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="none">Ohne Ort</option></select><select id="cat" aria-label="Nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="avg">Meiste Ø Zuschauer</option><option value="max">Meiste Max. Zuschauer</option><option value="fol">Meiste Follower</option><option value="time">Längste Streamzeit</option></select></div>
-      <div class="tools2"><button type="button" class="chipbtn" id="calbtn" aria-pressed="false">📅 <span>Kalender</span></button><button type="button" class="chipbtn" id="rndbtn">🎲 <span>Zufälliger Clip</span></button></div>
-      <p class="count mono" id="count"></p>
+      <div class="tools2"><button type="button" class="chipbtn" id="calbtn" aria-pressed="false">📅 <span>Kalender</span></button><button type="button" class="chipbtn" id="rndbtn">🎲 <span>Zufälliger Clip</span></button><p class="count mono" id="count"></p></div>
       <div id="memo"></div>
       <div class="list" id="list"></div>
       <div id="cal" hidden></div>
@@ -1151,8 +1150,7 @@ body.editing .grp-wrap{pointer-events:none}
     </form>
   </aside>
   <section class="docview" id="docview" hidden aria-labelledby="doc-title">
-    <div class="docbar"><button class="btn" type="button" id="doc-close">← <span>Zur Karte</span></button><b id="doc-title">Anleitung</b>
-      <div class="tabs"><button class="btn" type="button" data-doc="anleitung">Anleitung</button><button class="btn" type="button" data-doc="datenschutz">Datenschutz</button></div></div>
+    <div class="docbar"><button class="btn" type="button" id="doc-close">← <span>Zur Karte</span></button><b id="doc-title">Anleitung</b></div>
     <iframe id="doc-frame" title="Anleitung" loading="lazy"></iframe>
   </section>
 </main>
@@ -1428,7 +1426,7 @@ function renderList(){
     return key(a)<key(b)?1:key(a)>key(b)?-1:0;
   });
   state.rows=rows;
-  $('#count').textContent=rows.length+T(' von ',' of ')+state.routes.length+' Streams';
+  $('#count').textContent=(rows.length===state.routes.length?'':rows.length+T(' von ',' of '))+state.routes.length+' Streams';
   renderMemo();
   var cal=state.view==='cal';$('#cal').hidden=!cal;$('#list').hidden=cal;$('#calbtn').setAttribute('aria-pressed',cal);
   if(cal){renderCal();return}
@@ -2187,7 +2185,6 @@ function openDoc(name,push){
   var fr=$('#doc-frame'),url=name+'.html';
   if(DOCCUR!==name){try{if(DOCCUR)fr.contentWindow.location.replace(url);else fr.src=url}catch(e){fr.src=url}DOCCUR=name}
   $('#doc-title').textContent=T(DOCS[name][0],DOCS[name][1]);fr.title=$('#doc-title').textContent;
-  document.querySelectorAll('.docbar [data-doc]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.doc===name)});
   $('#docview').hidden=false;document.body.classList.add('doc');
   if(push!==false){try{if(location.hash!=='#'+name)history.pushState({doc:name},'','#'+name)}catch(e){}}
   var m=$('main.app');if(m&&m.getBoundingClientRect().top<0)m.scrollIntoView({block:'start'});
@@ -2205,6 +2202,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();openDoc(a.dataset.doc);
 });
 $('#doc-close').addEventListener('click',function(){closeDoc(false)});
+$('#panel').addEventListener('click',function(e){if($('#docview').hidden)return;if(e.target.closest('#list,#memo,#cal,#rndbtn,#v-detail'))closeDoc(false)},true);
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#docview').hidden&&$('#player').hidden)closeDoc(false)});
 window.addEventListener('popstate',function(){var h=location.hash.slice(1);if(DOCS[h])openDoc(h,false);else closeDoc(true)});
 (function(){var h=location.hash.slice(1);if(DOCS[h]){try{history.replaceState({doc:h},'',location.href)}catch(e){}openDoc(h,false)}})();
@@ -2221,7 +2219,7 @@ function applyStatic(){
   set('#flt','Filter streams','aria-label');set('#cat','Filter by category','aria-label');set('#srt','Sort streams','aria-label');
   set('#calbtn span','Calendar');set('#rndbtn span','Random clip');
   set('#f-imp','Legal notice');set('#f-imp','Legal notice (German) on naschiitaschii’s Twitch about page','title');
-  set('#f-ds','Privacy (German)');set('#f-help','Guide (German)');set('#doc-close span','Back to map');set('.docbar [data-doc="anleitung"]','Guide');set('.docbar [data-doc="datenschutz"]','Privacy');set('#f-src','Data: Twitch · Map: © OpenStreetMap');
+  set('#f-ds','Privacy (German)');set('#f-help','Guide (German)');set('#doc-close span','Back to map');set('#f-src','Data: Twitch · Map: © OpenStreetMap');
   set('.avatar','naschiitaschii on Twitch','aria-label');set('#stats','Totals','aria-label');
   set('.map-wrap','Map','aria-label');set('#panel','Streams','aria-label');set('#pl-close','Close','aria-label');
 }
