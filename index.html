@@ -830,7 +830,7 @@ h1,h2,h3,p{margin:0}
 /* Anleitung & Datenschutz im Kartenbereich (Rahmen und Collage bleiben stehen) */
 .docview{grid-area:map;position:relative;z-index:500;display:flex;flex-direction:column;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .docview[hidden]{display:none}
-.docbar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--bg)}
+.docbar{display:none;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--bg)}
 .docbar b{font:700 17px var(--f-head,'Barlow Condensed'),sans-serif;letter-spacing:.02em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .docview iframe{flex:1;min-height:0;width:100%;border:0;background:#120c16;display:block}
 body.doc .app>.map-wrap{visibility:hidden}
@@ -2228,7 +2228,7 @@ function openDoc(name,push){
   if(DOCCUR!==name){try{if(DOCCUR)fr.contentWindow.location.replace(url);else fr.src=url}catch(e){fr.src=url}DOCCUR=name}
   $('#doc-title').textContent=T(DOCS[name][0],DOCS[name][1]);fr.title=$('#doc-title').textContent;
   $('#docview').hidden=false;document.body.classList.add('doc');
-  if(push!==false){try{if(location.hash!=='#'+name)history.pushState({doc:name},'','#'+name)}catch(e){}}
+  if(push!==false){try{if(location.hash!=='#'+name){if(history.state&&history.state.doc)history.replaceState({doc:name},'','#'+name);else history.pushState({doc:name},'','#'+name)}}catch(e){}}
   var m=$('main.app');if(m&&m.getBoundingClientRect().top<0)m.scrollIntoView({block:'start'});
 }
 function closeDoc(fromPop){
