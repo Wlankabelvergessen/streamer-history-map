@@ -1957,7 +1957,7 @@ function showClip(){
   $('#pl-title').textContent=c.title||'Clip';
   var meta=[clipTime(c),c.views!=null?c.views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'',c.by?T('von ','by ')+c.by:'',PL.r?fmtDate(PL.r.date):''].filter(Boolean).join(' · ');
   $('#pl-meta').textContent=meta;
-  $('#pl-frame').innerHTML='<iframe src="https://clips.twitch.tv/embed?clip='+encodeURIComponent(sg)+'&parent='+encodeURIComponent(location.hostname)+'&autoplay=true" allowfullscreen allow="autoplay; fullscreen" title="'+esc(c.title||'Clip')+'"></iframe>';
+  $('#pl-frame').innerHTML='<iframe src="https://clips.twitch.tv/embed?clip='+encodeURIComponent(sg)+'&parent='+encodeURIComponent(location.hostname)+'&autoplay=true&muted=false" allowfullscreen allow="autoplay; fullscreen" title="'+esc(c.title||'Clip')+'"></iframe>';
   $('#pl-tw').href=safeUrl(c.url)||'#';$('#pl-tw').textContent=T('Auf Twitch öffnen ↗','Open on Twitch ↗');
   var n=PL.list.length;
   $('#pl-prev').hidden=PL.random||n<2;$('#pl-next').hidden=!PL.random&&n<2;
