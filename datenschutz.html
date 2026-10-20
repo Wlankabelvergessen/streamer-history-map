@@ -45,12 +45,12 @@ if(h==='./'||h==='index.html'){e.preventDefault();window.parent.closeDoc()}
 else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.parent.openDoc(h.replace('.html',''))}});})();
 </script>
 <style>.embed body>header,.embed .back,.embed .foot a[href="./"]{display:none!important}.embed main{padding-top:16px}
-.embed nav.toc div{max-width:none;align-items:center}
+.embed nav.toc div{max-width:none;align-items:center;padding:0 12px;height:52px}
 .ebar{position:sticky;top:0;z-index:10;background:#120c16f0;border-bottom:1px solid #3a2a42}
-.ebar div{display:flex;align-items:center;gap:10px;padding:8px 12px}
-.eb-back{flex:none;padding:5px 12px!important;border:1px solid #3a2a42!important;border-radius:6px!important;background:#251a2b;color:#f4ebf3!important;text-decoration:none;font:500 13px 'IBM Plex Sans',sans-serif;white-space:nowrap}
+.ebar div{display:flex;align-items:center;gap:6px;padding:0 12px;height:52px}
+.eb-back{flex:none;padding:5px 12px!important;border:1px solid #3a2a42!important;border-radius:6px!important;background:#251a2b;color:#f4ebf3!important;text-decoration:none;font:500 13px 'IBM Plex Sans',sans-serif!important;white-space:nowrap}
 .eb-back:hover{border-color:#f5a9d6!important}
-.eb-title{flex:none;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:.02em;color:#fff;white-space:nowrap;margin-right:4px}
+.eb-title{flex:none;margin-left:4px;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:.02em;color:#fff;white-space:nowrap;margin-right:4px}
 .eb-sep{flex:none;width:1px;height:22px;background:#3a2a42;margin:0 2px}
 /* Gut greifbarer Schieberegler (Chrome, Edge, Safari) */
 ::-webkit-scrollbar{width:14px;height:12px}

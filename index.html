@@ -2246,7 +2246,7 @@ var DOCS={anleitung:['Anleitung','Guide (German)'],datenschutz:['Datenschutzerkl
 function openDoc(name,push){
   if(!DOCS[name])return;
   var fr=$('#doc-frame'),url=name+'.html';
-  if(DOCCUR!==name){try{if(DOCCUR)fr.contentWindow.location.replace(url);else fr.src=url}catch(e){fr.src=url}DOCCUR=name}
+  if(DOCCUR!==name){fr.style.visibility='hidden';fr.onload=function(){fr.style.visibility=''};try{if(DOCCUR)fr.contentWindow.location.replace(url);else fr.src=url}catch(e){fr.src=url}DOCCUR=name}
   $('#doc-title').textContent=T(DOCS[name][0],DOCS[name][1]);fr.title=$('#doc-title').textContent;
   $('#docview').hidden=false;document.body.classList.add('doc');
   if(push!==false){try{if(location.hash!=='#'+name){if(history.state&&history.state.doc)history.replaceState({doc:name},'','#'+name);else history.pushState({doc:name},'','#'+name)}}catch(e){}}
