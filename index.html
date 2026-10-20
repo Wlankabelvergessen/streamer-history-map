@@ -1049,8 +1049,8 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .chipbtn{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font:500 12.5px var(--f-body)}
 .chipbtn:hover{border-color:var(--muted)}
 .chipbtn[aria-pressed="true"]{border-color:var(--accent);background:#f5a9d61f;color:var(--accent)}
-.card.memo{margin:8px 16px 4px;width:calc(100% - 32px);border:1px solid #f5a9d655;border-radius:10px;background:#f5a9d60f}
-.memo-k{display:block;font:600 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.card.memo{row-gap:4px;margin:8px 16px 4px;width:calc(100% - 32px);border:1px solid #f5a9d655;border-radius:10px;background:#f5a9d60f}
+.memo-k{grid-column:1/-1;display:block;font:600 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
 #cal{padding:6px 16px 18px}
 .cal-legend{display:flex;align-items:center;gap:5px;font:500 10.5px var(--f-mono);color:var(--muted);margin:4px 0 10px;flex-wrap:wrap}
 .cal-legend i{width:11px;height:11px;border-radius:2px;display:inline-block}
@@ -1445,7 +1445,7 @@ function renderMemo(){
   }
   if(!hit){box.innerHTML='';return}
   var th=thumbOf(hit);
-  box.innerHTML='<button type="button" class="card memo" data-id="'+esc(hit.id)+'"><span class="cbody"><span class="memo-k">✨ '+label+'</span><h3>'+esc(hit.title)+'</h3><div class="m"><span>'+esc(fmtDate(hit.date))+'</span><span>'+esc(fmtDur(hit.durationMin))+'</span>'+((hit.clips||[]).length?'<span>'+hit.clips.length+' Clips</span>':'')+'</div></span>'+(th?'<img class="thumb" src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</button>';
+  box.innerHTML='<button type="button" class="card memo" data-id="'+esc(hit.id)+'"><span class="memo-k">'+label+'</span><span class="cbody"><h3>'+esc(hit.title)+'</h3><div class="m"><span>'+esc(fmtDate(hit.date))+'</span><span>'+esc(fmtDur(hit.durationMin))+'</span>'+((hit.clips||[]).length?'<span>'+hit.clips.length+' Clips</span>':'')+'</div></span>'+(th?'<img class="thumb" src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</button>';
   if(th)box.firstChild.classList.add('has-thumb');
 }
 
