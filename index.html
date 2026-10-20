@@ -827,6 +827,16 @@ h1,h2,h3,p{margin:0}
 .chip .av{position:relative;width:26px;height:26px;border-radius:50%;background:var(--twitch);color:#fff;display:grid;place-items:center;font:600 12px var(--f-body);overflow:hidden}
 .chip .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 
+/* Anleitung & Datenschutz im Kartenbereich (Rahmen und Collage bleiben stehen) */
+.docview{grid-row:1/-1;grid-column:1/-1;position:relative;z-index:500;display:flex;flex-direction:column;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.docview[hidden]{display:none}
+.docbar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--bg)}
+.docbar b{font:700 17px var(--f-head,'Barlow Condensed'),sans-serif;letter-spacing:.02em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.docbar .tabs{margin-left:auto;display:flex;gap:6px}
+.docbar .tabs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.docview iframe{flex:1;min-height:0;width:100%;border:0;background:#120c16;display:block}
+body.doc .app>.map-wrap,body.doc .app>.panel{visibility:hidden}
+@media (max-width:820px){body.doc .app{grid-template-rows:minmax(0,1fr);min-height:78vh}.docbar .tabs{display:none}}
 /* App-Raster */
 .app{flex:1;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(320px,400px) minmax(0,1fr);grid-template-areas:"panel map"}
 .panel{grid-area:panel;min-height:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-y:auto;overflow-x:hidden}
@@ -1140,6 +1150,11 @@ body.editing .grp-wrap{pointer-events:none}
       <div class="actions" style="margin:0"><button class="btn primary" type="submit">Speichern</button><button class="btn ghost" type="button" id="f-cancel">Abbrechen</button></div>
     </form>
   </aside>
+  <section class="docview" id="docview" hidden aria-labelledby="doc-title">
+    <div class="docbar"><button class="btn" type="button" id="doc-close">← <span>Zur Karte</span></button><b id="doc-title">Anleitung</b>
+      <div class="tabs"><button class="btn" type="button" data-doc="anleitung">Anleitung</button><button class="btn" type="button" data-doc="datenschutz">Datenschutz</button></div></div>
+    <iframe id="doc-frame" title="Anleitung" loading="lazy"></iframe>
+  </section>
 </main>
 <aside class="frame rail" aria-hidden="true"><div class="collage"></div><div class="veil"></div><div class="stars"></div><div class="clouds"></div></aside>
 <footer class="frame foot">
@@ -1149,9 +1164,9 @@ body.editing .grp-wrap{pointer-events:none}
   <div class="clouds" aria-hidden="true"></div>
   <div class="foot-in">
     <b>Naschii’s Adventure Map</b>
-    <a href="anleitung.html" id="f-help">Anleitung</a>
+    <a href="anleitung.html" id="f-help" data-doc="anleitung">Anleitung</a>
     <a href="https://www.twitch.tv/naschiitaschii/about" target="_blank" rel="noopener noreferrer" title="Impressum auf der Twitch-Infoseite von naschiitaschii" id="f-imp">Impressum</a>
-    <a href="datenschutz.html" id="f-ds">Datenschutz</a>
+    <a href="datenschutz.html" id="f-ds" data-doc="datenschutz">Datenschutz</a>
     <a href="https://www.twitch.tv/naschiitaschii" target="_blank" rel="noopener noreferrer">twitch.tv/naschiitaschii</a>
     <span id="f-src">Daten: Twitch · Karte: © OpenStreetMap</span>
   </div>
@@ -2165,6 +2180,34 @@ function manualUpdate(btn){
 }
 
 /* ---------- Feste Texte übersetzen + Sprachumschalter ---------- */
+// Anleitung & Datenschutz im Kartenbereich öffnen statt die Seite zu wechseln
+var DOCS={anleitung:['Anleitung','Guide (German)'],datenschutz:['Datenschutzerklärung','Privacy policy (German)']},DOCCUR=null;
+function openDoc(name,push){
+  if(!DOCS[name])return;
+  var fr=$('#doc-frame'),url=name+'.html';
+  if(DOCCUR!==name){try{if(DOCCUR)fr.contentWindow.location.replace(url);else fr.src=url}catch(e){fr.src=url}DOCCUR=name}
+  $('#doc-title').textContent=T(DOCS[name][0],DOCS[name][1]);fr.title=$('#doc-title').textContent;
+  document.querySelectorAll('.docbar [data-doc]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.doc===name)});
+  $('#docview').hidden=false;document.body.classList.add('doc');
+  if(push!==false){try{if(location.hash!=='#'+name)history.pushState({doc:name},'','#'+name)}catch(e){}}
+  var m=$('main.app');if(m&&m.getBoundingClientRect().top<0)m.scrollIntoView({block:'start'});
+}
+function closeDoc(fromPop){
+  if($('#docview').hidden)return;
+  $('#docview').hidden=true;document.body.classList.remove('doc');
+  if(!fromPop){try{if(history.state&&history.state.doc)history.back();else history.replaceState(null,'',location.pathname+location.search)}catch(e){}}
+}
+window.closeDoc=function(){closeDoc(false)};
+window.openDoc=function(n){openDoc(n)};
+document.addEventListener('click',function(e){
+  var a=e.target.closest&&e.target.closest('[data-doc]');if(!a)return;
+  if(e.ctrlKey||e.metaKey||e.shiftKey||e.button===1)return;
+  e.preventDefault();openDoc(a.dataset.doc);
+});
+$('#doc-close').addEventListener('click',function(){closeDoc(false)});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#docview').hidden&&$('#player').hidden)closeDoc(false)});
+window.addEventListener('popstate',function(){var h=location.hash.slice(1);if(DOCS[h])openDoc(h,false);else closeDoc(true)});
+(function(){var h=location.hash.slice(1);if(DOCS[h]){try{history.replaceState({doc:h},'',location.href)}catch(e){}openDoc(h,false)}})();
 function applyStatic(){
   document.querySelectorAll('[data-lang]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.lang===LANG)});
   if(LANG!=='en')return;
@@ -2178,7 +2221,7 @@ function applyStatic(){
   set('#flt','Filter streams','aria-label');set('#cat','Filter by category','aria-label');set('#srt','Sort streams','aria-label');
   set('#calbtn span','Calendar');set('#rndbtn span','Random clip');
   set('#f-imp','Legal notice');set('#f-imp','Legal notice (German) on naschiitaschii’s Twitch about page','title');
-  set('#f-ds','Privacy (German)');set('#f-help','Guide (German)');set('#f-src','Data: Twitch · Map: © OpenStreetMap');
+  set('#f-ds','Privacy (German)');set('#f-help','Guide (German)');set('#doc-close span','Back to map');set('.docbar [data-doc="anleitung"]','Guide');set('.docbar [data-doc="datenschutz"]','Privacy');set('#f-src','Data: Twitch · Map: © OpenStreetMap');
   set('.avatar','naschiitaschii on Twitch','aria-label');set('#stats','Totals','aria-label');
   set('.map-wrap','Map','aria-label');set('#panel','Streams','aria-label');set('#pl-close','Close','aria-label');
 }

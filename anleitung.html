@@ -121,6 +121,16 @@ kbd{font:600 12px 'IBM Plex Mono';border:1px solid var(--line);border-bottom-wid
   .schema{grid-template-rows:54px 130px 24px}
 }
 </style>
+<script>
+// Eingebettet in der Karte: eigenen Kopf ausblenden, Links an die Karte weitergeben
+(function(){var emb=false;try{emb=window.parent!==window&&!!window.parent.closeDoc}catch(e){}
+if(!emb)return;document.documentElement.classList.add('embed');
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a||e.ctrlKey||e.metaKey||e.shiftKey)return;
+var h=a.getAttribute('href');
+if(h==='./'||h==='index.html'){e.preventDefault();window.parent.closeDoc()}
+else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.parent.openDoc(h.replace('.html',''))}});})();
+</script>
+<style>.embed body>header,.embed .back,.embed .foot a[href="./"]{display:none!important}.embed main{padding-top:16px}</style>
 </head>
 <body>
 <header><div class="sky"></div><h1>Naschii’s Adventure Map</h1><p>Anleitung</p></header>
