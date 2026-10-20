@@ -135,7 +135,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 <body>
 <header><div class="sky"></div><h1>Naschii’s Adventure Map</h1><p>Anleitung</p></header>
 <nav class="toc" aria-label="Inhalt"><div>
-  <a href="#ueberblick">Überblick</a><a href="#karte">Karte</a><a href="#finden">Streams finden</a><a href="#stream">Stream ansehen</a><a href="#player">Clip-Player</a><a href="#entdecken">Entdecken</a><a href="#mehr">LIVE · Teilen · Handy</a><a href="#mods">Für Mods</a><a href="#automatik">Automatik</a><a href="#faq">Fragen</a><a href="#spick">Spickzettel</a>
+  <a href="#ueberblick">Überblick</a><a href="#karte">Karte</a><a href="#finden">Suchen</a><a href="#clipsuche">Clips suchen</a><a href="#stream">Stream ansehen</a><a href="#player">Clip-Player</a><a href="#entdecken">Entdecken</a><a href="#mehr">LIVE · Teilen · Handy</a><a href="#mods">Für Mods</a><a href="#automatik">Automatik</a><a href="#faq">Fragen</a><a href="#spick">Spickzettel</a>
 </div></nav>
 <main>
 <a class="back" href="./">← Zurück zur Karte</a>
@@ -205,7 +205,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 <section class="s" id="finden">
   <p class="kicker">Streams finden</p>
   <h2>Suchen, Filtern, Sortieren</h2>
-  <p class="lead">Alle drei lassen sich kombinieren. Die Trefferzahl steht direkt darunter, z. B. „37 von 407 Streams“.</p>
+  <p class="lead">Alle drei lassen sich kombinieren. Die Trefferzahl steht rechts neben „Zufälliger Clip“, z. B. „29 von 408 Streams · 44 Clips“.</p>
   <div class="grid2">
     <div class="card"><h3><span class="n">1</span>Suchen</h3>
       <p style="margin-bottom:8px">Ins Feld <span class="ui-sel" style="padding-right:8px;color:var(--muted)">Suchen: Titel, Ort, Datum, Clip</span> tippen:</p>
@@ -230,6 +230,25 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
         <tr><td>Längste Streamzeit</td><td>die längsten Streams</td></tr>
       </table></div>
   </div>
+  <div id="clipsuche" style="scroll-margin-top:64px;margin-top:22px">
+  <h3>🎬 Clips suchen</h3>
+  <div class="split">
+    <figure class="figure" style="padding:0;background:var(--bg)">
+      <div style="display:flex;gap:8px;padding:8px 12px;font:600 11px 'IBM Plex Mono';letter-spacing:.08em;color:var(--accent);border-bottom:1px solid var(--line)">🎬 44 PASSENDE CLIPS</div>
+      <div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line)"><span class="thumbm" style="width:64px"></span><span><b style="font-size:13.5px">Baddie <mark style="background:#f5a9d64d;color:inherit;border-radius:2px">Kevin</mark></b><br><small class="mono" style="color:var(--muted);font-size:10.5px">So., 02. November 2025 · 103 Aufrufe</small></span></div>
+      <div style="display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line)"><span class="thumbm" style="width:64px;background:linear-gradient(135deg,#1d3b40,#36d1b5 60%,#ffd3ec)"></span><span><b style="font-size:13.5px">Tara <mark style="background:#f5a9d64d;color:inherit;border-radius:2px">Kevin</mark> ist da</b><br><small class="mono" style="color:var(--muted);font-size:10.5px">Sa., 25. Oktober 2025 · 91 Aufrufe</small></span></div>
+      <div style="padding:8px 12px;text-align:center;font-weight:600;font-size:12.5px;color:var(--accent)">Alle 44 Clips anzeigen</div>
+      <figcaption style="padding:0 0 8px">Suche „kevin“: passende Clips über den Streams</figcaption>
+    </figure>
+    <ul>
+      <li>Einfach einen Clip-Titel oder den <b>Namen des Clippers</b> ins Suchfeld tippen – ab 2 Buchstaben.</li>
+      <li>Oben erscheinen die <b>passenden Clips</b>, sortiert nach Aufrufen, das Suchwort ist markiert. Erst 5, mit <span class="ui-btn">Alle … Clips anzeigen</span> der Rest.</li>
+      <li>Klick auf einen Clip spielt ihn ab; mit <b>‹ ›</b> blätterst du durch alle Treffer.</li>
+      <li>Darunter die Streams dazu – mit Hinweis <span class="ui-tag r">🎬 3 PASSEND</span>.</li>
+      <li>Filter und Kategorie gelten auch für die Clips.</li>
+    </ul>
+  </div>
+  </div>
   <h3 style="margin-top:20px">So liest du eine Stream-Karte</h3>
   <div class="split">
     <div class="mcard"><div><div class="d"><i></i>Fr., 16. Oktober 2026 · 16:13 <span class="ui-tag r">ROUTE</span></div><h4>☀️ Schönes Wetter genießen in Düsseldorf ☀️</h4><div class="m"><span>5 Std. 33 Min.</span><span>Düsseldorf</span><span>Ø 201 Zuschauer</span><span>55 Clips</span></div></div><div class="side"><div class="cb"><b></b>IRL</div><div class="thumbm"></div></div></div>
@@ -238,6 +257,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <li>Dauer, Ort, Zuschauerschnitt, Anzahl Clips</li>
       <li>Rechts die <b>Kategorie mit Twitch-Coverbild</b> und das Vorschaubild des Top-Clips</li>
       <li>Oben in der Liste: <b>„Heute vor einem Jahr“</b> – der Stream von genau diesem Tag</li>
+      <li>Weit runtergescrollt? <span class="ui-btn p">↑ Nach oben</span> unten rechts springt an den Anfang der Liste</li>
     </ul>
   </div>
 </section>
@@ -363,7 +383,9 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     <tr><td><b>Alle IRL-Streams</b></td><td>Kategorie <i>IRL</i> wählen</td></tr>
     <tr><td><b>Streams eines Monats</b></td><td>z. B. „August 2026“ suchen</td></tr>
     <tr><td><b>Streams eines Tages</b></td><td><i>📅 Kalender</i> → Tag anklicken</td></tr>
+    <tr><td><b>Bestimmten Clip finden</b></td><td>Clip-Titel oder Clipper-Namen suchen</td></tr>
     <tr><td><b>Etwas Lustiges</b></td><td><i>🎲 Zufälliger Clip</i></td></tr>
+    <tr><td><b>Zurück zum Listenanfang</b></td><td><i>↑ Nach oben</i> unten rechts in der Liste</td></tr>
     <tr><td><b>Clips in Reihenfolge</b></td><td>Im Stream auf <i>Chronologisch</i> stellen</td></tr>
     <tr><td><b>Ist Naschii live?</b></td><td>rote LIVE-Leiste im Header</td></tr>
     <tr><td><b>Route zeichnen</b></td><td>mit Twitch anmelden → Stream öffnen → <i>Route zeichnen</i></td></tr>
