@@ -52,6 +52,14 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 .eb-back:hover{border-color:#f5a9d6!important}
 .eb-title{flex:none;font:700 17px 'Barlow Condensed',sans-serif;letter-spacing:.02em;color:#fff;white-space:nowrap;margin-right:4px}
 .eb-sep{flex:none;width:1px;height:22px;background:#3a2a42;margin:0 2px}
+/* Gut greifbarer Schieberegler (Chrome, Edge, Safari) */
+::-webkit-scrollbar{width:14px;height:12px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{min-height:90px;border-radius:999px;background:#f5a9d688;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:#f5a9d6cc;background-clip:padding-box}
+::-webkit-scrollbar-thumb:active{background:#f5a9d6;background-clip:padding-box}
+::-webkit-scrollbar-corner{background:transparent}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-color:#f5a9d688 transparent}}
 </style>
 </head>
 <body>
