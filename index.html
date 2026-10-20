@@ -714,7 +714,7 @@ body{
   padding-block:12px;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
-  display:grid;gap:12px;overflow-x:hidden;box-sizing:border-box;position:relative;
+  display:grid;gap:12px;overflow-x:hidden;box-sizing:border-box;
   grid-template-columns:minmax(0,1fr) 72px;grid-template-rows:auto minmax(0,1fr) auto;
   grid-template-areas:"hero hero" "app rail" "foot foot";
 }
@@ -722,12 +722,8 @@ body{
 .app{grid-area:app}
 
 /* Rahmen rechts und unten im Stil des Headers, mit Clip-Collage */
-/* Ein durchgehender Rahmen hinter Header, rechter Leiste und Fußleiste; Liste und Karte liegen wie ein Fenster darauf */
-.frame-bg{position:absolute;top:12px;bottom:12px;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));
-  z-index:0;overflow:hidden;border-radius:14px;border:1px solid var(--line);pointer-events:none;
-  background:linear-gradient(180deg,#5a2a5e 0%,var(--plum) 22%,#2a1430 55%,var(--plum) 85%,#4a2350 100%)}
-.frame,.hero{position:relative;z-index:1;overflow:hidden;border-radius:14px;background:none;border:0}
-.app{position:relative;z-index:1;background:var(--bg);border-radius:12px;box-shadow:0 0 0 1px #00000040,0 8px 26px #0008}
+.frame{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--line);
+  background:radial-gradient(140% 120% at 50% 0%,#5a2a5e 0%,var(--plum) 50%,#1c0f21 100%)}
 .rail{grid-area:rail}
 .foot{grid-area:foot}
 .stars{position:absolute;inset:0;pointer-events:none;background:
@@ -785,7 +781,8 @@ h1,h2,h3,p{margin:0}
 
 /* Kopfzeile */
 /* Kopfbereich im Stil des Kanals: Nachthimmel, rosa Wolken, Bubble-Schrift */
-.hero{flex:none}
+.hero{position:relative;flex:none;border-radius:14px;overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(120% 140% at 50% 0%,#5a2a5e 0%,var(--plum) 45%,#1c0f21 100%)}
 .sky{position:absolute;inset:0;pointer-events:none;
   background:
    radial-gradient(1.5px 1.5px at 12% 22%,#fff8 50%,transparent 51%),radial-gradient(1px 1px at 23% 48%,#fff9 50%,transparent 51%),
@@ -1031,8 +1028,8 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
-<div class="frame-bg" aria-hidden="true"><div class="collage"></div><div class="stars"></div></div>
 <header class="hero">
+  <div class="collage" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
   <div class="sky" aria-hidden="true"></div>
   <div class="hero-in">
@@ -1086,8 +1083,9 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
     </form>
   </aside>
 </main>
-<aside class="frame rail" aria-hidden="true"><div class="veil"></div><div class="stars"></div><div class="clouds"></div></aside>
+<aside class="frame rail" aria-hidden="true"><div class="collage"></div><div class="veil"></div><div class="stars"></div><div class="clouds"></div></aside>
 <footer class="frame foot">
+  <div class="collage" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
   <div class="stars" aria-hidden="true"></div>
   <div class="clouds" aria-hidden="true"></div>
@@ -1349,18 +1347,14 @@ function buildCollage(){
   var seed=7,rnd=function(){seed=(seed*16807)%2147483647;return seed/2147483647};
   for(var i=pool.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)),t=pool[i];pool[i]=pool[j];pool[j]=t}
   var k=0;
-  var el=document.querySelector('.frame-bg .collage');if(!el)return;
-  var box=el.parentNode.getBoundingClientRect();if(!box.width||!box.height){el.innerHTML='';return}
-  var tw=Math.max(96,Math.min(150,box.width/10)),th=tw*.5625-6;
-  var n=Math.min(260,(Math.ceil((box.width+20)/(tw-6))+1)*(Math.ceil((box.height+20)/th)+1));
-  el.style.setProperty('--tw',tw.toFixed(0)+'px');
-  var h='';for(var m=0;m<n;m++){var p=pool[k++%pool.length];h+='<img data-src="'+esc(p.u)+'" alt="" decoding="async" referrerpolicy="no-referrer" style="--r:'+((rnd()*8-4).toFixed(1))+'deg" onerror="this.style.visibility=\'hidden\'">'}
-  el.innerHTML=h;
-  // nur Bilder laden, die nicht komplett unter Liste und Karte liegen
-  var a=$('.app').getBoundingClientRect();
-  el.querySelectorAll('img').forEach(function(im){var r=im.getBoundingClientRect();
-    var hidden=r.left>=a.left+4&&r.right<=a.right-4&&r.top>=a.top+4&&r.bottom<=a.bottom-4;
-    if(!hidden)im.src=im.dataset.src;else im.style.visibility='hidden'});
+  document.querySelectorAll('.collage').forEach(function(el){
+    var box=el.parentNode.getBoundingClientRect();if(!box.width||!box.height){el.innerHTML='';return}
+    var tw=el.parentNode.classList.contains('rail')?92:Math.max(96,Math.min(150,box.width/9));
+    var th=tw*.5625-6,n=Math.min(70,(Math.ceil((box.width+20)/(tw-6))+1)*(Math.ceil((box.height+20)/th)+1));
+    el.style.setProperty('--tw',tw.toFixed(0)+'px');
+    var h='';for(var m=0;m<n;m++){var p=pool[k++%pool.length];h+='<img src="'+esc(p.u)+'" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" style="--r:'+((rnd()*8-4).toFixed(1))+'deg" onerror="this.style.visibility=\'hidden\'">'}
+    el.innerHTML=h;
+  });
 }
 var collageT;window.addEventListener('resize',function(){clearTimeout(collageT);collageT=setTimeout(buildCollage,300)});
 function thumbOf(r){var c=(r.clips||[]).find(function(c){return c.thumb});return c&&safeUrl(c.thumb)}
