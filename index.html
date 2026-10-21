@@ -1672,7 +1672,7 @@ function renderDetail(r){
   $('#v-detail').innerHTML=
     '<button type="button" class="back" id="back">'+T('← Alle Streams','← All streams')+'</button>'+
     '<div class="when"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+catTag(r)+routeTag(r)+'</div>'+
-    '<h2>'+esc(r.title)+'</h2>'+(CL[0]&&CL[0].thumb&&safeUrl(CL[0].thumb)?'<a class="hero-thumb" href="'+esc(safeUrl(CL[0].url))+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(safeUrl(CL[0].thumb))+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><span>▶ Top-Clip: '+esc(CL[0].title)+(CL[0].views!=null?' · '+CL[0].views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'')+'</span></a>':(r.live&&LIVE_ON!==false?'<a class="hero-thumb" href="https://www.twitch.tv/'+CHANNEL+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(livePreview())+'" alt="" onerror="this.parentNode.remove()"><span>● LIVE · '+T('Jetzt auf Twitch ansehen','Watch now on Twitch')+'</span></a>':''))+
+    '<h2>'+esc(r.title)+'</h2>'+(CL[0]&&CL[0].thumb&&safeUrl(CL[0].thumb)?'<a class="hero-thumb" href="'+esc(safeUrl(CL[0].url))+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(safeUrl(CL[0].thumb))+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><span>▶ Top-Clip: '+esc(CL[0].title)+(CL[0].views!=null?' · '+CL[0].views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'')+'</span></a>':(r.live&&LIVE_ON!==false?'<a class="hero-thumb" data-live="1" href="https://www.twitch.tv/'+CHANNEL+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(livePreview())+'" alt="" onerror="this.parentNode.remove()"><span>● LIVE · '+T('Jetzt auf Twitch ansehen','Watch now on Twitch')+'</span></a>':''))+
     '<div class="facts"><div><b>'+esc(fmtDur(r.durationMin))+'</b><small>'+T('Dauer','Duration')+'</small></div><div><b>'+esc(r.start||'–')+(r.start?'–'+addMin(r.start,r.durationMin):'')+'</b><small>'+T('Uhrzeit','Time')+'</small></div><div><b>'+CL.length.toLocaleString(LOC)+'</b><small>Clips</small></div>'+
     '</div>'+
     routeInfo+
@@ -2090,6 +2090,12 @@ function showClip(){
   $('#pl-title').textContent=c.title||'Clip';
   var meta=[clipTime(c),c.views!=null?c.views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'',c.by?T('von ','by ')+c.by:'',(c.__r||PL.r)?fmtDate((c.__r||PL.r).date):''].filter(Boolean).join(' · ');
   $('#pl-meta').textContent=meta;
+  if(c.live){
+    $('#pl-meta').textContent='● LIVE'+(r0()?' · '+T('seit ','since ')+(PL.r.start||''):'');
+    $('#pl-frame').innerHTML='<iframe src="https://player.twitch.tv/?channel='+encodeURIComponent(CHANNEL)+'&parent='+encodeURIComponent(location.hostname)+'&autoplay=true&muted=false" allowfullscreen allow="autoplay; fullscreen" title="'+esc(c.title||'Livestream')+'"></iframe>';
+    $('#pl-tw').href=c.url;$('#pl-tw').textContent=T('Auf Twitch öffnen ↗','Open on Twitch ↗');
+    $('#pl-prev').hidden=true;$('#pl-next').hidden=true;$('#pl-pos').textContent='';return;
+  }
   $('#pl-frame').innerHTML='<iframe src="https://clips.twitch.tv/embed?clip='+encodeURIComponent(sg)+'&parent='+encodeURIComponent(location.hostname)+'&autoplay=true&muted=false" allowfullscreen allow="autoplay; fullscreen" title="'+esc(c.title||'Clip')+'"></iframe>';
   $('#pl-tw').href=safeUrl(c.url)||'#';$('#pl-tw').textContent=T('Auf Twitch öffnen ↗','Open on Twitch ↗');
   var n=PL.list.length;
@@ -2097,6 +2103,7 @@ function showClip(){
   $('#pl-next').textContent=PL.random?'🎲 '+T('Noch einer','Another one'):'›';
   $('#pl-pos').textContent=PL.random?'':(n>1?(PL.i+1)+' / '+n:'');
 }
+function r0(){return PL&&PL.r&&PL.r.start}
 function closePlayer(){$('#player').hidden=true;$('#pl-frame').innerHTML='';document.body.style.overflow=''}
 $('#pl-close').addEventListener('click',closePlayer);
 $('#player').addEventListener('click',function(e){if(e.target.id==='player')closePlayer()});
@@ -2115,6 +2122,7 @@ document.addEventListener('click',function(e){
   e.preventDefault();e.stopPropagation();
   if(a.classList.contains('clip')){openPlayer(state.clipList,+a.dataset.ci,state.clipStream);return}
   var r=state.clipStream||byId(state.selectedId);if(!r)return;
+  if(a.dataset.live){openPlayer([{live:true,title:r.title,url:'https://www.twitch.tv/'+CHANNEL}],0,r);return}
   var sg=a.classList.contains('ct-go')?a.dataset.slug:slugOf(a.getAttribute('href'));
   var list=state.clipList||r.clips||[],i=list.findIndex(function(c){return slugOf(c.url)===sg});
   if(i<0){list=(r.clips||[]).filter(function(c){return slugOf(c.url)===sg});i=0}
