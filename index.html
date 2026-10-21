@@ -1627,7 +1627,10 @@ function buildCollage(){
   });
 }
 var collageT;window.addEventListener('resize',function(){clearTimeout(collageT);collageT=setTimeout(buildCollage,300)});
-function thumbOf(r){var c=(r.clips||[]).find(function(c){return c.thumb});return c&&safeUrl(c.thumb)}
+// Läuft der Stream gerade, zeigt die Karte das aktuelle Twitch-Vorschaubild (wird mit dem LIVE-Check alle 2 Min. erneuert)
+var LIVE_ON=null,LIVE_T=Date.now();
+function livePreview(){return 'https://static-cdn.jtvnw.net/previews-ttv/live_user_'+CHANNEL+'-440x248.jpg?t='+LIVE_T}
+function thumbOf(r){if(r.live&&LIVE_ON!==false)return livePreview();var c=(r.clips||[]).find(function(c){return c.thumb});return c&&safeUrl(c.thumb)}
 function catBox(name){var c=CATS[name];return c&&c.box?safeUrl(c.box):null}
 function liveTag(r){return r.live?'<span class="tag livetag">● LIVE</span>':''}
 function catTag(r){var b=r.category&&catBox(r.category);return liveTag(r)+(r.category?'<span class="cat'+(r.category==='IRL'?' irl':'')+'">'+(b?'<img class="cat-ic" src="'+esc(b)+'" alt="" onerror="this.remove()">':'')+esc(r.category)+'</span>':'')}
@@ -1669,7 +1672,7 @@ function renderDetail(r){
   $('#v-detail').innerHTML=
     '<button type="button" class="back" id="back">'+T('← Alle Streams','← All streams')+'</button>'+
     '<div class="when"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+catTag(r)+routeTag(r)+'</div>'+
-    '<h2>'+esc(r.title)+'</h2>'+(CL[0]&&CL[0].thumb&&safeUrl(CL[0].thumb)?'<a class="hero-thumb" href="'+esc(safeUrl(CL[0].url))+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(safeUrl(CL[0].thumb))+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><span>▶ Top-Clip: '+esc(CL[0].title)+(CL[0].views!=null?' · '+CL[0].views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'')+'</span></a>':'')+
+    '<h2>'+esc(r.title)+'</h2>'+(CL[0]&&CL[0].thumb&&safeUrl(CL[0].thumb)?'<a class="hero-thumb" href="'+esc(safeUrl(CL[0].url))+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(safeUrl(CL[0].thumb))+'" alt="" loading="lazy" onerror="this.parentNode.remove()"><span>▶ Top-Clip: '+esc(CL[0].title)+(CL[0].views!=null?' · '+CL[0].views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'')+'</span></a>':(r.live&&LIVE_ON!==false?'<a class="hero-thumb" href="https://www.twitch.tv/'+CHANNEL+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(livePreview())+'" alt="" onerror="this.parentNode.remove()"><span>● LIVE · '+T('Jetzt auf Twitch ansehen','Watch now on Twitch')+'</span></a>':''))+
     '<div class="facts"><div><b>'+esc(fmtDur(r.durationMin))+'</b><small>'+T('Dauer','Duration')+'</small></div><div><b>'+esc(r.start||'–')+(r.start?'–'+addMin(r.start,r.durationMin):'')+'</b><small>'+T('Uhrzeit','Time')+'</small></div><div><b>'+CL.length.toLocaleString(LOC)+'</b><small>Clips</small></div>'+
     '</div>'+
     routeInfo+
@@ -2379,6 +2382,9 @@ document.addEventListener('click',function(e){
     var liveCheck=function(){
       fetch('https://static-cdn.jtvnw.net/previews-ttv/live_user_'+CHANNEL+'-320x180.jpg?t='+Date.now(),{cache:'no-store'}).then(function(r){
         var on=r.ok&&!/404_preview/.test(r.url);
+        var changed=on!==LIVE_ON;LIVE_ON=on;LIVE_T=Date.now();
+        if(changed&&LIVE_ON!==null)renderList();
+        else document.querySelectorAll('img[src*="previews-ttv"]').forEach(function(i){i.src=livePreview()});
         $('#live').hidden=!on;document.querySelector('.hero').classList.toggle('is-live',on);
         if(!on)return;
         $('#live-t').textContent=T('Jetzt auf Twitch ansehen','Watch now on Twitch');
