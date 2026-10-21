@@ -2,9 +2,9 @@
 
 **Seite:** https://naschiis-adventure-map.github.io
 
-Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Datum, Dauer, Zuschauerzahlen, ungefähre Orte (aus den Streamtiteln) und zugeordnete Twitch-Clips.
+Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Streams ab 01.01.2025 mit Datum, Dauer, ungefähren Orten (aus den Streamtiteln) und zugeordnete Twitch-Clips.
 
-- Streamliste bis 18.10.2026: TwitchTracker · seitdem und Clips: Twitch-API
+- Streams ab 01.01.2025 (ältere werden nicht übernommen) · Streamliste bis 18.10.2026: TwitchTracker · seitdem und Clips: Twitch-API · keine Zuschauer- oder Followerzahlen
 - Karte: © OpenStreetMap-Mitwirkende, Ländergrenzen: Natural Earth
 - Eine einzige Datei: `index.html`, läuft auf GitHub Pages ohne Build.
 
@@ -12,7 +12,7 @@ Karte der Streams von [naschiitaschii](https://www.twitch.tv/naschiitaschii): Da
 
 `.github/workflows/update.yml` läuft alle 15 Minuten und führt `scripts/update.mjs` aus:
 
-- erfasst laufende Streams direkt (auch ohne öffentliches VOD) und misst Ø/Max-Zuschauer und Follower-Zuwachs,
+- erfasst laufende Streams direkt (auch ohne öffentliches VOD),
 
 - holt neue Streams (VODs) und Clips von naschiitaschii über die offizielle Twitch-API,
 - prüft alle gespeicherten Clips: auf Twitch gelöschte werden entfernt, Aufrufe und Titel aktualisiert,
