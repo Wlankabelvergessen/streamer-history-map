@@ -7,6 +7,7 @@ const LOGIN = process.env.TWITCH_LOGIN || 'naschiitaschii';
 const CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 const CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
 const CLIP_DAYS = Number(process.env.CLIP_DAYS || 30);   // wie weit zurück Clips geprüft werden
+const MIN_DATE = '2025-01-01';                           // ältere Streams werden weder angezeigt noch hinzugefügt
 const MATCH_MIN = 25;                                     // Toleranz beim Abgleich von Startzeiten
 const TZ = 'Europe/Berlin';
 const DATA = new URL('../data/streams.json', import.meta.url);
@@ -80,6 +81,13 @@ function cleanTitle(t) {
 
 // ---------- Ablauf ----------
 const streams = JSON.parse(await readFile(DATA, 'utf8'));
+// Nur Streams ab MIN_DATE, ohne Zuschauer- und Followerzahlen (werden nicht mehr erfasst)
+const VIEWER_FIELDS = ['viewerSamples', 'avgViewers', 'maxViewers', 'followersStart', 'followers'];
+function prune() {
+  for (let i = streams.length - 1; i >= 0; i--) if (!streams[i].date || streams[i].date < MIN_DATE) streams.splice(i, 1);
+  for (const r of streams) for (const k of VIEWER_FIELDS) delete r[k];
+}
+prune();
 const locs = JSON.parse(await readFile(LOCS, 'utf8'));
 // Ortsnamen im Titel erkennen. Standard: ganzes Wort (auch "Kölner", "Berlins"),
 // Einträge mit "prefix": true auch als Wortanfang (z. B. "dokom" für "DoKomi"/"Dokoomiii").
@@ -96,14 +104,7 @@ const [user] = await helix('users', { login: LOGIN });
 if (!user) throw new Error('Kanal nicht gefunden: ' + LOGIN);
 
 // 0) Laufenden Stream erfassen (die Action läuft alle 15 Minuten).
-//    So landet jeder Stream in der Liste – auch wenn Twitch kein öffentliches VOD anbietet –
-//    und Ø/Max-Zuschauer sowie Follower-Zuwachs werden selbst gemessen.
-async function followerTotal() {
-  const r = await fetch('https://api.twitch.tv/helix/channels/followers?first=1&broadcaster_id=' + user.id, { headers: { 'Client-Id': CLIENT_ID, Authorization: 'Bearer ' + TOKEN } });
-  if (!r.ok) return null;
-  const j = await r.json();
-  return typeof j.total === 'number' ? j.total : null;
-}
+//    So landet jeder Stream in der Liste – auch wenn Twitch kein öffentliches VOD anbietet.
 let added = 0, updated = 0, liveNote = 'offline';
 const [live] = await helix('streams', { user_id: user.id, type: 'live' });
 if (live) {
@@ -119,16 +120,11 @@ if (live) {
   r.streamId = live.id;
   if (r.source !== 'twitchtracker') {
     r.title = cleanTitle(live.title);
-    const s = r.viewerSamples || { n: 0, sum: 0, max: 0 };
-    s.n++; s.sum += live.viewer_count; s.max = Math.max(s.max, live.viewer_count);
-    r.viewerSamples = s; r.avgViewers = Math.round(s.sum / s.n); r.maxViewers = s.max;
-    const f = await followerTotal().catch(() => null);
-    if (f != null) { if (r.followersStart == null) r.followersStart = f; r.followers = f - r.followersStart; }
   }
   r.durationMin = Math.max(r.durationMin || 0, nowMin);
   if (live.game_name) r.game = live.game_name;
   r.live = true;
-  liveNote = `LIVE seit ${nowMin} Min. · ${live.viewer_count} Zuschauer · ${live.game_name || ''}`;
+  liveNote = `LIVE seit ${nowMin} Min. · ${live.game_name || ''}`;
 }
 for (const r of streams) if (r.live && (!live || r.streamId !== live.id)) delete r.live;
 
@@ -397,6 +393,7 @@ for (const r of streams) {
   if (best && (best.n >= 2 || (best.n >= 1 && r.category === 'IRL'))) { r.location = { ...best.l, from: 'clips' }; fromClips++; }
 }
 
+prune();
 for (const r of streams) (r.clips || []).sort((a, b) => b.views - a.views);
 streams.sort((a, b) => (b.date + b.start).localeCompare(a.date + a.start));
 
