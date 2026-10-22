@@ -23,6 +23,8 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.save.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -48,6 +50,7 @@ jobs:
       - name: Vorschaubild-Version in index.html eintragen
         run: node scripts/og-version.mjs
       - name: Änderungen speichern
+        id: save
         run: |
           if git diff --quiet -- data og.png favicon.png apple-touch-icon.png index.html && [ -z "$(git ls-files --others --exclude-standard og.png favicon.png apple-touch-icon.png)" ]; then echo "Keine neuen Daten."; exit 0; fi
           git config user.name "adventure-map-bot"
@@ -55,6 +58,7 @@ jobs:
           git add data og.png index.html
           git add favicon.png apple-touch-icon.png 2>/dev/null || true
           git commit -m "Daten aktualisiert: $(date -u +%Y-%m-%d)"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
           # Falls zwischendurch jemand anderes gepusht hat: neuesten Stand holen und erneut versuchen
           for i in 1 2 3; do
             git pull --rebase --autostash -X theirs origin main && git push && exit 0
@@ -62,3 +66,13 @@ jobs:
             sleep 5
           done
           exit 1
+
+  # Neue Daten gleich veröffentlichen
+  publish:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml
