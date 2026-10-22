@@ -2075,6 +2075,30 @@ function parseRouteXml(text){
   pts=s.map(function(q){return [+(q.y/ky).toFixed(6),+(q.x/kx).toFixed(6)]});
   return {points:pts,stops:stops.slice(0,60).map(function(x){return {lat:+x.lat.toFixed(6),lng:+x.lng.toFixed(6),name:(x.name||'').slice(0,60)}}),times:times};
 }
+// Nach dem Import: Ortsnamen zur Route vorschlagen (OpenStreetMap, sonst nächster Ort aus der eigenen Ortsliste)
+function suggestPlace(pts){
+  if(!ed||ed.loc||!pts||pts.length<2)return;
+  var id=ed.id,mid=pointAtFrac(pts,.5),lat=+mid[0].toFixed(5),lng=+mid[1].toFixed(5);
+  var apply=function(name,src){
+    if(!ed||ed.id!==id||ed.loc||!name)return;
+    pushUndo();ed.loc={name:name.slice(0,60),lat:lat,lng:lng};ed.locName='';renderEd();
+    toast(T('Ort vorgeschlagen: ','Place suggested: ')+name+(src?' ('+src+')':'')+T(' – unter „Ort“ änderbar.',' – you can change it under “Place”.'));
+  };
+  var fallback=function(){
+    fetch('data/locations.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(L2){
+      var best=null;(L2||[]).forEach(function(l){if(!isFinite(l.lat))return;var d=hav([lat,lng],[l.lat,l.lng]);if(d<15&&(!best||d<best.d))best={d:d,n:l.name}});
+      if(best)apply(String(best.n).split(',')[0].trim(),T('Ortsliste','place list'));
+    }).catch(function(){});
+  };
+  fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language='+(LANG==='en'?'en':'de')+'&lat='+lat+'&lon='+lng)
+    .then(function(r){if(!r.ok)throw 0;return r.json()})
+    .then(function(j){
+      var a=j&&j.address||{},city=a.city||a.town||a.village||a.municipality||a.county||'',part=a.suburb||a.city_district||a.quarter||a.neighbourhood||'';
+      if(part&&city&&part.indexOf(city)===0)part=part.slice(city.length).replace(/^[-\s]+/,'');
+      var name=[city,part].filter(Boolean).join(' ');
+      if(name)apply(name,'OpenStreetMap');else fallback();
+    }).catch(fallback);
+}
 function importRouteFile(f){
   if(!ed)return;
   if(f.size>20*1024*1024){toast(T('Die Datei ist zu groß (max. 20 MB).','The file is too large (max. 20 MB).'));return}
@@ -2085,6 +2109,7 @@ function importRouteFile(f){
     renderEd();
     map.fitBounds(L.latLngBounds(g.points),{padding:[50,50],maxZoom:17});
     var km=0;for(var i=1;i<g.points.length;i++)km+=map.distance(g.points[i-1],g.points[i])/1000;
+    suggestPlace(g.points);
     toast(T('Route importiert: ','Route imported: ')+km.toLocaleString(LOC,{maximumFractionDigits:1})+' km'+(g.stops.length?' · '+g.stops.length+(g.stops.length===1?T(' Station',' stop'):T(' Stationen',' stops')):'')+T(' – jetzt prüfen und speichern. ↶ macht es rückgängig.',' – check it and save. ↶ undoes it.'));
   }).catch(function(ex){toast((ex&&ex.message)||T('Die Datei konnte nicht gelesen werden.','The file could not be read.'))});
 }
