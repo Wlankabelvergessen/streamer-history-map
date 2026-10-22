@@ -1,0 +1,57 @@
+name: Collage erneuern
+
+# Baut einmal pro Woche das Hintergrundbild (collage.jpg) aus den beliebtesten Clips neu.
+# Montags 03:00 UTC = 05:00 Uhr deutscher Sommerzeit bzw. 04:00 Uhr Winterzeit.
+on:
+  schedule:
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collage
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.save.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Collage bauen
+        run: |
+          npm i --no-save --no-audit --no-fund playwright@1.48.2
+          npx playwright install --with-deps chromium
+          node scripts/collage.mjs
+      - name: Speichern
+        id: save
+        run: |
+          if git diff --quiet -- collage.jpg && [ -z "$(git ls-files --others --exclude-standard collage.jpg)" ]; then echo "Collage unverändert."; exit 0; fi
+          git config user.name "adventure-map-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp collage.jpg /tmp/collage.jpg
+          for i in 1 2 3 4 5; do
+            git fetch -q origin main && git reset -q --hard origin/main
+            cp /tmp/collage.jpg collage.jpg
+            git add collage.jpg
+            git diff --cached --quiet && exit 0
+            git commit -qm "Collage erneuert"
+            git push -q origin HEAD:main && { echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; }
+            sleep $((RANDOM % 6 + 3))
+          done
+          exit 1
+
+  publish:
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml
