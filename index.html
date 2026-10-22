@@ -1418,16 +1418,17 @@ function applyExtra(x,rt){
   x.desc=rt&&typeof rt.desc==='string'&&rt.desc?rt.desc:x._autoDesc;
   x.location=rt&&rt.loc&&isFinite(rt.loc.lat)?{name:rt.loc.name,lat:rt.loc.lat,lng:rt.loc.lng,manual:true}:x._autoLoc;
   // Gaming-Streams ohne Ort im Titel: Naschii ist zu Hause – in ihrer Burg
-  if(!x.location&&isGame(x.category)){var h=homeLoc();x.location={name:h.name,lat:h.lat,lng:h.lng,home:true}}
+  var h=homeLoc();
+  if(!x.location&&isGame(x.category))x.location={name:h.name,lat:h.lat,lng:h.lng,home:true};
+  // Die Burg steht fest: auch ein von Hand gesetzter Ort mit „Castle“ im Namen landet immer an derselben Stelle
+  else if(x.location&&isHome(x.location.name)){x.location.name=h.name;x.location.lat=h.lat;x.location.lng=h.lng}
 }
 // Kategorien, die kein Spiel sind (dann bleibt der Ort leer)
 var NONGAME=['IRL','Just Chatting','Music','Art','Talk Shows & Podcasts','Special Events','ASMR','Pools, Hot Tubs, and Beaches','Travel & Outdoors','Sports','Food & Drink','Science & Technology','Makers & Crafting','Software and Game Development','Fitness & Health','Politics','Variety','Summer Game Fest'];
 function isGame(c){return !!c&&NONGAME.indexOf(c)<0}
-// Homebase: Ort mit „Castle“ im Namen aus den gespeicherten Orten, sonst Standard
-function homeLoc(){
-  for(var k in ROUTES){var l=ROUTES[k]&&ROUTES[k].loc;if(l&&/castle/i.test(l.name||'')&&isFinite(l.lat))return {name:l.name,lat:l.lat,lng:l.lng}}
-  return {name:'Nashii´s Castle',lat:54.57206,lng:3.80127};
-}
+// Homebase: fest im Code, damit sie beim Bearbeiten nicht versehentlich verschoben werden kann
+var HOME={name:'Nashii´s Castle',lat:54.57206,lng:3.80127};
+function homeLoc(){return HOME}
 function isHome(name){return /castle/i.test(name||'')}
 function byId(id){return state.routes.filter(function(r){return r.id===id})[0]}
 
