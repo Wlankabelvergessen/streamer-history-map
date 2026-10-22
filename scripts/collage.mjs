@@ -5,7 +5,7 @@
 import { readFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 
-const W = 2000, H = 1100, TW = 140;            // Bildgröße, Kachelbreite (wie bisher auf der Seite)
+const W = 1800, H = 960, TW = 140;            // Bildgröße, Kachelbreite (wie bisher auf der Seite)
 const TH = Math.round(TW * 0.5625);
 const streams = JSON.parse(await readFile(new URL('../data/streams.json', import.meta.url), 'utf8'));
 
@@ -41,6 +41,6 @@ const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath
 const page = await browser.newPage({ viewport: { width: W, height: H } });
 await page.setContent(html, { waitUntil: 'networkidle', timeout: 90000 }).catch(() => {});
 const ok = await page.evaluate(() => [...document.images].filter(i => i.complete && i.naturalWidth).length);
-await page.screenshot({ path: new URL('../collage.jpg', import.meta.url).pathname, type: 'jpeg', quality: 62 });
+await page.screenshot({ path: new URL('../collage.jpg', import.meta.url).pathname, type: 'jpeg', quality: 52 });
 await browser.close();
 console.log(`collage.jpg erstellt: ${top.length} Clips, ${ok} Kacheln geladen`);
