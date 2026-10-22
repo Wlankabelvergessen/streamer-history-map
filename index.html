@@ -1452,7 +1452,10 @@ function initMap(){
   drawKevin();
   map.setView([53.55,9.99],12);
   map.on('click',function(e){if(!state.drawing)return;state.draft.points.push([+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)]);updateDraft()});
-  if(window.ResizeObserver){new ResizeObserver(function(){map.invalidateSize()}).observe($('#map'))}
+  // Nicht weiter herauszoomen, als die Weltkarte den Kartenbereich füllt; nicht über die Pole hinaus schieben
+  map.setMaxBounds([[-85.05,-200],[85.05,200]]);map.options.maxBoundsViscosity=1;
+  var fitMin=function(){var s=map.getSize(),z=Math.ceil(Math.log2(Math.max(s.x,s.y,256)/256));map.setMinZoom(Math.max(1,z))};fitMin();
+  if(window.ResizeObserver){new ResizeObserver(function(){map.invalidateSize();fitMin()}).observe($('#map'))}
 }
 /* ---------- Kevin, das Croissant: vermutete Aufenthaltsorte ---------- */
 var KEVIN=[
@@ -1475,7 +1478,7 @@ var KEVIN=[
    de:'Auf Ahnensuche: Das Wiener Kipferl gilt als Urgroßvater aller Croissants.',e2:'Tracing his roots: the Viennese Kipferl is said to be the great-grandfather of all croissants.'},
   {short:'Tokio',sen:'Tokyo',lat:35.6595,lng:139.7005,name:'Tokio, Shibuya',en:'Tokyo, Shibuya',
    de:'Nach dem Japanviertel-Stream in Düsseldorf hat ihn das Fernweh gepackt.',e2:'After the Japanese-quarter stream in Düsseldorf, wanderlust got the better of him.'},
-  {short:'Nordpol',sen:'North Pole',zoom:3,lat:84,lng:10,name:'Nordpol',en:'North Pole',
+  {short:'Nordpol',sen:'North Pole',zoom:4,lat:81,lng:10,name:'Nordpol',en:'North Pole',
    de:'Polaris ist der Polarstern – vielleicht ist er ihm einfach gefolgt.',e2:'Polaris is the North Star – maybe he simply followed it.'}
 ];
 function drawKevin(){
