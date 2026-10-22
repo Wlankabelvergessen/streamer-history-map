@@ -1140,6 +1140,21 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .ch-item mark{background:#f5a9d64d;color:inherit;border-radius:2px}
 .ch-more{all:unset;box-sizing:border-box;display:block;width:100%;padding:8px 12px;text-align:center;font:600 12.5px var(--f-body);color:var(--accent);cursor:pointer}
 .ch-more:hover{background:#f5a9d614}
+.memo2{margin:8px 16px 4px;padding:10px 12px 12px;border:1px solid #f5a9d655;border-radius:10px;background:#f5a9d60f}
+.memo2 .memo-k{margin-bottom:8px}
+.memo-g{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.memo-g.one{grid-template-columns:minmax(0,1fr)}
+.memo-t{display:block;font:600 9.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.card.memo-s{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;text-align:left;width:100%;margin:0;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.card.memo-s h3{font-size:17px;line-height:1.15;margin:0 0 4px}
+.card.memo-s .m{flex-wrap:wrap;row-gap:2px}
+.memo-c{all:unset;box-sizing:border-box;display:block;width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer;min-width:0}
+.memo-c:hover,.memo-c:focus-visible,.card.memo-s:hover{border-color:#f5a9d699}
+.memo-th{position:relative;display:block;aspect-ratio:16/9;border-radius:6px;overflow:hidden;margin-bottom:6px;background:linear-gradient(135deg,#3b1d40,#9146ff)}
+.memo-th img{width:100%;height:100%;object-fit:cover;display:block}
+.memo-th i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#1c0f21cc;border:2px solid var(--accent);color:#fff;font-style:normal;font-size:12px}
+.memo-c b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:600 13px/1.25 var(--f-body);color:var(--fg)}
+.memo-c small{display:block;margin-top:3px;font:500 10.5px var(--f-mono);color:var(--muted)}
 .card.memo{row-gap:4px;margin:8px 16px 4px;width:calc(100% - 32px);border:1px solid #f5a9d655;border-radius:10px;background:#f5a9d60f}
 .memo-k{grid-column:1/-1;display:block;font:600 10.5px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
 #cal{padding:6px 16px 18px}
@@ -1568,9 +1583,21 @@ function renderMemo(){
     if(best){hit=best;label=T('Vor einem Jahr um diese Zeit','A year ago around this time')}
   }
   if(!hit){box.innerHTML='';return}
-  var th=thumbOf(hit);
-  box.innerHTML='<button type="button" class="card memo" data-id="'+esc(hit.id)+'"><span class="memo-k">'+label+'</span><span class="cbody"><h3>'+esc(hit.title)+'</h3><div class="m"><span>'+esc(fmtDate(hit.date))+'</span><span>'+esc(fmtDur(hit.durationMin))+'</span>'+((hit.clips||[]).length?'<span>'+hit.clips.length+' Clips</span>':'')+'</div></span>'+(th?'<img class="thumb" src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</button>';
-  if(th)box.firstChild.classList.add('has-thumb');
+  // Bester Clip von diesem Tag (sonst aus ±3 Tagen um den Tag)
+  var day=new Date(hit.date+'T12:00:00'),bc=null,br=null;
+  [0,3].some(function(win){
+    state.routes.forEach(function(r){
+      if(Math.abs((new Date(r.date+'T12:00:00')-day)/864e5)>win)return;
+      (r.clips||[]).forEach(function(c){if(slugOf(c.url)&&(!bc||(c.views||0)>(bc.views||0))){bc=c;br=r}});
+    });
+    return !!bc;
+  });
+  state.memoClip=bc?{c:bc,r:br}:null;
+  var th=bc&&bc.thumb&&safeUrl(bc.thumb);
+  box.innerHTML='<div class="memo2"><span class="memo-k">'+label+'</span><div class="memo-g'+(bc?'':' one')+'">'+
+    '<button type="button" class="card memo-s" data-id="'+esc(hit.id)+'"><span class="memo-t">'+T('Stream','Stream')+'</span><h3>'+esc(hit.title)+'</h3><div class="m"><span>'+esc(fmtDate(hit.date))+'</span><span>'+esc(fmtDur(hit.durationMin))+'</span>'+((hit.clips||[]).length?'<span>'+hit.clips.length+' Clips</span>':'')+'</div></button>'+
+    (bc?'<button type="button" class="memo-c" data-memoclip="1" title="'+T('Clip abspielen','Play clip')+'"><span class="memo-t">'+T('Bester Clip','Top clip')+(br.id!==hit.id?' · '+esc(shortDate(br.date)):'')+'</span>'+(th?'<span class="memo-th"><img src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()"><i>▶</i></span>':'')+'<b>'+esc(bc.title||'Clip')+'</b>'+(bc.views!=null?'<small>'+bc.views.toLocaleString(LOC)+' '+T('Aufrufe','views')+'</small>':'')+'</button>':'')+
+    '</div></div>';
 }
 
 /* ---------- Kalender: jedes Jahr als Raster (Monate × Tage) ---------- */
@@ -2327,6 +2354,7 @@ function revalidate(){
 /* ---------- Events ---------- */
 document.addEventListener('click',function(e){
   var t=e.target.closest('button,a');if(!t)return;
+  if(t.dataset.memoclip&&state.memoClip){openPlayer([state.memoClip.c],0,state.memoClip.r);return}
   if(t.classList.contains('card')){select(t.dataset.id);return}
   if(t.classList.contains('gp-item')){hideTip(true);select(t.dataset.id);return}
   if(t.classList.contains('gp-all')){showInList(t.dataset.loc);return}
