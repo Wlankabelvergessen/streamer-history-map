@@ -893,7 +893,8 @@ body.doc .app>.map-wrap{visibility:hidden}
   .hero .upd:not(:empty){font-size:9.5px;padding:1px 7px;letter-spacing:.01em}
   header.hero .auth{position:absolute;top:10px;right:10px;padding:0;z-index:3}
   header.hero .auth .btn.twitch{padding:4px 10px;font-size:12px}
-  header.hero .auth:has(.chip){position:relative;top:auto;right:auto;padding:0 10px 10px;display:flex;flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px}
+  header.hero .auth:has(.authbox){position:relative;top:auto;right:auto;padding:0 10px 10px;display:flex;justify-content:center}
+  header.hero .auth .authbox{width:100%;max-width:420px;min-width:0}
   header.hero .auth .auth-row{display:contents}
   header.hero .auth .chip{font-size:12px;padding:2px 8px 2px 2px;gap:6px;max-width:100%;min-width:0;white-space:nowrap;overflow:hidden}
   header.hero .auth .chip .av{width:22px;height:22px;font-size:10px}
@@ -1152,6 +1153,33 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .seg button[aria-pressed="true"]{background:#f5a9d61f;color:var(--accent)}
 .hero .auth{flex-direction:column;align-items:flex-end;gap:6px}
 .auth-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.authbox{display:flex;flex-direction:column;gap:7px;padding:8px;min-width:290px;max-width:340px;background:#1c0f21e0;border:1px solid #f5a9d655;border-radius:14px;box-shadow:0 6px 20px #0006;backdrop-filter:blur(6px)}
+.authbox.is-off{border-color:#ff6b6b}
+.ab-top{display:flex;align-items:center;gap:8px;min-width:0}
+.ab-top .av{position:relative;flex:none;width:28px;height:28px;border-radius:50%;background:var(--twitch);color:#fff;display:grid;place-items:center;font:600 12px var(--f-body);overflow:hidden}
+.ab-top .av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ab-name{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--fg);white-space:nowrap;overflow:hidden}
+.ab-name>span{overflow:hidden;text-overflow:ellipsis}
+.ab-name .tag{margin:0;flex:none}
+.ab-out{flex:none;font-size:12px;padding:4px 9px}
+.ab-acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:7px;border-top:1px solid #f5a9d633}
+.ab-acts .btn{font-size:12px;padding:6px 8px;justify-content:center;text-align:center;white-space:nowrap}
+.ab-acts .site-off-btn{border-color:#ff6b6b88;color:#ffd0d0}
+.ab-acts .site-off-btn:hover:not(:disabled){border-color:#ff6b6b;color:#fff;background:#ff6b6b22}
+.ab-acts .site-off-btn.confirm{background:#c0392b;border-color:#ff6b6b;color:#fff}
+.ab-acts .site-on-btn{border-color:#5fd38d99;color:#d4ffe4}
+.ab-acts .site-on-btn:hover:not(:disabled){border-color:#5fd38d;color:#fff;background:#5fd38d22}
+.ab-acts .btn:disabled{opacity:.7;cursor:progress}
+.ab-state{display:flex;align-items:center;gap:6px;font:500 11px var(--f-mono);letter-spacing:.04em;color:#ffb3b3}
+.ab-state i{width:8px;height:8px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 6px #ff4d4d}
+.offline{display:none}
+body.site-off .offline{display:grid;place-items:center;min-height:52vh;margin:16px;border:1px solid var(--line);border-radius:18px;background:var(--panel)}
+body.site-off main.app,body.site-off .rail,body.site-off #stats,body.site-off #upd{display:none!important}
+.off-card{max-width:520px;padding:32px 24px;text-align:center}
+.off-ico{font-size:52px;line-height:1;margin-bottom:12px}
+.off-card h2{margin:0 0 10px;font:400 30px var(--f-display,inherit);color:var(--accent)}
+.off-card p{margin:0;color:var(--muted);line-height:1.55}
+.off-card a{color:var(--fg)}
 .upd-btn{font-size:12px;padding:5px 10px;background:#1c0f21cc;border-color:#f5a9d655;color:#f6dcee;backdrop-filter:blur(4px)}
 .upd-btn:hover:not(:disabled){border-color:var(--accent);color:#fff}
 .upd-btn:disabled{opacity:.7;cursor:progress}
@@ -1261,6 +1289,13 @@ body.editing .grp-wrap{pointer-events:none}
   <div class="lang" role="group" aria-label="Sprache / Language"><button type="button" data-lang="de">DE</button><button type="button" data-lang="en">EN</button></div>
 </header>
 
+<section class="offline" id="offline" hidden aria-live="polite">
+  <div class="off-card">
+    <div class="off-ico" aria-hidden="true">🛠️</div>
+    <h2 id="off-h">Zurzeit in Bearbeitung</h2>
+    <p id="off-p">Die Karte ist gleich wieder da. Schau solange bei <a href="https://www.twitch.tv/naschiitaschii" target="_blank" rel="noopener noreferrer">twitch.tv/naschiitaschii</a> vorbei.</p>
+  </div>
+</section>
 <main class="app">
   <section class="map-wrap" aria-label="Karte">
     <div id="map"></div>
@@ -2446,17 +2481,66 @@ function setUser(u){
   renderList();renderAuth();
   if(state.selectedId&&byId(state.selectedId))renderDetail(byId(state.selectedId));
   if(!canEdit(u)&&state.editing)closeEditor(true);
+  gateOffline();
 }
 function renderAuth(){
   var a=$('#auth');
   if(!state.user){a.innerHTML=SHOW_LOGIN?'<button type="button" class="btn twitch" id="login">'+T('Mit Twitch anmelden','Log in with Twitch')+'</button>':'';return}
-  var u=state.user,ini=esc((u.display||u.login||'?').charAt(0).toUpperCase());
-  var role=u.login===CHANNEL?T('Kanal','Channel'):canEdit(u)?(u.mod?'Mod':T('Bearbeiter','Editor')):'';
+  var u=state.user,ini=esc((u.display||u.login||'?').charAt(0).toUpperCase()),ed=canEdit(u);
+  var role=u.login===CHANNEL?T('Kanal','Channel'):ed?(u.mod?'Mod':T('Bearbeiter','Editor')):'';
   var busy=Date.now()<updBusyUntil;
-  a.innerHTML='<div class="auth-row"><div class="chip" title="'+T('Mit Twitch angemeldet','Logged in with Twitch')+(role?T(' · darf Routen bearbeiten',' · may edit routes'):'')+'"><span class="av">'+ini+(u.avatar?'<img src="'+esc(u.avatar)+'" alt="" onerror="this.remove()">':'')+'</span>'+esc(u.display||u.login)+(role?' <span class="tag route" style="margin-left:4px">'+role+'</span>':'')+'</div>'+
-    '<button type="button" class="btn ghost" id="logout">'+T('Abmelden','Log out')+'</button></div>'+
-    (canEdit(u)&&CONFIG.saveUrl?'<button type="button" class="btn upd-btn" id="manual-upd" title="'+T('Holt sofort neue Streams, Clips und Zahlen von Twitch – falls die automatische Aktualisierung hängt','Fetches new streams, clips and numbers from Twitch right now – in case the automatic update is stuck')+'"'+(busy?' disabled':'')+'>'+(busy?T('⟳ Update läuft …','⟳ Updating …'):T('⟳ Daten jetzt aktualisieren','⟳ Update data now'))+'</button>':'');
+  var h='<div class="authbox'+(ed&&SITE_OFF?' is-off':'')+'"><div class="ab-top" title="'+T('Mit Twitch angemeldet','Logged in with Twitch')+(role?T(' · darf Routen bearbeiten',' · may edit routes'):'')+'">'+
+    '<span class="av">'+ini+(u.avatar?'<img src="'+esc(u.avatar)+'" alt="" onerror="this.remove()">':'')+'</span>'+
+    '<span class="ab-name"><span>'+esc(u.display||u.login)+'</span>'+(role?'<span class="tag route">'+role+'</span>':'')+'</span>'+
+    '<button type="button" class="btn ghost ab-out" id="logout">'+T('Abmelden','Log out')+'</button></div>';
+  if(ed&&CONFIG.saveUrl){
+    var pend=SITE_PENDING!==null,off=pend?SITE_PENDING:SITE_OFF;
+    h+='<div class="ab-acts"><button type="button" class="btn upd-btn" id="manual-upd" title="'+T('Holt sofort neue Streams, Clips und Zahlen von Twitch – falls die automatische Aktualisierung hängt','Fetches new streams, clips and numbers from Twitch right now – in case the automatic update is stuck')+'"'+(busy?' disabled':'')+'>'+(busy?T('⟳ Update läuft …','⟳ Updating …'):T('⟳ Daten aktualisieren','⟳ Update data'))+'</button>'+
+      (pend?'<button type="button" class="btn '+(off?'site-off-btn':'site-on-btn')+'" disabled>'+(off?T('Wird offline genommen …','Going offline …'):T('Geht wieder online …','Going online …'))+'</button>'
+        :SITE_OFF?'<button type="button" class="btn site-on-btn" id="site-toggle" title="'+T('Seite für alle Besucher wieder anzeigen','Show the site to all visitors again')+'">▶ '+T('Seite online stellen','Put site online')+'</button>'
+        :'<button type="button" class="btn site-off-btn" id="site-toggle" title="'+T('Besucher sehen dann nur „Zurzeit in Bearbeitung“. Bearbeiter sehen die Seite weiter.','Visitors then only see “Currently under maintenance”. Editors still see the site.')+'">⏻ '+T('Seite offline nehmen','Take site offline')+'</button>')+
+      '</div>';
+    if(SITE_OFF)h+='<div class="ab-state"><i></i>'+T('Für Besucher offline – nur Bearbeiter sehen die Karte','Offline for visitors – only editors see the map')+'</div>';
+  }
+  a.innerHTML=h+'</div>';
 }
+/* ---------- Seite offline nehmen / online stellen (nur Kanal, Mods, Berechtigte) ---------- */
+var SITE_OFF=false,SITE_PENDING=null,siteConfirmT=0;
+function gateOffline(){
+  var was=document.body.classList.contains('site-off');
+  var g=SITE_OFF&&!canEdit(state.user);
+  document.body.classList.toggle('site-off',g);$('#offline').hidden=!g;
+  if(g){$('#off-h').textContent=T('Zurzeit in Bearbeitung','Currently under maintenance');$('#off-p').innerHTML=T('Die Karte ist gleich wieder da. Schau solange bei ','The map will be back soon. Meanwhile, drop by ')+'<a href="https://www.twitch.tv/naschiitaschii" target="_blank" rel="noopener noreferrer">twitch.tv/naschiitaschii</a>'+T(' vorbei.','.')}
+  if(g&&document.body.classList.contains('doc'))closeDocSilently();
+  if(was&&!g){setTimeout(function(){map.invalidateSize();loadData(false).then(function(){fitAll()})},30)}
+}
+function closeDocSilently(){try{$('#docview').hidden=true;document.body.classList.remove('doc')}catch(e){}}
+function siteSwitch(btn){
+  var u=state.user;if(!canEdit(u)||!CONFIG.saveUrl)return;
+  var target=!SITE_OFF;
+  if(target&&!btn.classList.contains('confirm')){ // erst nachfragen
+    btn.classList.add('confirm');btn.textContent=T('Sicher? Nochmal klicken','Sure? Click again');
+    clearTimeout(siteConfirmT);siteConfirmT=setTimeout(renderAuth,5000);return;
+  }
+  clearTimeout(siteConfirmT);
+  btn.disabled=true;btn.textContent=T('Wird gesendet …','Sending …');
+  fetch(CONFIG.saveUrl,{method:'POST',body:JSON.stringify({token:u.token,action:'site',offline:target})}).then(function(r){return r.json()}).then(function(j){
+    if(!j||!j.ok){var er=new Error(j&&j.error||T('Unbekannter Fehler','Unknown error'));er.code=j&&j.code;throw er}
+    SITE_PENDING=target;renderAuth();
+    toast(target?T('Seite wird offline genommen. Für Besucher in ca. 1–2 Minuten.','Taking the site offline. Visitors see it in about 1–2 minutes.'):T('Seite geht wieder online. Für Besucher in ca. 1–2 Minuten.','Putting the site back online. Visitors see it in about 1–2 minutes.'));
+    var tries=0,poll=function(){tries++;fetchStatus().then(function(st){
+      if(st&&!!st.offline===target){SITE_OFF=target;SITE_PENDING=null;renderAuth();toast(target?T('Seite ist jetzt offline. Besucher sehen „Zurzeit in Bearbeitung“.','Site is offline now. Visitors see “Currently under maintenance”.'):T('Seite ist wieder online.','Site is back online.'))}
+      else if(tries<10)setTimeout(poll,20000);
+      else{SITE_PENDING=null;renderAuth();toast(T('Umschalten dauert ungewöhnlich lange. Bitte später neu laden.','Switching is taking unusually long. Please reload later.'))}
+    })};
+    setTimeout(poll,45000);
+  }).catch(function(e){
+    renderAuth();
+    if(e&&e.code==='token'){toast(T('Twitch-Anmeldung abgelaufen. Bitte neu anmelden.','Twitch login expired. Please log in again.'));setUser(null)}
+    else toast(T('Umschalten fehlgeschlagen: ','Switching failed: ')+((e&&e.message)||T('keine Verbindung','no connection')));
+  });
+}
+function fetchStatus(){return fetch('data/status.json?t='+Date.now(),{cache:'no-store'}).then(function(r){return r.ok?r.json():null}).catch(function(){return null})}
 function login(){
   var st=Math.random().toString(36).slice(2)+Date.now().toString(36);sstore('shm.state',st);
   var ru=location.origin+location.pathname.replace(/index\.html$/,'');
@@ -2517,6 +2601,7 @@ document.addEventListener('click',function(e){
     case 'moreclips':document.querySelectorAll('.clip.more').forEach(function(x){x.hidden=false});t.remove();break;
     case 'login':login();break;
     case 'manual-upd':manualUpdate(t);break;
+    case 'site-toggle':siteSwitch(t);break;
     case 'logout':setUser(null);toast(T('Abgemeldet.','Logged out.'));break;
     case 'add':if(canEdit(state.user))openForm();break;
     case 'edit':if(canEdit(state.user))openForm(state.selectedId);break;
@@ -2564,7 +2649,9 @@ function loadData(first){
   if(location.protocol==='file:'||!window.fetch)return Promise.resolve();
   var bust=first?'':'?t='+Date.now();
   var getJ=function(u){return fetch(u+bust,{cache:'no-cache'}).then(function(r){return r.ok?r.json():null}).catch(function(){return null})};
-  return Promise.all([getJ('data/streams.json'),getJ('data/routes.json'),getJ('data/meta.json'),getJ('data/categories.json')]).then(function(v){
+  return Promise.all([getJ('data/streams.json'),getJ('data/routes.json'),getJ('data/meta.json'),getJ('data/categories.json'),fetchStatus()]).then(function(v){
+    if(SITE_PENDING===null){SITE_OFF=!!(v[4]&&v[4].offline);gateOffline();renderAuth()}
+    if(SITE_OFF&&!canEdit(state.user))return v[2];
     var d=v[0],m=v[2];if(v[3]&&typeof v[3]==='object')CATS=v[3];if(v[1]&&typeof v[1]==='object'){ROUTES=v[1];cleanPending()}
     if(m&&m.profileImage){var av=document.querySelector('.avatar img');if(!av){av=document.createElement('img');av.alt='';document.querySelector('.avatar').appendChild(av)}av.src=m.profileImage}
     if(m&&m.updated){var dd=new Date(m.updated);$('#upd').textContent=T('Automatisch aktualisiert: ','Updated automatically: ')+dd.toLocaleString(LOC,{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+T(' Uhr','')}
@@ -2605,6 +2692,7 @@ function manualUpdate(btn){
 var DOCS={anleitung:['Anleitung','Guide (German)'],datenschutz:['Datenschutzerklärung','Privacy policy (German)']},DOCCUR=null;
 function openDoc(name,push){
   if(!DOCS[name])return;
+  if(document.body.classList.contains('site-off')){location.href=name+'.html';return}
   var fr=$('#doc-frame'),url=name+'.html';
   if(DOCCUR!==name){fr.style.visibility='hidden';fr.onload=function(){fr.style.visibility=''};try{if(DOCCUR)fr.contentWindow.location.replace(url);else fr.src=url}catch(e){fr.src=url}DOCCUR=name}
   $('#doc-title').textContent=T(DOCS[name][0],DOCS[name][1]);fr.title=$('#doc-title').textContent;

@@ -420,12 +420,21 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <li><span class="ui-btn">⌂ Auf Karte setzen</span> und auf die Karte klicken – der Marker lässt sich verschieben.</li>
       <li>Speichern.</li>
     </ol><p style="margin-top:8px;font-size:14px">Der eigene Ort ersetzt den automatisch erkannten („Ort ungefähr“). Nur einen neuen Namen eintragen = automatischen Ort umbenennen. <b>×</b> = zurück zum automatischen Ort.</p></div>
-    <div class="card"><h3>⟳ Daten jetzt aktualisieren</h3><ul>
-      <li>Nach dem Login direkt unter dem Namen – nur für Kanalbetreiber, Mods und Berechtigte</li>
+    <div class="card"><h3>⟳ Daten aktualisieren</h3><ul>
+      <li>Nach dem Login im Anmeldekasten oben rechts (am Handy unter dem Header) – nur für Kanalbetreiber, Mods und Berechtigte</li>
       <li>Stößt sofort dasselbe Update an wie der 15-Minuten-Takt</li>
       <li>Nach 1–2 Minuten holt die Seite die neuen Daten selbst und meldet „Daten aktualisiert“ oder „Keine neuen Daten“</li>
       <li>Höchstens ein Klick alle 2 Minuten</li>
       <li>Für den Normalfall nicht nötig – die Automatik läuft von selbst</li>
+    </ul></div>
+    <div class="card"><h3>⏻ Seite offline nehmen</h3><ul>
+      <li>Im Anmeldekasten neben <i>Daten aktualisieren</i> – nur für Kanalbetreiber, Mods und Berechtigte</li>
+      <li>Zur Sicherheit zweimal klicken („Sicher? Nochmal klicken“)</li>
+      <li>Nach ca. 1–2 Minuten sehen alle Besucher nur noch <b>„Zurzeit in Bearbeitung“</b> – Karte, Liste und Zahlen sind ausgeblendet</li>
+      <li>Header mit Anmeldung, Impressum und Datenschutz bleiben sichtbar – so kann man sich jederzeit anmelden und die Seite wieder einschalten</li>
+      <li>Angemeldete Bearbeiter sehen die Karte weiter normal, mit rotem Hinweis „Für Besucher offline“</li>
+      <li><span class="ui-btn">▶ Seite online stellen</span> schaltet zurück, ebenfalls nach ca. 1–2 Minuten</li>
+      <li>Hinweis: Das ist ein Wartungsmodus. Die Datendateien selbst liegen weiter öffentlich bei GitHub.</li>
     </ul></div>
   </div>
   <div class="tip"><b class="i">i</b><div><b>Datenschutz für Bearbeiter:</b> Wer eine Route, Beschreibung oder einen Ort speichert, wird nicht öffentlich genannt; der Twitch-Name steht nur im nicht öffentlichen Protokoll des Prüfdienstes. Der Login bleibt nur im eigenen Browser, Abmelden löscht ihn. Die Seite fragt bei Twitch nur ab, ob jemand Mod ist – sie kann nichts posten oder ändern.</div></div>
@@ -452,7 +461,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     <tr><td><b>bei neuen Zahlen</b></td><td>Header-Zahlen, „Automatisch aktualisiert“-Zeit und das Teilen-Vorschaubild für Discord, WhatsApp &amp; Co. werden erneuert.</td></tr>
     <tr><td><b>montags 5 Uhr</b></td><td>Die Clip-Collage im Rahmen wird neu gemischt und als ein einziges Bild gespeichert. Von Hand: GitHub → Actions → „Collage erneuern“ → <i>Run workflow</i>.</td></tr>
     <tr><td><b>nach „Speichern“</b></td><td>Eine gezeichnete Route, Beschreibung oder ein Ort ist nach ca. 1–2 Minuten für alle sichtbar.</td></tr>
-    <tr><td><b>per Knopf</b></td><td>Kanalbetreiber, Mods und Berechtigte können mit <span class="ui-btn">⟳ Daten jetzt aktualisieren</span> sofort ein Update auslösen.</td></tr>
+    <tr><td><b>per Knopf</b></td><td>Kanalbetreiber, Mods und Berechtigte können mit <span class="ui-btn">⟳ Daten aktualisieren</span> sofort ein Update auslösen.</td></tr>
   </table></div>
 
   <h3 style="margin-top:20px">Was die Seite alles selbst erledigt</h3>
@@ -479,7 +488,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <li>Schriften lokal, keine Verbindung zu Google Fonts. Impressum und Datenschutz unten verlinkt</li>
     </ul></div>
   </div>
-  <div class="tip"><b class="i">i</b><div>„Automatisch aktualisiert“ zeigt die letzte <b>Änderung</b> der Daten – geprüft wird trotzdem alle 15 Minuten. Steht dort länger eine alte Zeit, obwohl gestreamt wurde, hilft der Knopf <span class="ui-btn">⟳ Daten jetzt aktualisieren</span>.</div></div>
+  <div class="tip"><b class="i">i</b><div>„Automatisch aktualisiert“ zeigt die letzte <b>Änderung</b> der Daten – geprüft wird trotzdem alle 15 Minuten. Steht dort länger eine alte Zeit, obwohl gestreamt wurde, hilft der Knopf <span class="ui-btn">⟳ Daten aktualisieren</span>.</div></div>
 </section>
 
 <!-- FAQ -->
@@ -517,7 +526,8 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     <tr><td><b>Ist Naschii live?</b></td><td>rote LIVE-Anzeige im Header anklicken</td></tr>
     <tr><td><b>Route zeichnen</b></td><td>mit Twitch anmelden → Stream öffnen → <i>Route zeichnen</i></td></tr>
     <tr><td><b>Route aus Datei</b></td><td>Route zeichnen → <i>📂 Route importieren</i> → GPX/KML/KMZ wählen</td></tr>
-    <tr><td><b>Update erzwingen</b></td><td>anmelden → <i>⟳ Daten jetzt aktualisieren</i></td></tr>
+    <tr><td><b>Update erzwingen</b></td><td>anmelden → <i>⟳ Daten aktualisieren</i></td></tr>
+    <tr><td><b>Seite offline / online</b></td><td>anmelden → <i>⏻ Seite offline nehmen</i> (2× klicken) bzw. <i>▶ Seite online stellen</i></td></tr>
   </table></div>
 </section>
 

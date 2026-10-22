@@ -9,6 +9,13 @@ const fail = (m) => { console.error('Abgelehnt: ' + m); process.exit(1); };
 
 let p;
 try { p = JSON.parse(process.env.PAYLOAD || ''); } catch { fail('PAYLOAD ist kein JSON'); }
+// Sonderfall: Seite offline nehmen / wieder online stellen ({ site: { offline: true|false } })
+if (p && p.site && typeof p.site === 'object') {
+  if (typeof p.site.offline !== 'boolean') fail('site.offline muss true oder false sein');
+  await writeFile('data/status.json', JSON.stringify({ offline: p.site.offline, since: new Date().toISOString() }, null, 1) + '\n');
+  console.log('Seite ' + (p.site.offline ? 'OFFLINE' : 'ONLINE'));
+  process.exit(0);
+}
 const { id, route } = p || {};
 if (typeof id !== 'string' || !/^[\w-]{1,80}$/.test(id)) fail('ungültige Stream-ID');
 

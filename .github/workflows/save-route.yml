@@ -32,9 +32,9 @@ jobs:
           for i in 1 2 3 4 5; do
             git fetch -q origin main && git reset -q --hard origin/main
             node scripts/save-route.mjs || exit 1
-            git add data/routes.json
+            git add data/routes.json data/status.json
             git diff --cached --quiet && { echo "Keine Änderung."; exit 0; }
-            git commit -qm "Route gespeichert"
+            git commit -qm "$(git diff --cached --quiet -- data/status.json && echo 'Route gespeichert' || echo 'Seitenstatus geändert')"
             git push -q origin HEAD:main && { echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0; }
             sleep $((RANDOM % 6 + 3))
           done

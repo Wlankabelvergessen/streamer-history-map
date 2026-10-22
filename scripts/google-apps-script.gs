@@ -2,7 +2,7 @@
  * Naschii's Adventure Map – Taktgeber für die automatische Aktualisierung
  *
  * 1) Stößt alle 15 Minuten den GitHub-Workflow "Streams und Clips aktualisieren" an.
- * 2) Nimmt gezeichnete Routen und den Update-Knopf der Webseite entgegen (doPost), prüft Twitch-Login und
+ * 2) Nimmt gezeichnete Routen, den Update-Knopf und „Seite offline/online“ der Webseite entgegen (doPost), prüft Twitch-Login und
  *    Bearbeitungsrecht (naschiitaschii, EDITORS, Mods des Kanals) und stößt "Route speichern" an.
  *
  * Einrichtung Taktgeber (einmalig):
@@ -102,6 +102,26 @@ function doPost(e) {
       cache.put('manual-update', login, 120);
       console.log('Update von Hand angestoßen von ' + login);
       return antwort({ ok: true, at: new Date().toISOString(), by: login });
+    }
+
+    // 2c. Seite offline nehmen / wieder online stellen (Wartungsanzeige für Besucher)
+    if (body.action === 'site') {
+      const off = body.offline === true;
+      const cache = CacheService.getScriptCache();
+      if (cache.get('site-switch')) return antwort({ ok: false, code: 'wait', error: 'Gerade erst umgeschaltet. Bitte 30 Sekunden warten.' });
+      const ghT = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+      const rs = UrlFetchApp.fetch(`https://api.github.com/repos/${REPO}/actions/workflows/${SAVE_WORKFLOW}/dispatches`, {
+        method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+        headers: { Authorization: 'Bearer ' + ghT, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+        payload: JSON.stringify({ ref: 'main', inputs: { payload: JSON.stringify({ site: { offline: off } }) } }),
+      });
+      if (rs.getResponseCode() !== 204) {
+        console.log('GitHub (Seitenstatus): ' + rs.getResponseCode() + ' ' + rs.getContentText());
+        return antwort({ ok: false, code: 'github', error: 'GitHub hat das Umschalten abgelehnt (' + rs.getResponseCode() + ').' });
+      }
+      cache.put('site-switch', login, 30);
+      console.log('Seite ' + (off ? 'OFFLINE' : 'ONLINE') + ' gestellt von ' + login);
+      return antwort({ ok: true, at: new Date().toISOString(), by: login, offline: off });
     }
 
     // 3. Grobe Prüfung der Daten (die genaue Prüfung macht scripts/save-route.mjs)
