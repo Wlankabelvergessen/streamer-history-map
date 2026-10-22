@@ -1274,7 +1274,7 @@ body.editing .grp-wrap{pointer-events:none}
   <div class="grip" id="grip" role="separator" aria-orientation="horizontal" aria-label="Karte und Liste verschieben" title="Ziehen: Liste hoch oder runter · Tippen: Karte ein-/ausblenden" tabindex="0"><i></i></div>
   <aside class="panel" id="panel" aria-label="Routen">
     <div id="v-list">
-      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum, Clip" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="none">Ohne Ort</option></select><select id="cat" aria-label="Nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="time">Längste Streamzeit</option></select></div>
+      <div class="tools"><div class="qwrap"><input type="text" id="q" placeholder="Suchen: Titel, Ort, Datum, Clip" aria-label="Streams durchsuchen" autocomplete="off"><button type="button" id="qclear" class="qclear" aria-label="Suche löschen" title="Suche löschen" hidden>×</button></div><select id="flt" aria-label="Streams filtern"><option value="all">Alle</option><option value="loc">Mit Ort</option><option value="route">Mit Route</option><option value="noroute">Ohne Route (nur IRL)</option><option value="none">Ohne Ort</option></select><select id="cat" aria-label="Nach Kategorie filtern"><option value="">Alle Kategorien</option></select><select id="srt" aria-label="Streams sortieren"><option value="new">Neueste zuerst</option><option value="old">Älteste zuerst</option><option value="time">Längste Streamzeit</option></select></div>
       <div class="tools2"><button type="button" class="chipbtn" id="calbtn" aria-pressed="false">📅 <span>Kalender</span></button><button type="button" class="chipbtn" id="rndbtn">🎲 <span>Zufälliger Clip</span></button><p class="count mono" id="count"></p></div>
       <div id="memo"></div>
       <div id="cliphits"></div>
@@ -1642,6 +1642,7 @@ function renderList(){
   var rows=state.routes.filter(function(r){
     if(f==='loc'&&!(r.location||hasRoute(r)))return false;
     if(f==='route'&&!hasRoute(r))return false;
+    if(f==='noroute'&&(hasRoute(r)||r.category!=='IRL'))return false;
     if(f==='none'&&(r.location||hasRoute(r)))return false;
     if(state.cat&&r.category!==state.cat)return false;
     if(!q)return true;
@@ -2676,7 +2677,7 @@ function applyStatic(){
   var set=function(sel,txt,attr){var e=$(sel);if(!e)return;if(attr)e.setAttribute(attr,txt);else e.textContent=txt};
   set('#q','Search: title, place, date, clip','placeholder');set('#q','Search streams','aria-label');
   set('#qclear','Clear search','aria-label');set('#qclear','Clear search','title');
-  var fo={all:'All',loc:'With place',route:'With route',none:'Without place'};
+  var fo={all:'All',loc:'With place',route:'With route',noroute:'Without route (IRL only)',none:'Without place'};
   document.querySelectorAll('#flt option').forEach(function(o){if(fo[o.value])o.textContent=fo[o.value]});
   var so={new:'Newest first',old:'Oldest first',time:'Longest stream time'};
   document.querySelectorAll('#srt option').forEach(function(o){if(so[o.value])o.textContent=so[o.value]});
