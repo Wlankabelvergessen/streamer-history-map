@@ -1986,6 +1986,75 @@ function renderEdMap(){
     m.on('contextmenu',function(e){L.DomEvent.preventDefault(e.originalEvent);pushUndo();delete ed.clips[sg];renderEd()});
   });
 }
+/* ---------- Route importieren (GPX, KML, KMZ) ---------- */
+function pickRouteFile(){
+  var inp=document.createElement('input');inp.type='file';
+  inp.accept='.gpx,.kml,.kmz,application/gpx+xml,application/vnd.google-earth.kml+xml,application/vnd.google-earth.kmz';
+  inp.addEventListener('change',function(){var f=inp.files&&inp.files[0];if(f)importRouteFile(f)});
+  inp.click();
+}
+function unzipFirstKml(buf){
+  var dv=new DataView(buf),u8=new Uint8Array(buf),eocd=-1;
+  for(var i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-66000);i--){if(dv.getUint32(i,true)===0x06054b50){eocd=i;break}}
+  if(eocd<0)throw new Error(T('Die KMZ-Datei ist beschädigt.','The KMZ file is damaged.'));
+  var n=dv.getUint16(eocd+10,true),off=dv.getUint32(eocd+16,true);
+  for(var k=0;k<n;k++){
+    if(dv.getUint32(off,true)!==0x02014b50)break;
+    var method=dv.getUint16(off+10,true),csize=dv.getUint32(off+20,true),nl=dv.getUint16(off+28,true),xl=dv.getUint16(off+30,true),cl=dv.getUint16(off+32,true),lho=dv.getUint32(off+42,true);
+    var name=new TextDecoder().decode(u8.subarray(off+46,off+46+nl));
+    off+=46+nl+xl+cl;
+    if(!/\.kml$/i.test(name))continue;
+    var start=lho+30+dv.getUint16(lho+26,true)+dv.getUint16(lho+28,true),data=u8.slice(start,start+csize);
+    if(method===0)return Promise.resolve(new TextDecoder().decode(data));
+    if(method===8&&window.DecompressionStream){return new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text()}
+    throw new Error(T('Diese KMZ-Datei kann der Browser nicht entpacken. Bitte als KML exportieren.','Your browser cannot unpack this KMZ file. Please export as KML.'));
+  }
+  throw new Error(T('In der KMZ-Datei ist keine Route.','The KMZ file contains no route.'));
+}
+function parseRouteXml(text){
+  var doc=new DOMParser().parseFromString(text,'application/xml');
+  if(doc.getElementsByTagName('parsererror').length)throw new Error(T('Die Datei konnte nicht gelesen werden.','The file could not be read.'));
+  var tag=function(el,n){return el.getElementsByTagNameNS?el.getElementsByTagNameNS('*',n):el.getElementsByTagName(n)};
+  var txt=function(el,n){var e=tag(el,n)[0];return e?e.textContent.trim():''};
+  var ok=function(a,b){return isFinite(a)&&isFinite(b)&&Math.abs(a)<=90&&Math.abs(b)<=180};
+  var pts=[],stops=[],times=[];
+  if(doc.documentElement.localName==='gpx'){
+    var tp=tag(doc,'trkpt');if(!tp.length)tp=tag(doc,'rtept');
+    for(var i=0;i<tp.length;i++){var la=parseFloat(tp[i].getAttribute('lat')),lo=parseFloat(tp[i].getAttribute('lon'));if(ok(la,lo)){pts.push([la,lo]);var tm=txt(tp[i],'time');if(tm)times.push(tm)}}
+    var wp=tag(doc,'wpt');
+    for(var j=0;j<wp.length;j++){var a=parseFloat(wp[j].getAttribute('lat')),b=parseFloat(wp[j].getAttribute('lon'));if(ok(a,b))stops.push({lat:a,lng:b,name:txt(wp[j],'name')})}
+  }else{
+    var pms=tag(doc,'Placemark');
+    for(var m=0;m<pms.length;m++){
+      var pm=pms[m],ls=tag(pm,'LineString'),gx=tag(pm,'coord');
+      for(var q=0;q<ls.length;q++){
+        txt(ls[q],'coordinates').split(/\s+/).forEach(function(c){var v=c.split(',');var lo=parseFloat(v[0]),la=parseFloat(v[1]);if(ok(la,lo))pts.push([la,lo])});
+      }
+      for(var g=0;g<gx.length;g++){var v=gx[g].textContent.trim().split(/\s+/),lo2=parseFloat(v[0]),la2=parseFloat(v[1]);if(ok(la2,lo2))pts.push([la2,lo2])}
+      if(!ls.length&&!gx.length){var pt=tag(pm,'Point')[0];if(pt){var c2=txt(pt,'coordinates').split(','),lo3=parseFloat(c2[0]),la3=parseFloat(c2[1]);if(ok(la3,lo3))stops.push({lat:la3,lng:lo3,name:txt(pm,'name')})}}
+    }
+  }
+  if(pts.length<2)throw new Error(T('In der Datei ist keine Strecke (Linie) enthalten.','The file contains no track (line).'));
+  // Vereinfachen: Punkte, die weniger als ~2 m von der Linie abweichen, fallen weg (max. 1500 Punkte)
+  var lat0=pts[0][0]*Math.PI/180,kx=111320*Math.cos(lat0),ky=110540;
+  var proj=pts.map(function(p){return L.point(p[1]*kx,p[0]*ky)}),tol=2,s=proj;
+  do{s=L.LineUtil.simplify(proj,tol);tol*=1.6}while(s.length>1500);
+  pts=s.map(function(q){return [+(q.y/ky).toFixed(6),+(q.x/kx).toFixed(6)]});
+  return {points:pts,stops:stops.slice(0,60).map(function(x){return {lat:+x.lat.toFixed(6),lng:+x.lng.toFixed(6),name:(x.name||'').slice(0,60)}}),times:times};
+}
+function importRouteFile(f){
+  if(!ed)return;
+  if(f.size>20*1024*1024){toast(T('Die Datei ist zu groß (max. 20 MB).','The file is too large (max. 20 MB).'));return}
+  var isKmz=/\.kmz$/i.test(f.name);
+  (isKmz?f.arrayBuffer().then(unzipFirstKml):f.text()).then(function(text){
+    var g=parseRouteXml(text);
+    pushUndo();ed.points=g.points;if(g.stops.length)ed.stops=g.stops;
+    renderEd();
+    map.fitBounds(L.latLngBounds(g.points),{padding:[50,50],maxZoom:17});
+    var km=0;for(var i=1;i<g.points.length;i++)km+=map.distance(g.points[i-1],g.points[i])/1000;
+    toast(T('Route importiert: ','Route imported: ')+km.toLocaleString(LOC,{maximumFractionDigits:1})+' km'+(g.stops.length?' · '+g.stops.length+(g.stops.length===1?T(' Station',' stop'):T(' Stationen',' stops')):'')+T(' – jetzt prüfen und speichern. ↶ macht es rückgängig.',' – check it and save. ↶ undoes it.'));
+  }).catch(function(ex){toast((ex&&ex.message)||T('Die Datei konnte nicht gelesen werden.','The file could not be read.'))});
+}
 function renderEdPanel(){
   var r=ed.r,CL=r.clips||[],placed=Object.keys(ed.clips).length;
   var modes=Object.keys(MODES).map(function(k){return '<button type="button" data-mode="'+k+'" aria-pressed="'+(ed.mode===k)+'"><i>'+MODES[k][0]+'</i>'+MODES[k][1]+'</button>'}).join('');
@@ -2003,7 +2072,7 @@ function renderEdPanel(){
     '<h2>'+T('Route bearbeiten','Edit route')+'</h2><p class="sub2">'+esc(fmtDate(r.date))+' · '+esc(r.title)+'</p>'+
     '<div class="modes" role="group" aria-label="Werkzeug">'+modes+'</div>'+
     '<p class="help" id="ed-help">'+(ed.armed?T('Jetzt auf die Karte klicken, um den Clip zu platzieren. Esc bricht ab.','Now click the map to place the clip. Esc cancels.'):MODES[ed.mode][2])+'</p>'+
-    '<div class="row"><button type="button" class="btn" id="ed-undo">'+T('↶ Rückgängig','↶ Undo')+'</button><button type="button" class="btn" id="ed-clear">'+T('Route leeren','Clear route')+'</button>'+(CL.some(function(c){return c.at})&&ed.points.length>1?'<button type="button" class="btn" id="ed-auto" title="'+T('Die 10 meistgesehenen Clips anhand ihrer Uhrzeit auf der Route verteilen','Place the 10 most viewed clips along the route by their time')+'">'+T('Top-10-Clips nach Uhrzeit verteilen','Place top 10 clips by time')+'</button>':'')+'</div>'+
+    '<div class="row"><button type="button" class="btn" id="ed-undo">'+T('↶ Rückgängig','↶ Undo')+'</button><button type="button" class="btn" id="ed-clear">'+T('Route leeren','Clear route')+'</button><button type="button" class="btn" id="ed-import" title="'+T('GPX-, KML- oder KMZ-Datei laden, z. B. aus gpx.studio, Google My Maps oder einer Tracking-App','Load a GPX, KML or KMZ file, e.g. from gpx.studio, Google My Maps or a tracking app')+'">'+T('📂 Route importieren','📂 Import route')+'</button>'+(CL.some(function(c){return c.at})&&ed.points.length>1?'<button type="button" class="btn" id="ed-auto" title="'+T('Die 10 meistgesehenen Clips anhand ihrer Uhrzeit auf der Route verteilen','Place the 10 most viewed clips along the route by their time')+'">'+T('Top-10-Clips nach Uhrzeit verteilen','Place top 10 clips by time')+'</button>':'')+'</div>'+
     '<div class="sec"><h3>'+T('Was wurde gemacht?','What happened?')+'</h3><textarea id="ed-desc" class="ed-ta" maxlength="1500" placeholder="'+T('Kurze Beschreibung des Streams, z. B. „Altstadt, Rheinufer und Eis essen“','Short description, e.g. “old town, riverside and ice cream”')+'">'+esc(ed.desc)+'</textarea></div>'+
     '<div class="sec"><h3>'+T('Ort','Place')+(ed.loc?'':'<span>'+(ed.r._autoLoc?T('automatisch: ','auto: ')+esc(ed.r._autoLoc.name):T('noch keiner','none yet'))+'</span>')+'</h3>'+
       '<div class="ed-loc"><input type="text" id="ed-locname" maxlength="60" placeholder="'+T('Ortsname, z. B. Düsseldorf Altstadt','Place name, e.g. Düsseldorf old town')+'" value="'+esc(ed.loc?ed.loc.name:(ed.locName||''))+'">'+
@@ -2071,6 +2140,7 @@ $('#panel').addEventListener('click',function(e){
     case 'ed-back':case 'ed-cancel':closeEditor(false);break;
     case 'ed-undo':undoEd();break;
     case 'ed-auto':autoPlace();break;
+    case 'ed-import':pickRouteFile();break;
     case 'ed-save':saveEd();break;
     case 'ed-clear':
       if(b.dataset.arm){pushUndo();ed.points=[];ed.stops=[];renderEd();toast(T('Route geleert. Clips bleiben, wo sie sind.','Route cleared. Clips stay where they are.'))}
