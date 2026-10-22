@@ -945,6 +945,15 @@ body.editing .kevin-rail{visibility:hidden}
 .castle img{width:76px;height:auto;display:block}
 .castle b{position:absolute;right:-4px;bottom:2px;min-width:24px;height:24px;padding:0 5px;box-sizing:border-box;display:grid;place-items:center;border-radius:999px;background:radial-gradient(circle at 35% 30%,#ffd3ec,var(--accent) 55%,var(--pink-deep));color:var(--accent-ink);font:700 11px var(--f-mono);border:2px solid #fff}
 .tag.home{color:#ffe2b8;border-color:#c98b4a99}
+.ed-loc{position:relative}
+.locsug{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:30;background:var(--panel);border:1px solid var(--accent);border-radius:8px;box-shadow:0 10px 24px #000a;overflow:hidden;max-height:260px;overflow-y:auto}
+.locsug[hidden]{display:none}
+.locsug button{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;padding:7px 10px;cursor:pointer;font-size:13px;color:var(--fg);border-bottom:1px solid var(--line)}
+.locsug button:last-child{border-bottom:0}
+.locsug button:hover,.locsug button.on{background:#f5a9d61f}
+.locsug button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.locsug small{flex:none;font:500 10.5px var(--f-mono);color:var(--muted)}
+.locsug .ls-none{padding:8px 10px;font-size:12.5px;color:var(--muted)}
 /* App-Raster */
 .app{flex:1;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(320px,400px) minmax(0,1fr);grid-template-areas:"panel map"}
 .panel{grid-area:panel;min-height:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-y:auto;overflow-x:hidden}
@@ -2355,9 +2364,44 @@ $('#panel').addEventListener('click',function(e){
       break;
   }
 });
+/* ---------- Ort im Editor: Vorschläge aus bekannten Orten (ab 3 Buchstaben) ---------- */
+var KNOWN_LOCS=null,sugIdx=-1;
+function normLoc(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[´`'’]/g,'').replace(/ß/g,'ss')}
+function knownPlaces(){
+  var m={},add=function(n,lat,lng,cnt){if(!n||!isFinite(lat))return;var k=normLoc(n);if(!m[k])m[k]={name:n,lat:lat,lng:lng,n:0};m[k].n+=cnt||0};
+  add(HOME.name,HOME.lat,HOME.lng,0);
+  state.routes.forEach(function(r){if(r.location)add(r.location.name,r.location.lat,r.location.lng,1)});
+  (KNOWN_LOCS||[]).forEach(function(l){add(l.name,l.lat,l.lng,0)});
+  return Object.keys(m).map(function(k){return m[k]});
+}
+function showLocSug(inp){
+  if(!KNOWN_LOCS){KNOWN_LOCS=[];fetch('data/locations.json',{cache:'no-cache'}).then(function(r){return r.json()}).then(function(l){KNOWN_LOCS=Array.isArray(l)?l:[];if(document.activeElement===inp)showLocSug(inp)}).catch(function(){})}
+  var box=$('#ed-locsug'),q=normLoc(inp.value.trim());
+  if(!box){box=document.createElement('div');box.id='ed-locsug';box.className='locsug';box.setAttribute('role','listbox');inp.parentNode.appendChild(box)}
+  if(q.length<3){box.hidden=true;box.innerHTML='';return}
+  var hits=knownPlaces().filter(function(p){return normLoc(p.name).indexOf(q)>=0}).sort(function(a,b){
+    var as=normLoc(a.name).indexOf(q)===0,bs=normLoc(b.name).indexOf(q)===0;if(as!==bs)return as?-1:1;return b.n-a.n||a.name.localeCompare(b.name)}).slice(0,8);
+  sugIdx=-1;
+  if(!hits.length){box.innerHTML='<div class="ls-none">'+T('Kein bekannter Ort – wird als neuer Ort angelegt.','No known place – will be created as a new one.')+'</div>';box.hidden=false;return}
+  box.innerHTML=hits.map(function(p,i){return '<button type="button" role="option" data-sug="'+i+'"><span>'+(isHome(p.name)?'🏰 ':'📍 ')+esc(p.name)+'</span><small>'+(p.n?p.n+' Stream'+(p.n===1?'':'s'):T('bekannt','known'))+'</small></button>'}).join('');
+  box._hits=hits;box.hidden=false;
+}
+function pickLocSug(i){
+  var box=$('#ed-locsug');if(!box||!box._hits||!box._hits[i]||!ed)return;var p=box._hits[i];
+  pushUndo();ed.loc={name:p.name,lat:+(+p.lat).toFixed(5),lng:+(+p.lng).toFixed(5)};ed.locName='';ed.armLoc=false;renderEd();
+  toast(T('Ort übernommen: ','Place set: ')+p.name);
+}
+$('#panel').addEventListener('mousedown',function(e){var b=e.target.closest&&e.target.closest('#ed-locsug [data-sug]');if(b){e.preventDefault();pickLocSug(+b.dataset.sug)}});
+$('#panel').addEventListener('keydown',function(e){
+  if(e.target.id!=='ed-locname')return;var box=$('#ed-locsug');if(!box||box.hidden)return;var bs=box.querySelectorAll('[data-sug]');if(!bs.length)return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sugIdx=(sugIdx+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;bs.forEach(function(b,i){b.classList.toggle('on',i===sugIdx)})}
+  else if(e.key==='Enter'&&sugIdx>=0){e.preventDefault();pickLocSug(sugIdx)}
+  else if(e.key==='Escape'){box.hidden=true}
+});
+$('#panel').addEventListener('focusout',function(e){if(e.target.id==='ed-locname')setTimeout(function(){var b=$('#ed-locsug');if(b)b.hidden=true},150)});
 $('#panel').addEventListener('input',function(e){
   if(ed&&e.target.id==='ed-desc'){ed.desc=e.target.value;ed.dirty=true;return}
-  if(ed&&e.target.id==='ed-locname'){ed.locName=e.target.value;if(ed.loc)ed.loc.name=e.target.value;ed.dirty=true;return}
+  if(ed&&e.target.id==='ed-locname'){ed.locName=e.target.value;if(ed.loc)ed.loc.name=e.target.value;ed.dirty=true;showLocSug(e.target);return}
   var i=e.target.dataset&&e.target.dataset.si;if(i===undefined||!ed)return;if(!ed.typing){pushUndo();ed.typing=true}ed.stops[+i].name=e.target.value;});
 $('#panel').addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.si!==undefined&&ed){ed.typing=false}});
 $('#panel').addEventListener('dragstart',function(e){var ec=e.target.closest&&e.target.closest('.eclip');if(!ec)return;e.dataTransfer.setData('text/plain',ec.dataset.slug);e.dataTransfer.effectAllowed='copy'});
