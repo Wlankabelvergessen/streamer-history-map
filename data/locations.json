@@ -1,5 +1,12 @@
 [
  {
+  "key": "caggtus",
+  "name": "Leipzig, Caggtus (Messe)",
+  "lat": 51.3962,
+  "lng": 12.4024,
+  "prefix": true
+ },
+ {
   "key": "japan-tag",
   "name": "Düsseldorf, Japan-Tag (Rheinufer)",
   "lat": 51.2265,
@@ -610,5 +617,29 @@
   "name": "Las Vegas (US)",
   "lat": 36.1699,
   "lng": -115.1398
+ },
+ {
+  "key": "reeperbahn",
+  "name": "Hamburg, Reeperbahn",
+  "lat": 53.5496,
+  "lng": 9.9637
+ },
+ {
+  "key": "ibiza",
+  "name": "Ibiza (ES)",
+  "lat": 38.9067,
+  "lng": 1.4206
+ },
+ {
+  "key": "zandvoort",
+  "name": "Zandvoort (NL)",
+  "lat": 52.3713,
+  "lng": 4.5331
+ },
+ {
+  "key": "scheveningen",
+  "name": "Scheveningen (NL)",
+  "lat": 52.1106,
+  "lng": 4.2797
  }
 ]
