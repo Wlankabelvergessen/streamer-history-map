@@ -910,6 +910,7 @@ body.doc .app>.map-wrap{visibility:hidden}
 .kevin:hover img{transform:scale(1.12) rotate(-6deg)}
 .kevin span{font:600 9.5px var(--f-mono);letter-spacing:.04em;color:#ffe2b8;background:#2a1a10e6;border:1px solid #c98b4a;border-radius:6px;padding:1px 6px;white-space:nowrap}
 .kevin.lost span{color:#fff;background:#7d2a63ee;border-color:var(--accent)}
+.kevin.origin span{color:#fff;background:#3a2a42ee;border-color:#b7a3bc}
 .leaflet-tooltip.kevin-tip{background:var(--panel);color:var(--fg);border:1px solid #c98b4a;border-radius:10px;padding:10px 12px;width:230px;white-space:normal;box-shadow:0 10px 30px #000a}
 .leaflet-tooltip.kevin-tip::before{display:none}
 .kevin-tip img{float:right;width:62px;margin:0 0 4px 8px}
@@ -1429,9 +1430,12 @@ function initMap(){
 }
 /* ---------- Kevin, das Croissant: vermutete Aufenthaltsorte ---------- */
 var KEVIN=[
-  {lost:true,short:'Polaris',lat:53.5617,lng:9.9787,name:'Polaris, Hamburg Messe',en:'Polaris, Hamburg trade fair',
-   de:'Hier wurde Kevin zuletzt gesehen. Seitdem fehlt jede Spur vom flauschigsten Croissant des Kanals.',
-   e2:'This is where Kevin was last seen. Since then, the fluffiest croissant on the channel has vanished without a trace.'},
+  {lost:true,short:'Las Vegas',lat:36.1147,lng:-115.1728,name:'Las Vegas, Strip',en:'Las Vegas, the Strip',
+   de:'Neueste Spur: Kevin wurde beim „Frühstück“ am Spielautomaten gesichtet – entführt von Wahnwitzig.',
+   e2:'Latest lead: Kevin was spotted having “breakfast” at a slot machine – kidnapped by Wahnwitzig.'},
+  {origin:true,short:'Polaris',lat:53.5617,lng:9.9787,name:'Polaris, Hamburg Messe',en:'Polaris, Hamburg trade fair',
+   de:'Hier ging Kevin verloren. Seitdem taucht das flauschigste Croissant des Kanals nur noch auf Fotos auf.',
+   e2:'This is where Kevin got lost. Since then, the fluffiest croissant on the channel only turns up in photos.'},
   {short:'Ibiza',lat:38.9067,lng:1.4206,name:'Ibiza',en:'Ibiza',
    de:'Liegt angeblich am Strand und lässt sich die Kruste goldbraun bräunen.',e2:'Allegedly lying on the beach, getting his crust golden brown.'},
   {short:'New York',lat:40.758,lng:-73.9855,name:'New York, Times Square',en:'New York, Times Square',
@@ -1448,10 +1452,10 @@ var KEVIN=[
 function drawKevin(){
   map.createPane('kevin');var kp=map.getPane('kevin');kp.style.zIndex=590;kp.classList.add('kevin-pane');
   KEVIN.forEach(function(k){
-    var lab=k.lost?T('zuletzt gesehen','last seen'):T('vermuteter Aufenthaltsort','suspected whereabouts');
+    var lab=k.lost?T('zuletzt gesehen','last seen'):k.origin?T('hier verloren','lost here'):T('vermuteter Aufenthaltsort','suspected whereabouts');
     var m=L.marker([k.lat,k.lng],{pane:'kevin',keyboard:false,riseOnHover:true,
-      icon:L.divIcon({className:'',html:'<div class="kevin'+(k.lost?' lost':'')+'"><img src="kevin.png" alt="Kevin"><span>'+esc(lab)+'</span></div>',iconSize:[150,74],iconAnchor:[75,80]})}).addTo(map);
-    m.bindTooltip('<img src="kevin.png" alt=""><small>'+(k.lost?T('Kevin · zuletzt gesehen','Kevin · last seen'):T('Kevin · vermuteter Aufenthaltsort','Kevin · suspected whereabouts'))+'</small><b>'+esc(LANG==='en'?k.en:k.name)+'</b><p>'+esc(LANG==='en'?k.e2:k.de)+'</p>',{direction:'top',offset:[0,-76],className:'kevin-tip',opacity:1});
+      icon:L.divIcon({className:'',html:'<div class="kevin'+(k.lost?' lost':'')+(k.origin?' origin':'')+'"><img src="kevin.png" alt="Kevin"><span>'+esc(lab)+'</span></div>',iconSize:[150,74],iconAnchor:[75,80]})}).addTo(map);
+    m.bindTooltip('<img src="kevin.png" alt=""><small>Kevin · '+esc(lab)+'</small><b>'+esc(LANG==='en'?k.en:k.name)+'</b><p>'+esc(LANG==='en'?k.e2:k.de)+'</p>',{direction:'top',offset:[0,-76],className:'kevin-tip',opacity:1});
     m.on('click',function(){closeKevinTips(m);m.openTooltip()});
     m.on('tooltipopen',function(){closeKevinTips(m)});
     k.marker=m;
@@ -1467,7 +1471,7 @@ function renderKevinRail(){
   var nav=$('#kevin-rail');if(!nav)return;
   nav.setAttribute('aria-label',T('Wo ist Kevin?','Where is Kevin?'));
   nav.innerHTML='<b>'+T('Wo ist<br>Kevin?','Where is<br>Kevin?')+'</b>'+KEVIN.map(function(k,i){
-    return '<button type="button" data-kevin="'+i+'"'+(k.lost?' class="lost"':'')+' title="'+esc(LANG==='en'?k.en:k.name)+'"><img src="kevin.png" alt=""><span>'+esc(LANG==='en'?(k.sen||k.short):k.short)+'</span></button>';
+    return '<button type="button" data-kevin="'+i+'"'+(k.lost?' class="lost"':k.origin?' class="origin"':'')+' title="'+esc(LANG==='en'?k.en:k.name)+'"><img src="kevin.png" alt=""><span>'+esc(LANG==='en'?(k.sen||k.short):k.short)+'</span></button>';
   }).join('');
 }
 document.addEventListener('click',function(e){
