@@ -1449,12 +1449,16 @@ function drawKevin(){
     var m=L.marker([k.lat,k.lng],{pane:'kevin',keyboard:false,riseOnHover:true,
       icon:L.divIcon({className:'',html:'<div class="kevin'+(k.lost?' lost':'')+'"><img src="kevin.png" alt="Kevin"><span>'+esc(lab)+'</span></div>',iconSize:[150,74],iconAnchor:[75,80]})}).addTo(map);
     m.bindTooltip('<img src="kevin.png" alt=""><small>'+(k.lost?T('Kevin · zuletzt gesehen','Kevin · last seen'):T('Kevin · vermuteter Aufenthaltsort','Kevin · suspected whereabouts'))+'</small><b>'+esc(LANG==='en'?k.en:k.name)+'</b><p>'+esc(LANG==='en'?k.e2:k.de)+'</p>',{direction:'top',offset:[0,-76],className:'kevin-tip',opacity:1});
-    m.on('click',function(){m.openTooltip()});
+    m.on('click',function(){closeKevinTips(m);m.openTooltip()});
+    m.on('tooltipopen',function(){closeKevinTips(m)});
     k.marker=m;
   });
   renderKevinRail();
   var z=function(){kp.classList.toggle('far',map.getZoom()<5)};map.on('zoomend',z);z();
+  map.on('zoomstart click',function(){if(!kevinFlying)closeKevinTips()});
 }
+var kevinFlying=false;
+function closeKevinTips(keep){KEVIN.forEach(function(k){if(k.marker&&k.marker!==keep)k.marker.closeTooltip()})}
 // Rechte Seitenleiste (nur Computer): alle Kevin-Orte, Klick springt hin
 function renderKevinRail(){
   var nav=$('#kevin-rail');if(!nav)return;
@@ -1467,8 +1471,9 @@ document.addEventListener('click',function(e){
   var b=e.target.closest&&e.target.closest('[data-kevin]');if(!b)return;
   var k=KEVIN[+b.dataset.kevin];if(!k||!map)return;
   if(state.editing)return;
+  closeKevinTips();kevinFlying=true;
   map.flyTo([k.lat,k.lng],k.zoom||12,{duration:1.6});
-  map.once('moveend',function(){if(k.marker)k.marker.openTooltip()});
+  map.once('moveend',function(){kevinFlying=false;if(k.marker)k.marker.openTooltip()});
 });
 var groups={},hoverTip=null,tipTimer=null;
 var canHover=window.matchMedia&&matchMedia('(hover: hover)').matches;
