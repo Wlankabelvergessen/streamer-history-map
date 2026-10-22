@@ -910,6 +910,7 @@ body.doc .app>.map-wrap{visibility:hidden}
 .kevin:hover img{transform:scale(1.12) rotate(-6deg)}
 .kevin span{font:600 9.5px var(--f-mono);letter-spacing:.04em;color:#ffe2b8;background:#2a1a10e6;border:1px solid #c98b4a;border-radius:6px;padding:1px 6px;white-space:nowrap}
 .kevin.lost span{color:#fff;background:#7d2a63ee;border-color:var(--accent)}
+.kevin.seen span{color:#fff;background:#7d2a63b3;border-color:#f5a9d699}
 .kevin.origin span{color:#fff;background:#3a2a42ee;border-color:#b7a3bc}
 .leaflet-tooltip.kevin-tip{background:var(--panel);color:var(--fg);border:1px solid #c98b4a;border-radius:10px;padding:10px 12px;width:230px;white-space:normal;box-shadow:0 10px 30px #000a}
 .leaflet-tooltip.kevin-tip::before{display:none}
@@ -926,7 +927,7 @@ body.editing .kevin-pane{display:none}
 .kevin-rail b{font:600 9px/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:#ffe2b8;text-align:center;margin-bottom:4px;background:#1c0f21d9;border:1px solid #c98b4a66;border-radius:6px;padding:3px 5px}
 .kevin-rail button{all:unset;box-sizing:border-box;width:62px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 2px;border-radius:10px;cursor:pointer;background:#1c0f21b3;border:1px solid #c98b4a66;transition:transform .15s,background .15s}
 .kevin-rail button:hover,.kevin-rail button:focus-visible{background:#2a1a10ee;border-color:#e7b07a;transform:scale(1.06)}
-.kevin-rail button img{width:40px;height:auto;filter:drop-shadow(0 2px 3px #000a)}
+.kevin-rail button img{width:36px;height:auto;filter:drop-shadow(0 2px 3px #000a)}
 .kevin-rail button span{font:600 8.5px var(--f-mono);color:#ffe2b8;letter-spacing:.02em;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .kevin-rail button.lost{border-color:#f5a9d699}
 .kevin-rail button.lost span{color:var(--accent)}
@@ -1433,6 +1434,9 @@ var KEVIN=[
   {lost:true,short:'Las Vegas',lat:36.1147,lng:-115.1728,name:'Las Vegas, Strip',en:'Las Vegas, the Strip',
    de:'Neueste Spur: Kevin wurde beim „Frühstück“ am Spielautomaten gesichtet – entführt von Wahnwitzig.',
    e2:'Latest lead: Kevin was spotted having “breakfast” at a slot machine – kidnapped by Wahnwitzig.'},
+  {seen:true,short:'Brasilien',sen:'Brazil',lat:-22.9711,lng:-43.1822,name:'Brasilien, Rio de Janeiro',en:'Brazil, Rio de Janeiro',
+   de:'Vor Las Vegas gesichtet: Kevin hatte sich im Handgepäck von Yunie versteckt und ist so bis an die Copacabana gekommen.',
+   e2:'Spotted before Las Vegas: Kevin had hidden in Yunie’s hand luggage and made it all the way to Copacabana.'},
   {origin:true,short:'Polaris',lat:53.5617,lng:9.9787,name:'Polaris, Hamburg Messe',en:'Polaris, Hamburg trade fair',
    de:'Hier ging Kevin verloren. Seitdem taucht das flauschigste Croissant des Kanals nur noch auf Fotos auf.',
    e2:'This is where Kevin got lost. Since then, the fluffiest croissant on the channel only turns up in photos.'},
@@ -1452,9 +1456,9 @@ var KEVIN=[
 function drawKevin(){
   map.createPane('kevin');var kp=map.getPane('kevin');kp.style.zIndex=590;kp.classList.add('kevin-pane');
   KEVIN.forEach(function(k){
-    var lab=k.lost?T('zuletzt gesehen','last seen'):k.origin?T('hier verloren','lost here'):T('vermuteter Aufenthaltsort','suspected whereabouts');
+    var lab=k.lost?T('zuletzt gesehen','last seen'):k.seen?T('gesichtet','spotted'):k.origin?T('hier verloren','lost here'):T('vermuteter Aufenthaltsort','suspected whereabouts');
     var m=L.marker([k.lat,k.lng],{pane:'kevin',keyboard:false,riseOnHover:true,
-      icon:L.divIcon({className:'',html:'<div class="kevin'+(k.lost?' lost':'')+(k.origin?' origin':'')+'"><img src="kevin.png" alt="Kevin"><span>'+esc(lab)+'</span></div>',iconSize:[150,74],iconAnchor:[75,80]})}).addTo(map);
+      icon:L.divIcon({className:'',html:'<div class="kevin'+(k.lost?' lost':'')+(k.seen?' seen':'')+(k.origin?' origin':'')+'"><img src="kevin.png" alt="Kevin"><span>'+esc(lab)+'</span></div>',iconSize:[150,74],iconAnchor:[75,80]})}).addTo(map);
     m.bindTooltip('<img src="kevin.png" alt=""><small>Kevin · '+esc(lab)+'</small><b>'+esc(LANG==='en'?k.en:k.name)+'</b><p>'+esc(LANG==='en'?k.e2:k.de)+'</p>',{direction:'top',offset:[0,-76],className:'kevin-tip',opacity:1});
     m.on('click',function(){closeKevinTips(m);m.openTooltip()});
     m.on('tooltipopen',function(){closeKevinTips(m)});
