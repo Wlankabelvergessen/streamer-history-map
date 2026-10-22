@@ -933,7 +933,12 @@ body.editing .kevin-pane{display:none}
 .kevin-rail button.lost span{color:var(--accent)}
 body.editing .kevin-rail{visibility:hidden}
 .castle{position:relative;width:76px;height:80px;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;filter:drop-shadow(0 4px 8px #000b) drop-shadow(0 0 10px #f5a9d655);transition:transform .2s}
+.castle{transform-origin:38px 60px}
 .castle:hover{transform:scale(1.08)}
+#map.z-mid .castle{transform:scale(.72)}
+#map.z-far .castle{transform:scale(.5)}
+#map.z-mid .castle:hover{transform:scale(.8)}
+#map.z-far .castle:hover{transform:scale(.56)}
 .castle img{width:76px;height:auto;display:block}
 .castle b{position:absolute;right:-4px;bottom:2px;min-width:24px;height:24px;padding:0 5px;box-sizing:border-box;display:grid;place-items:center;border-radius:999px;background:radial-gradient(circle at 35% 30%,#ffd3ec,var(--accent) 55%,var(--pink-deep));color:var(--accent-ink);font:700 11px var(--f-mono);border:2px solid #fff}
 .tag.home{color:#ffe2b8;border-color:#c98b4a99}
@@ -1481,7 +1486,7 @@ function drawKevin(){
     k.marker=m;
   });
   renderKevinRail();
-  var z=function(){kp.classList.toggle('far',map.getZoom()<5)};map.on('zoomend',z);z();
+  var z=function(){var zz=map.getZoom(),c=map.getContainer().classList;kp.classList.toggle('far',zz<5);c.toggle('z-far',zz<5);c.toggle('z-mid',zz>=5&&zz<8)};map.on('zoomend',z);z();
   map.on('zoomstart click',function(){if(!kevinFlying)closeKevinTips()});
 }
 var kevinFlying=false;
