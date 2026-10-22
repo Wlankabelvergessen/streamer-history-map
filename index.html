@@ -904,6 +904,22 @@ body.doc .app>.map-wrap{visibility:hidden}
   .foot-in a[href*="twitch.tv/naschiitaschii"]:not(#f-imp){grid-column:1/-1}
   .foot-in #f-src{grid-column:1/-1;font-size:10px;opacity:.85}
 }
+/* Kevin, das verlorene Croissant */
+.kevin{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;filter:drop-shadow(0 3px 5px #000a)}
+.kevin img{width:54px;height:auto;display:block;transition:transform .2s}
+.kevin:hover img{transform:scale(1.12) rotate(-6deg)}
+.kevin span{font:600 9.5px var(--f-mono);letter-spacing:.04em;color:#ffe2b8;background:#2a1a10e6;border:1px solid #c98b4a;border-radius:6px;padding:1px 6px;white-space:nowrap}
+.kevin.lost span{color:#fff;background:#7d2a63ee;border-color:var(--accent)}
+.leaflet-tooltip.kevin-tip{background:var(--panel);color:var(--fg);border:1px solid #c98b4a;border-radius:10px;padding:10px 12px;width:230px;white-space:normal;box-shadow:0 10px 30px #000a}
+.leaflet-tooltip.kevin-tip::before{display:none}
+.kevin-tip img{float:right;width:62px;margin:0 0 4px 8px}
+.kevin-tip small{display:block;font:600 9.5px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:#e7b07a}
+.kevin-tip b{display:block;font:700 16px/1.15 var(--f-head,'Barlow Condensed'),sans-serif;margin:2px 0 4px}
+.kevin-tip p{margin:0;font-size:12.5px;line-height:1.4;color:#e6d6e6}
+body.editing .kevin-pane{display:none}
+.kevin-pane.far .kevin span{display:none}
+.kevin-pane.far .kevin img{width:34px}
+.kevin-pane.far .kevin{transform:translateY(22px)}
 /* App-Raster */
 .app{flex:1;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(320px,400px) minmax(0,1fr);grid-template-areas:"panel map"}
 .panel{grid-area:panel;min-height:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-y:auto;overflow-x:hidden}
@@ -1393,9 +1409,39 @@ function initMap(){
   var CITY_EN={'Köln':'Cologne','München':'Munich','Venedig':'Venice','Brüssel':'Brussels','Wien':'Vienna','Zürich':'Zurich','Mailand':'Milan','Prag':'Prague','Hannover':'Hanover'};
   CITIES.forEach(function(c){L.marker([c[1],c[2]],{pane:'base',interactive:false,keyboard:false,icon:L.divIcon({className:'city',html:'<i></i><span>'+esc(LANG==='en'&&CITY_EN[c[0]]||c[0])+'</span>',iconSize:[0,0]})}).addTo(map)});
   selGroup=L.layerGroup().addTo(map);
+  drawKevin();
   map.setView([53.55,9.99],12);
   map.on('click',function(e){if(!state.drawing)return;state.draft.points.push([+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)]);updateDraft()});
   if(window.ResizeObserver){new ResizeObserver(function(){map.invalidateSize()}).observe($('#map'))}
+}
+/* ---------- Kevin, das Croissant: vermutete Aufenthaltsorte ---------- */
+var KEVIN=[
+  {lost:true,lat:53.5617,lng:9.9787,name:'Polaris, Hamburg Messe',en:'Polaris, Hamburg trade fair',
+   de:'Hier wurde Kevin zuletzt gesehen. Seitdem fehlt jede Spur vom flauschigsten Croissant des Kanals.',
+   e2:'This is where Kevin was last seen. Since then, the fluffiest croissant on the channel has vanished without a trace.'},
+  {lat:38.9067,lng:1.4206,name:'Ibiza',en:'Ibiza',
+   de:'Liegt angeblich am Strand und lässt sich die Kruste goldbraun bräunen.',e2:'Allegedly lying on the beach, getting his crust golden brown.'},
+  {lat:40.758,lng:-73.9855,name:'New York, Times Square',en:'New York, Times Square',
+   de:'Soll mit ein paar Bagels um die Häuser ziehen.',e2:'Rumoured to be hanging out with a few bagels.'},
+  {lat:48.8584,lng:2.2945,name:'Paris, Eiffelturm',en:'Paris, Eiffel Tower',
+   de:'Besucht die Verwandtschaft in der Boulangerie um die Ecke.',e2:'Visiting relatives at the boulangerie around the corner.'},
+  {lat:48.2085,lng:16.3721,name:'Wien',en:'Vienna',
+   de:'Auf Ahnensuche: Das Wiener Kipferl gilt als Urgroßvater aller Croissants.',e2:'Tracing his roots: the Viennese Kipferl is said to be the great-grandfather of all croissants.'},
+  {lat:35.6595,lng:139.7005,name:'Tokio, Shibuya',en:'Tokyo, Shibuya',
+   de:'Nach dem Japanviertel-Stream in Düsseldorf hat ihn das Fernweh gepackt.',e2:'After the Japanese-quarter stream in Düsseldorf, wanderlust got the better of him.'},
+  {lat:84,lng:10,name:'Nordpol',en:'North Pole',
+   de:'Polaris ist der Polarstern – vielleicht ist er ihm einfach gefolgt.',e2:'Polaris is the North Star – maybe he simply followed it.'}
+];
+function drawKevin(){
+  map.createPane('kevin');var kp=map.getPane('kevin');kp.style.zIndex=590;kp.classList.add('kevin-pane');
+  KEVIN.forEach(function(k){
+    var lab=k.lost?T('zuletzt gesehen','last seen'):T('vermuteter Aufenthaltsort','suspected whereabouts');
+    var m=L.marker([k.lat,k.lng],{pane:'kevin',keyboard:false,riseOnHover:true,
+      icon:L.divIcon({className:'',html:'<div class="kevin'+(k.lost?' lost':'')+'"><img src="kevin.png" alt="Kevin"><span>'+esc(lab)+'</span></div>',iconSize:[150,74],iconAnchor:[75,80]})}).addTo(map);
+    m.bindTooltip('<img src="kevin.png" alt=""><small>'+(k.lost?T('Kevin · zuletzt gesehen','Kevin · last seen'):T('Kevin · vermuteter Aufenthaltsort','Kevin · suspected whereabouts'))+'</small><b>'+esc(LANG==='en'?k.en:k.name)+'</b><p>'+esc(LANG==='en'?k.e2:k.de)+'</p>',{direction:'top',offset:[0,-76],className:'kevin-tip',opacity:1});
+    m.on('click',function(){m.openTooltip()});
+  });
+  var z=function(){kp.classList.toggle('far',map.getZoom()<5)};map.on('zoomend',z);z();
 }
 var groups={},hoverTip=null,tipTimer=null;
 var canHover=window.matchMedia&&matchMedia('(hover: hover)').matches;
