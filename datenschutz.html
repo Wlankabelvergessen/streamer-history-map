@@ -94,12 +94,12 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
 <p>Die Seite zeigt öffentlich verfügbare Daten des Kanals naschiitaschii, die über die offizielle Twitch-Schnittstelle abgerufen werden: Streams ab 01.01.2025 (Titel, Datum, Dauer, Kategorie) sowie Clips mit Titel, Aufrufen, Vorschaubild und dem öffentlichen Twitch-Namen der Person, die den Clip erstellt hat. Auf Twitch gelöschte Clips werden automatisch auch hier entfernt. Zuschauer- und Followerzahlen werden nicht erfasst. Wer nicht als Clip-Ersteller genannt werden möchte, kann sich über das Impressum melden.</p>
 
 <h2>5. Anmeldung mit Twitch (nur für Bearbeiter)</h2>
-<p>Kanalbetreiberin, Mods und Berechtigte können sich mit Twitch anmelden, um Routen zu zeichnen oder ein Update anzustoßen. Für normale Besucher ist keine Anmeldung nötig.</p>
+<p>Kanalbetreiberin, Mods und Berechtigte können sich mit Twitch anmelden, um Routen zu zeichnen, ein Update anzustoßen oder die Seite vorübergehend offline zu nehmen. Für normale Besucher ist keine Anmeldung nötig.</p>
 <ul>
 <li>Die Anmeldung läuft direkt über Twitch. Die Seite erhält einen Zugangsschlüssel (Token), deinen Twitch-Namen, deine Twitch-ID und dein Profilbild.</li>
 <li>Mit der Berechtigung <code>user:read:moderated_channels</code> prüft die Seite, ob du Mod bei naschiitaschii bist. Weitere Rechte werden nicht angefragt; die Seite kann nichts in deinem Namen posten oder ändern.</li>
 <li>Token und Name werden nur in deinem Browser gespeichert (siehe Punkt 7). Abmelden löscht sie.</li>
-<li>Beim Speichern einer Route oder beim Update-Knopf wird der Token an einen Prüfdienst bei Google Apps Script (Google LLC, USA; <a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener noreferrer">Datenschutz</a>) geschickt. Dieser fragt bei Twitch nach, wer du bist und ob du bearbeiten darfst, und stößt dann das Speichern an. Der Token wird dort nicht gespeichert.</li>
+<li>Beim Speichern einer Route, beim Update-Knopf oder beim Offline/Online-Schalten wird der Token an einen Prüfdienst bei Google Apps Script (Google LLC, USA; <a href="https://policies.google.com/privacy?hl=de" target="_blank" rel="noopener noreferrer">Datenschutz</a>) geschickt. Dieser fragt bei Twitch nach, wer du bist und ob du bearbeiten darfst, und stößt dann das Speichern an. Der Token wird dort nicht gespeichert.</li>
 <li>Wer eine Route gespeichert hat, wird <b>nicht</b> in den öffentlichen Daten der Seite abgelegt. Der Twitch-Name erscheint nur im nicht öffentlichen Protokoll des Prüfdienstes, damit Missbrauch nachvollzogen werden kann.</li>
 </ul>
 <p>Rechtsgrundlage ist deine Einwilligung durch die Anmeldung bzw. die Durchführung der von dir gewünschten Bearbeitung (Art. 6 Abs. 1 lit. a und b DSGVO).</p>
