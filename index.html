@@ -920,6 +920,16 @@ body.editing .kevin-pane{display:none}
 .kevin-pane.far .kevin span{display:none}
 .kevin-pane.far .kevin img{width:34px}
 .kevin-pane.far .kevin{transform:translateY(22px)}
+.kevin-rail{position:relative;z-index:3;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px 0;overflow-y:auto;scrollbar-width:none}
+.kevin-rail::-webkit-scrollbar{display:none}
+.kevin-rail b{font:600 9px/1.2 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:#ffe2b8;text-align:center;margin-bottom:4px;background:#1c0f21d9;border:1px solid #c98b4a66;border-radius:6px;padding:3px 5px}
+.kevin-rail button{all:unset;box-sizing:border-box;width:62px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 2px;border-radius:10px;cursor:pointer;background:#1c0f21b3;border:1px solid #c98b4a66;transition:transform .15s,background .15s}
+.kevin-rail button:hover,.kevin-rail button:focus-visible{background:#2a1a10ee;border-color:#e7b07a;transform:scale(1.06)}
+.kevin-rail button img{width:40px;height:auto;filter:drop-shadow(0 2px 3px #000a)}
+.kevin-rail button span{font:600 8.5px var(--f-mono);color:#ffe2b8;letter-spacing:.02em;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kevin-rail button.lost{border-color:#f5a9d699}
+.kevin-rail button.lost span{color:var(--accent)}
+body.editing .kevin-rail{visibility:hidden}
 /* App-Raster */
 .app{flex:1;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(320px,400px) minmax(0,1fr);grid-template-areas:"panel map"}
 .panel{grid-area:panel;min-height:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-y:auto;overflow-x:hidden}
@@ -1271,7 +1281,7 @@ body.editing .grp-wrap{pointer-events:none}
     <iframe id="doc-frame" title="Anleitung" loading="lazy"></iframe>
   </section>
 </main>
-<aside class="frame rail" aria-hidden="true"><div class="collage"></div><div class="veil"></div><div class="stars"></div><div class="clouds"></div></aside>
+<aside class="frame rail"><div class="collage" aria-hidden="true"></div><div class="veil" aria-hidden="true"></div><div class="stars" aria-hidden="true"></div><div class="clouds" aria-hidden="true"></div><nav class="kevin-rail" id="kevin-rail" aria-label="Wo ist Kevin?"></nav></aside>
 <footer class="frame foot">
   <div class="collage" aria-hidden="true"></div>
   <div class="veil" aria-hidden="true"></div>
@@ -1416,20 +1426,20 @@ function initMap(){
 }
 /* ---------- Kevin, das Croissant: vermutete Aufenthaltsorte ---------- */
 var KEVIN=[
-  {lost:true,lat:53.5617,lng:9.9787,name:'Polaris, Hamburg Messe',en:'Polaris, Hamburg trade fair',
+  {lost:true,short:'Polaris',lat:53.5617,lng:9.9787,name:'Polaris, Hamburg Messe',en:'Polaris, Hamburg trade fair',
    de:'Hier wurde Kevin zuletzt gesehen. Seitdem fehlt jede Spur vom flauschigsten Croissant des Kanals.',
    e2:'This is where Kevin was last seen. Since then, the fluffiest croissant on the channel has vanished without a trace.'},
-  {lat:38.9067,lng:1.4206,name:'Ibiza',en:'Ibiza',
+  {short:'Ibiza',lat:38.9067,lng:1.4206,name:'Ibiza',en:'Ibiza',
    de:'Liegt angeblich am Strand und lässt sich die Kruste goldbraun bräunen.',e2:'Allegedly lying on the beach, getting his crust golden brown.'},
-  {lat:40.758,lng:-73.9855,name:'New York, Times Square',en:'New York, Times Square',
+  {short:'New York',lat:40.758,lng:-73.9855,name:'New York, Times Square',en:'New York, Times Square',
    de:'Soll mit ein paar Bagels um die Häuser ziehen.',e2:'Rumoured to be hanging out with a few bagels.'},
-  {lat:48.8584,lng:2.2945,name:'Paris, Eiffelturm',en:'Paris, Eiffel Tower',
+  {short:'Paris',lat:48.8584,lng:2.2945,name:'Paris, Eiffelturm',en:'Paris, Eiffel Tower',
    de:'Besucht die Verwandtschaft in der Boulangerie um die Ecke.',e2:'Visiting relatives at the boulangerie around the corner.'},
-  {lat:48.2085,lng:16.3721,name:'Wien',en:'Vienna',
+  {short:'Wien',sen:'Vienna',lat:48.2085,lng:16.3721,name:'Wien',en:'Vienna',
    de:'Auf Ahnensuche: Das Wiener Kipferl gilt als Urgroßvater aller Croissants.',e2:'Tracing his roots: the Viennese Kipferl is said to be the great-grandfather of all croissants.'},
-  {lat:35.6595,lng:139.7005,name:'Tokio, Shibuya',en:'Tokyo, Shibuya',
+  {short:'Tokio',sen:'Tokyo',lat:35.6595,lng:139.7005,name:'Tokio, Shibuya',en:'Tokyo, Shibuya',
    de:'Nach dem Japanviertel-Stream in Düsseldorf hat ihn das Fernweh gepackt.',e2:'After the Japanese-quarter stream in Düsseldorf, wanderlust got the better of him.'},
-  {lat:84,lng:10,name:'Nordpol',en:'North Pole',
+  {short:'Nordpol',sen:'North Pole',zoom:3,lat:84,lng:10,name:'Nordpol',en:'North Pole',
    de:'Polaris ist der Polarstern – vielleicht ist er ihm einfach gefolgt.',e2:'Polaris is the North Star – maybe he simply followed it.'}
 ];
 function drawKevin(){
@@ -1440,9 +1450,26 @@ function drawKevin(){
       icon:L.divIcon({className:'',html:'<div class="kevin'+(k.lost?' lost':'')+'"><img src="kevin.png" alt="Kevin"><span>'+esc(lab)+'</span></div>',iconSize:[150,74],iconAnchor:[75,80]})}).addTo(map);
     m.bindTooltip('<img src="kevin.png" alt=""><small>'+(k.lost?T('Kevin · zuletzt gesehen','Kevin · last seen'):T('Kevin · vermuteter Aufenthaltsort','Kevin · suspected whereabouts'))+'</small><b>'+esc(LANG==='en'?k.en:k.name)+'</b><p>'+esc(LANG==='en'?k.e2:k.de)+'</p>',{direction:'top',offset:[0,-76],className:'kevin-tip',opacity:1});
     m.on('click',function(){m.openTooltip()});
+    k.marker=m;
   });
+  renderKevinRail();
   var z=function(){kp.classList.toggle('far',map.getZoom()<5)};map.on('zoomend',z);z();
 }
+// Rechte Seitenleiste (nur Computer): alle Kevin-Orte, Klick springt hin
+function renderKevinRail(){
+  var nav=$('#kevin-rail');if(!nav)return;
+  nav.setAttribute('aria-label',T('Wo ist Kevin?','Where is Kevin?'));
+  nav.innerHTML='<b>'+T('Wo ist<br>Kevin?','Where is<br>Kevin?')+'</b>'+KEVIN.map(function(k,i){
+    return '<button type="button" data-kevin="'+i+'"'+(k.lost?' class="lost"':'')+' title="'+esc(LANG==='en'?k.en:k.name)+'"><img src="kevin.png" alt=""><span>'+esc(LANG==='en'?(k.sen||k.short):k.short)+'</span></button>';
+  }).join('');
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-kevin]');if(!b)return;
+  var k=KEVIN[+b.dataset.kevin];if(!k||!map)return;
+  if(state.editing)return;
+  map.flyTo([k.lat,k.lng],k.zoom||12,{duration:1.6});
+  map.once('moveend',function(){if(k.marker)k.marker.openTooltip()});
+});
 var groups={},hoverTip=null,tipTimer=null;
 var canHover=window.matchMedia&&matchMedia('(hover: hover)').matches;
 function groupList(){
