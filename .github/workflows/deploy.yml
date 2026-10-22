@@ -1,0 +1,37 @@
+name: Seite veröffentlichen
+
+# Veröffentlicht die Seite über GitHub Pages (Quelle: „GitHub Actions“).
+# Läuft bei eigenen Änderungen (Push auf main), von Hand oder angehängt an
+# „Streams und Clips aktualisieren“ und „Route speichern“ – deren Bot-Pushes
+# starten aus Sicherheitsgründen keinen weiteren Ablauf von selbst.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Immer nur eine Veröffentlichung gleichzeitig; die nächste wartet und bringt den neuesten Stand
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deploy
+        uses: actions/deploy-pages@v4
