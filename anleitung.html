@@ -300,7 +300,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <li>Datum und Startzeit, Kennzeichen <span class="ui-tag r">ROUTE</span>, <span class="ui-tag">ORT UNGEFÄHR</span> oder <span class="ui-live">● LIVE</span></li>
       <li>Dauer, Ort und Anzahl Clips</li>
       <li>Rechts die <b>Kategorie mit Twitch-Coverbild</b> und das Vorschaubild des Top-Clips</li>
-      <li>Oben in der Liste: <b>„Heute vor einem Jahr“</b> – der Stream von genau diesem Tag</li>
+      <li>Oben in der Liste: <b>„Heute vor einem Jahr“</b> – links der Stream, rechts der beste Clip von diesem Tag</li>
       <li>Weit runtergescrollt? <span class="ui-btn p">↑ Nach oben</span> unten rechts springt an den Anfang der Liste</li>
     </ul>
   </div>
@@ -354,7 +354,22 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     <p style="margin-top:10px">Jedes Jahr als Raster: Monate untereinander, Tage nebeneinander. Je länger gestreamt, desto kräftiger das Rosa; heute ist umrandet. Klick auf einen Tag öffnet den Stream – bei mehreren Streams zeigt die Liste alle dieses Tages. Suche und Filter wirken mit – Kategorie <i>IRL</i> zeigt z. B. nur IRL-Tage. Nochmal auf <span class="ui-btn">📅 Kalender</span> klicken = zurück zur Liste.</p></div>
   <div class="grid2" style="margin-top:14px">
     <div class="card"><h3>✨ Heute vor einem Jahr</h3>
-      <div style="border:1px solid #f5a9d655;border-radius:8px;background:#f5a9d60f;padding:8px 12px;margin:4px 0 8px"><span class="mono" style="font-size:10px;color:var(--accent);letter-spacing:.08em">VOR EINEM JAHR UM DIESE ZEIT</span><div style="font:700 17px 'Barlow Condensed'">😵‍💫 STRESS UND KRIESE 😵‍💫</div></div>
+      <div style="border:1px solid #f5a9d655;border-radius:10px;background:#f5a9d60f;padding:10px;margin:4px 0 10px">
+        <div class="mono" style="font-size:10px;color:var(--accent);letter-spacing:.08em;margin:0 2px 8px">HEUTE VOR EINEM JAHR</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#0003">
+            <div class="mono" style="font-size:9px;color:var(--muted);letter-spacing:.08em">STREAM</div>
+            <div style="font:700 16px/1.15 'Barlow Condensed';margin:4px 0">LUFT IST RAUS. Was tun?!</div>
+            <div class="mono" style="font-size:11px;color:var(--muted)">Mi., 22. Oktober 2025<br>7 Std. 48 Min.</div>
+          </div>
+          <div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#0003">
+            <div class="mono" style="font-size:9px;color:var(--muted);letter-spacing:.08em">BESTER CLIP · 22.10.25</div>
+            <div style="position:relative;aspect-ratio:16/9;border-radius:6px;margin:6px 0;background:linear-gradient(135deg,#7b3fa0,#e86fae 55%,#ffd27a)"><span style="position:absolute;inset:0;display:grid;place-items:center;font-size:18px;color:#fff;text-shadow:0 1px 4px #0008">▶</span></div>
+            <div style="font-size:13px">der experte</div>
+            <div class="mono" style="font-size:11px;color:var(--muted)">237 Aufrufe</div>
+          </div>
+        </div>
+      </div>
       <p>Oben in der Liste, zweigeteilt: links der <b>Stream</b> von genau heute vor 1–4 Jahren (sonst einer aus ±3 Tagen) – Klick öffnet ihn; rechts der <b>beste Clip</b> von diesem Tag – Klick spielt ihn direkt ab. Beim Suchen oder Filtern ist die Box ausgeblendet.</p></div>
     <div class="card"><h3>🎲 Zufälliger Clip</h3>
       <p><span class="ui-btn">🎲 Zufälliger Clip</span> spielt einen von über 3.300 Clips und springt zum passenden Stream. <span class="ui-btn">🎲 Noch einer</span> im Player holt den nächsten – perfekt zum Stöbern.</p></div>
