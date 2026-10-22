@@ -1067,12 +1067,6 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
 
 /* Formular */
-.form{display:flex;flex-direction:column;gap:12px}
-.form h2{font:700 30px/1 var(--f-display);letter-spacing:.02em}
-.row2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.src{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:8px}
-.src p{color:var(--muted);font-size:13px}
-.err{color:var(--danger);min-height:1em;font-size:13px}
 .note{color:var(--muted);font-size:12px}
 
 /* Karte */
@@ -1080,7 +1074,6 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .city i{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .city span{position:absolute;left:6px;top:-9px;white-space:nowrap;font:500 11px var(--f-mono);color:var(--muted);letter-spacing:.04em}
 .leaflet-container{background:var(--map-bg);font-family:var(--f-body);}
-.leaflet-container.drawing{cursor:crosshair}
 .leaflet-bar a,.leaflet-bar a:hover{background:var(--panel);color:var(--fg);border-color:var(--line)}
 .leaflet-control-attribution{background:rgba(12,16,20,.75)!important;color:var(--muted)!important}
 .leaflet-control-attribution a{color:var(--muted)!important}
@@ -1091,8 +1084,6 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .pin-stop{background:var(--accent);color:var(--accent-ink)}
 .pin-start{background:#36d1b5;color:#041a16}
 .pin-end{background:#fff;color:#111;border-radius:3px}
-.drawbar{position:absolute;left:50%;transform:translateX(-50%);bottom:34px;z-index:500;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 24px);padding:8px 10px;background:var(--panel);border:1px solid var(--accent);border-radius:8px}
-.drawbar span{font:500 12px var(--f-mono)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:8px 14px;z-index:2000;font-size:13px}
 /* ---------- Routen: Ansicht ---------- */
 .rclip{display:grid;place-items:center;width:30px;height:30px;box-sizing:border-box;border-radius:9px;background:#1c0f21;border:2.5px solid var(--accent);color:#fff;font-size:12px;box-shadow:0 3px 10px #000a;cursor:pointer;transition:transform .12s}
@@ -1300,11 +1291,6 @@ body.editing .grp-wrap{pointer-events:none}
 <main class="app">
   <section class="map-wrap" aria-label="Karte">
     <div id="map"></div>
-    <div class="drawbar" id="drawbar" hidden>
-      <span id="drawinfo">0 Punkte</span>
-      <button class="btn" type="button" id="draw-undo">Rückgängig</button>
-      <button class="btn primary" type="button" id="draw-done">Fertig</button>
-    </div>
   </section>
 
   <div class="grip" id="grip" role="separator" aria-orientation="horizontal" aria-label="Karte und Liste verschieben" title="Ziehen: Liste hoch oder runter · Tippen: Karte ein-/ausblenden" tabindex="0"><i></i></div>
@@ -1320,26 +1306,6 @@ body.editing .grp-wrap{pointer-events:none}
     </div>
     <div id="v-detail" class="pad detail" hidden></div>
     <div id="v-route" class="pad ed" hidden></div>
-    <form id="v-form" class="pad form" hidden novalidate>
-      <h2 id="f-head">Neuer Stream</h2>
-      <div><label for="f-title">Titel</label><input type="text" id="f-title" maxlength="80" placeholder="z. B. Hamburg Nachttour"></div>
-      <div class="row2">
-        <div><label for="f-date">Datum</label><input type="date" id="f-date"></div>
-        <div><label for="f-start">Start</label><input type="time" id="f-start"></div>
-        <div><label for="f-dur">Dauer (Min.)</label><input type="number" id="f-dur" min="1" max="1440" placeholder="180"></div>
-      </div>
-      <div><label for="f-desc">Was wurde gemacht?</label><textarea id="f-desc" maxlength="1500" placeholder="Kurze Zusammenfassung des Streams"></textarea></div>
-      <div class="src" hidden>
-        <label for="f-gpx" style="margin:0">Route</label>
-        <input type="file" id="f-gpx" accept=".gpx,application/gpx+xml">
-        <p>GPX hochladen (Datum, Start und Dauer werden daraus übernommen) oder die Route auf der Karte zeichnen.</p>
-        <div><button class="btn" type="button" id="btn-draw">Auf Karte zeichnen</button></div>
-        <p class="mono" id="route-status">Noch keine Route.</p>
-      </div>
-      <div><label for="f-clips">Clips (eine Zeile je Clip)</label><textarea id="f-clips" placeholder="Titel | https://clips.twitch.tv/…&#10;https://www.twitch.tv/…"></textarea></div>
-      <p class="err" id="f-err" role="alert"></p>
-      <div class="actions" style="margin:0"><button class="btn primary" type="submit">Speichern</button><button class="btn ghost" type="button" id="f-cancel">Abbrechen</button></div>
-    </form>
   </aside>
   <button type="button" class="totop" id="totop" hidden aria-label="Nach oben zum Anfang der Liste" title="Nach oben">↑ <span>Nach oben</span></button>
   <section class="docview" id="docview" hidden aria-labelledby="doc-title">
@@ -1426,21 +1392,15 @@ function fmtDur(m){var h=Math.floor(m/60),r=m%60;return (h?h+T(' Std. ',' h '):'
 function fmtDate(iso){var d=new Date(iso+'T12:00:00');if(isNaN(d))return iso;return d.toLocaleDateString(LOC,{weekday:'short',day:'2-digit',month:'long',year:'numeric'})}
 function addMin(t,m){var a=(t||'00:00').split(':');var x=(parseInt(a[0],10)*60+parseInt(a[1],10)+m)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')}
 function pad2(n){return String(n).padStart(2,'0')}
-function today(){var d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
 var toastTimer;
 function toast(msg){var t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.hidden=true},2600)}
 
 /* ---------- Zustand ---------- */
-var state={ routes:[], selectedId:null, user:null, draft:{points:[],meta:null}, drawing:false, editing:false, query:'' };
+var state={ routes:[], selectedId:null, user:null, editing:false, query:'' };
 state.clipSort=store('shm.clipSort')==='time'?'time':'top';
-var map, lines={}, selGroup, draftLine;
+var map, lines={}, selGroup;
 
 function prep(r,i){r.km=dist(r.points,r.breaks);r.color=r.color||PALETTE[i%PALETTE.length];return r}
-function ownKey(){return 'shm.routes.'+state.user.login}
-function loadOwn(){if(!state.user)return[];try{return JSON.parse(store(ownKey())||'[]')}catch(e){return[]}}
-function saveOwn(){if(!state.user)return;var own=state.routes.filter(function(r){return r.owner===state.user.login});store(ownKey(),JSON.stringify(own.map(function(r){var c=Object.assign({},r);delete c.km;return c})))}
-function loadEdits(){try{return JSON.parse(store('shm.edits')||'{}')||{}}catch(e){return{}}}
-function saveEdit(id,patch){var ed=loadEdits();ed[id]=Object.assign(ed[id]||{},patch);store('shm.edits',JSON.stringify(ed))}
 function hasRoute(r){return r.points&&r.points.length>1}
 /* Gezeichnete Routen liegen getrennt in data/routes.json; frisch gespeicherte bis zum nächsten Laden im Browser */
 var ROUTES={},CATS={};
@@ -1453,14 +1413,13 @@ function routeFor(id){
 function cleanPending(){var p=loadPending(),ch=false;Object.keys(p).forEach(function(id){var s=ROUTES[id];if(s&&s.at&&s.at>=p[id].at){delete p[id];ch=true}});if(ch)store('shm.pending',JSON.stringify(p))}
 function slugOf(u){var m=String(u||'').match(/\/clip\/([\w-]+)|clips\.twitch\.tv\/([\w-]+)/);return m?(m[1]||m[2]):null}
 function buildRoutes(){
-  var ed=loadEdits();
   var all=SAMPLE.map(function(r){
-    var x=Object.assign({},r,ed[r.id]||{}),rt=routeFor(r.id);
+    var x=Object.assign({},r),rt=routeFor(r.id);
     x.points=rt&&rt.points||[];x.breaks=rt&&rt.breaks||[];x.stops=rt&&rt.stops||[];x.clipPos=rt&&rt.clips||{};
     x._autoLoc=x.location||null;x._autoDesc=x.desc||'';
     applyExtra(x,rt);
     return x;
-  }).concat(loadOwn());
+  });
   all.sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0});
   state.routes=all.map(prep);
 }
@@ -1499,7 +1458,6 @@ function initMap(){
   selGroup=L.layerGroup().addTo(map);
   drawKevin();
   map.setView([53.55,9.99],12);
-  map.on('click',function(e){if(!state.drawing)return;state.draft.points.push([+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)]);updateDraft()});
   // Nicht weiter herauszoomen, als die Weltkarte den Kartenbereich füllt; nicht über die Pole hinaus schieben
   map.setMaxBounds([[-85.05,-200],[85.05,200]]);map.options.maxBoundsViscosity=1;
   // etwas Luft lassen: eine halbe Stufe weiter heraus als „Welt füllt die Karte“
@@ -1582,7 +1540,7 @@ function groupHtml(g){
 }
 function hideTip(now){clearTimeout(tipTimer);var go=function(){if(hoverTip){map.removeLayer(hoverTip);hoverTip=null}};if(now)go();else tipTimer=setTimeout(go,260)}
 function showGroup(g){
-  if(state.drawing||state.editing)return;clearTimeout(tipTimer);if(hoverTip)map.removeLayer(hoverTip);
+  if(state.editing)return;clearTimeout(tipTimer);if(hoverTip)map.removeLayer(hoverTip);
   var pt=map.latLngToContainerPoint([g.lat,g.lng]),right=pt.x<map.getSize().x-340;
   hoverTip=L.tooltip({direction:right?'right':'left',interactive:true,opacity:1,offset:[right?g.size/2+2:-(g.size/2+2),0],className:'grp-tip'}).setLatLng([g.lat,g.lng]).setContent(groupHtml(g)).addTo(map);
   var el=hoverTip.getElement();L.DomEvent.disableClickPropagation(el);L.DomEvent.disableScrollPropagation(el);
@@ -1595,7 +1553,7 @@ function drawLines(){
   state.routes.forEach(function(r){
     if(!hasRoute(r))return;
     var l=L.polyline(segsOf(r.points,r.breaks),{color:'#f5a9d6',weight:3,opacity:.6,lineCap:'round',lineJoin:'round'}).addTo(map);
-    l.on('click',function(){if(!state.drawing&&!state.editing)select(r.id)});
+    l.on('click',function(){if(!state.editing)select(r.id)});
     lines[r.id]=l;
   });
   var gl=groupList();
@@ -1606,7 +1564,7 @@ function drawLines(){
       icon:home?L.divIcon({className:'grp-wrap',html:'<div class="castle"><img src="castle.png" alt=""><b>'+n+'</b></div>',iconSize:[76,80],iconAnchor:[38,60]})
                :L.divIcon({className:'grp-wrap',html:'<div class="grp" style="width:'+g.size+'px;height:'+g.size+'px">'+n+'</div>',iconSize:[g.size,g.size],iconAnchor:[g.size/2,g.size/2]})}).addTo(map);
     if(canHover){m.on('mouseover',function(){showGroup(g)});m.on('mouseout',function(){hideTip()})}
-    m.on('click',function(){if(state.drawing||state.editing)return;if(n===1){hideTip(true);select(g.items[0].id)}else showGroup(g)});
+    m.on('click',function(){if(state.editing)return;if(n===1){hideTip(true);select(g.items[0].id)}else showGroup(g)});
     m.on('keypress',function(e){if(e.originalEvent.key==='Enter')showGroup(g)});
     g.marker=m;groups[k]=g;
   });
@@ -1656,7 +1614,7 @@ var curView='list',listScroll=0;
 function showView(v){
   var pn=$('#panel');
   if(curView==='list'&&v!=='list')listScroll=pn.scrollTop;   // Position in der Liste merken
-  $('#v-list').hidden=v!=='list';$('#v-detail').hidden=v!=='detail';$('#v-form').hidden=v!=='form';$('#v-route').hidden=v!=='route';
+  $('#v-list').hidden=v!=='list';$('#v-detail').hidden=v!=='detail';$('#v-route').hidden=v!=='route';
   if(v==='list'&&curView!=='list'){
     pn.scrollTop=listScroll;
     // zuletzt angesehenen Stream sichtbar halten und kurz markieren
@@ -1845,7 +1803,6 @@ function routeTag(r){if(hasRoute(r))return '<span class="tag route">ROUTE</span>
 function renderListSelection(){var cs=document.querySelectorAll('.card');for(var i=0;i<cs.length;i++){cs[i].setAttribute('aria-pressed',cs[i].dataset.id===state.selectedId)}}
 function safeUrl(u){try{var x=new URL(u);return x.protocol==='https:'?x.href:null}catch(e){return null}}
 function renderDetail(r){
-  var own=state.user&&r.owner===state.user.login, base=!r.owner;
   var stops=(r.stops||[]).map(function(s,i){return '<li><button type="button" data-stop="'+i+'"><span class="n">'+(i+1)+'</span><span class="t">'+esc(s.time||'')+'</span><span><span class="nm">'+esc(s.name)+'</span><span class="nt">'+esc(s.note||'')+'</span></span></button></li>'}).join('');
   var CL=r.clips||[];
   var chrono=state.clipSort==='time';
@@ -1867,76 +1824,6 @@ function renderDetail(r){
     (canEdit(state.user)?'<button type="button" class="btn primary" id="redit">'+(hasRoute(r)?T('Route bearbeiten','Edit route'):T('Route zeichnen','Draw route'))+'</button>':'')+'</div>'+
     (CL.length?'<p class="note src-note">'+[CL.length?'Clips: Twitch, '+(chrono?T('vom Streamanfang bis zum Ende','from start to end of stream'):T('nach Aufrufen sortiert','sorted by views')):''].filter(Boolean).join(' · ')+'</p>':'');
 }
-/* ---------- Zeichnen & GPX ---------- */
-function updateDraft(){
-  var p=state.draft.points;
-  if(draftLine){map.removeLayer(draftLine);draftLine=null}
-  if(p.length){draftLine=L.polyline(p,{color:'#f5a9d6',weight:4,dashArray:'6 8'}).addTo(map)}
-  $('#drawinfo').textContent=p.length+' Punkte · '+fmtKm(dist(p));
-  $('#route-status').textContent=p.length?p.length+' Punkte, '+fmtKm(dist(p)):'Noch keine Route.';
-}
-function setDrawing(on){
-  state.drawing=on;$('#drawbar').hidden=!on;$('#map').classList.toggle('drawing',on);
-  if(on){toast('Auf die Karte tippen, um Punkte zu setzen.')}
-}
-function parseGpx(text){
-  var doc=new DOMParser().parseFromString(text,'application/xml');
-  if(doc.getElementsByTagName('parsererror').length)throw new Error('Die Datei ist keine gültige GPX-Datei.');
-  var nodes=doc.getElementsByTagName('trkpt');if(!nodes.length)nodes=doc.getElementsByTagName('rtept');
-  var pts=[],t0=null,t1=null;
-  for(var i=0;i<nodes.length;i++){
-    var la=parseFloat(nodes[i].getAttribute('lat')),lo=parseFloat(nodes[i].getAttribute('lon'));
-    if(isNaN(la)||isNaN(lo))continue;pts.push([+la.toFixed(6),+lo.toFixed(6)]);
-    var te=nodes[i].getElementsByTagName('time')[0];
-    if(te){var d=new Date(te.textContent);if(!isNaN(d)){if(!t0)t0=d;t1=d}}
-  }
-  if(pts.length<2)throw new Error('Die GPX-Datei enthält keine Strecke.');
-  var step=Math.ceil(pts.length/1500);if(step>1){var last=pts[pts.length-1];pts=pts.filter(function(_,i){return i%step===0});pts.push(last)}
-  return {points:pts,t0:t0,t1:t1};
-}
-function openForm(editId){
-  var r=editId?byId(editId):null;state.editId=r?r.id:null;
-  state.draft={points:r&&r.points?r.points.slice():[],meta:null};$('#v-form').reset();$('#f-err').textContent='';
-  $('#f-head').textContent=r?'Stream bearbeiten':'Neuer Stream';
-  $('#f-title').value=r?r.title:'';$('#f-date').value=r?r.date:today();$('#f-start').value=r?(r.start||''):'';$('#f-dur').value=r?r.durationMin:'';
-  $('#f-desc').value=r?(r.desc||''):'';$('#f-clips').value=r?(r.clips||[]).map(function(c){return c.title+' | '+c.url}).join('\n'):'';
-  updateDraft();selGroup.clearLayers();
-  if(r&&r.location&&!hasRoute(r)){map.setView([r.location.lat,r.location.lng],13)}
-  else if(hasRoute(r||{})){map.fitBounds(L.polyline(r.points).getBounds(),{padding:[50,50]})}
-  state.selectedId=null;showView('form');$('#f-title').focus();
-}
-function closeForm(){
-  setDrawing(false);if(draftLine){map.removeLayer(draftLine);draftLine=null}
-  undimAll();showView('list');
-}
-function parseClips(txt){
-  return txt.split('\n').map(function(l){return l.trim()}).filter(Boolean).map(function(l,i){
-    var parts=l.split('|'),url=safeUrl((parts.length>1?parts[parts.length-1]:parts[0]).trim());
-    return url?{title:parts.length>1?parts.slice(0,-1).join('|').trim():'Clip '+(i+1),url:url}:null;
-  }).filter(Boolean);
-}
-function submitForm(e){
-  e.preventDefault();var err=$('#f-err');
-  if(!canEdit(state.user)){err.textContent='Nur naschiitaschii und ihre Mods können Streams speichern.';return}
-  var title=$('#f-title').value.trim(),date=$('#f-date').value,dur=parseInt($('#f-dur').value,10);
-  if(!title){err.textContent='Bitte einen Titel eingeben.';return}
-  if(!date){err.textContent='Bitte ein Datum wählen.';return}
-  if(!dur||dur<1){err.textContent='Bitte die Dauer in Minuten angeben.';return}
-  
-  var fields={title:title,date:date,start:$('#f-start').value||'',durationMin:dur,desc:$('#f-desc').value.trim(),points:state.draft.points.slice(),clips:parseClips($('#f-clips').value)};
-  var r,ex=state.editId?byId(state.editId):null;
-  if(ex&&!ex.owner){saveEdit(ex.id,fields);Object.assign(ex,fields);ex.km=dist(ex.points);r=ex}
-  else if(ex){Object.assign(ex,fields);ex.km=dist(ex.points);r=ex;saveOwn()}
-  else{
-    r=Object.assign({id:'u'+Date.now(),owner:state.user.login,stops:[]},fields);
-    state.routes.push(r);state.routes.sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0});
-    state.routes=state.routes.map(function(x,i){return x.color?Object.assign(x,{km:x.km||dist(x.points)}):prep(x,i)});
-    saveOwn();
-  }
-  state.editId=null;setDrawing(false);if(draftLine){map.removeLayer(draftLine);draftLine=null}
-  drawLines();renderStats();renderList();select(r.id);toast('Route gespeichert.');
-}
-
 /* ---------- Routen: Geometrie ---------- */
 function cumKm(p){var c=[0];for(var i=1;i<p.length;i++)c.push(c[i-1]+hav(p[i-1],p[i]));return c}
 function pointAtFrac(p,f){
@@ -2604,21 +2491,7 @@ document.addEventListener('click',function(e){
     case 'manual-upd':manualUpdate(t);break;
     case 'site-toggle':siteSwitch(t);break;
     case 'logout':setUser(null);toast(T('Abgemeldet.','Logged out.'));break;
-    case 'add':if(canEdit(state.user))openForm();break;
-    case 'edit':if(canEdit(state.user))openForm(state.selectedId);break;
     case 'redit':if(canEdit(state.user))openEditor(state.selectedId);break;
-    case 'f-cancel':closeForm();break;
-    case 'btn-draw':state.draft.points=state.draft.points.slice();setDrawing(true);break;
-    case 'draw-undo':state.draft.points.pop();updateDraft();break;
-    case 'draw-done':setDrawing(false);if(state.draft.points.length>1){map.fitBounds(L.polyline(state.draft.points).getBounds(),{padding:[50,50]})}break;
-    case 'copyjson':
-      var r=byId(state.selectedId),c=Object.assign({},r);delete c.km;
-      var txt=JSON.stringify(c,null,2);
-      (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast('JSON kopiert.')},function(){toast('Kopieren wird hier nicht unterstützt.')});break;
-    case 'del':
-      if(t.dataset.arm){var id=state.selectedId;state.routes=state.routes.filter(function(x){return x.id!==id});saveOwn();drawLines();renderStats();renderList();deselect();toast('Route gelöscht.')}
-      else{t.dataset.arm='1';t.textContent='Wirklich löschen?';setTimeout(function(){if(t.isConnected){delete t.dataset.arm;t.textContent='Löschen'}},4000)}
-      break;
   }
 });
 function setQuery(v){state.query=v;state.clipAll=false;$('#q').value=v;$('#qclear').hidden=!v;renderList()}
@@ -2627,24 +2500,6 @@ $('#q').addEventListener('keydown',function(e){if(e.key==='Escape'&&e.target.val
 $('#flt').addEventListener('change',function(e){state.filter=e.target.value;renderList()});
 $('#cat').addEventListener('change',function(e){state.cat=e.target.value;renderList();$('#panel').scrollTop=0});
 $('#srt').addEventListener('change',function(e){state.sort=e.target.value;renderList();$('#panel').scrollTop=0});
-$('#v-form').addEventListener('submit',submitForm);
-$('#f-gpx').addEventListener('change',function(e){
-  var f=e.target.files[0];if(!f)return;var fr=new FileReader();
-  fr.onload=function(){
-    try{
-      var g=parseGpx(String(fr.result));state.draft.points=g.points;updateDraft();
-      if(g.t0&&g.t1){
-        $('#f-date').value=g.t0.getFullYear()+'-'+pad2(g.t0.getMonth()+1)+'-'+pad2(g.t0.getDate());
-        $('#f-start').value=pad2(g.t0.getHours())+':'+pad2(g.t0.getMinutes());
-        $('#f-dur').value=Math.max(1,Math.round((g.t1-g.t0)/60000));
-      }
-      map.fitBounds(L.polyline(g.points).getBounds(),{padding:[50,50]});$('#f-err').textContent='';
-    }catch(ex){$('#f-err').textContent=ex.message||'GPX konnte nicht gelesen werden.'}
-  };
-  fr.onerror=function(){$('#f-err').textContent='Datei konnte nicht gelesen werden.'};
-  fr.readAsText(f);
-});
-
 /* ---------- Daten laden (beim Start und nach dem Update-Knopf) ---------- */
 function loadData(first){
   if(location.protocol==='file:'||!window.fetch)return Promise.resolve();
