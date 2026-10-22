@@ -1780,7 +1780,6 @@ function randomClip(){
 
 /* Foto-Collage aus Clip-Thumbnails für Header, rechten Rahmen und Fußleiste */
 // Collage: ein fertiges Bild (collage.jpg), das einmal pro Woche automatisch neu gebaut wird
-function buildCollage(){}
 // Läuft der Stream gerade, zeigt die Karte das aktuelle Twitch-Vorschaubild (wird mit dem LIVE-Check alle 2 Min. erneuert)
 var LIVE_ON=null,LIVE_T=Date.now();
 function livePreview(){return 'https://static-cdn.jtvnw.net/previews-ttv/live_user_'+CHANNEL+'-440x248.jpg?t='+LIVE_T}
@@ -1807,13 +1806,6 @@ function renderCats(){
 }
 function routeTag(r){if(hasRoute(r))return '<span class="tag route">ROUTE</span>';if(r.location&&r.location.home)return '<span class="tag home">🏰 HOMEBASE</span>';return r.location&&!r.location.manual?'<span class="tag">'+T('ORT UNGEFÄHR','APPROX. PLACE')+'</span>':''}
 function renderListSelection(){var cs=document.querySelectorAll('.card');for(var i=0;i<cs.length;i++){cs[i].setAttribute('aria-pressed',cs[i].dataset.id===state.selectedId)}}
-function gmapsUrl(r){
-  var p=r.points,n=p.length,w=[],max=8;
-  if(n>2){for(var i=1;i<=max;i++){var idx=Math.round(i*(n-1)/(max+1));if(idx>0&&idx<n-1)w.push(p[idx].join(','))}}
-  var u='https://www.google.com/maps/dir/?api=1&travelmode=walking&origin='+p[0].join(',')+'&destination='+p[n-1].join(',');
-  if(w.length)u+='&waypoints='+encodeURIComponent(w.filter(function(x,i){return w.indexOf(x)===i}).join('|'));
-  return u;
-}
 function safeUrl(u){try{var x=new URL(u);return x.protocol==='https:'?x.href:null}catch(e){return null}}
 function renderDetail(r){
   var own=state.user&&r.owner===state.user.login, base=!r.owner;
@@ -2011,7 +2003,7 @@ function openEditor(id){
 function closeEditor(force){
   if(!ed)return;
   if(ed.dirty&&!force){var b=$('#ed-cancel');if(b&&!b.dataset.arm){b.dataset.arm='1';b.textContent=T('Änderungen verwerfen?','Discard changes?');b.classList.add('danger');setTimeout(function(){if(b.isConnected){delete b.dataset.arm;b.textContent=T('Abbrechen','Cancel');b.classList.remove('danger')}},4000);return}}
-  var id=ed.id;ed=null;state.editing=false;document.body.classList.remove('editing');setTimeout(buildCollage,50);
+  var id=ed.id;ed=null;state.editing=false;document.body.classList.remove('editing');
   if(edLayer){map.removeLayer(edLayer);edLayer=null;edLine=null}
   if(freeTmp){map.removeLayer(freeTmp);freeTmp=null}
   map.dragging.enable();map.doubleClickZoom.enable();
@@ -2578,7 +2570,7 @@ function loadData(first){
     if(Array.isArray(d)&&d.length)SAMPLE=d;
     DATA_LOADED=true;
     if(state.editing)return m;
-    var sel=state.selectedId;buildRoutes();drawLines();renderStats();renderList();buildCollage();
+    var sel=state.selectedId;buildRoutes();drawLines();renderStats();renderList();
     if(first){if(sel&&byId(sel))select(sel);else if(!sel)fitAll()}
     else if(sel&&byId(sel)){var y=$('#panel').scrollTop;renderDetail(byId(sel));$('#panel').scrollTop=y}
     return m;
@@ -2705,7 +2697,7 @@ document.addEventListener('click',function(e){
 (function boot(){
   if(SHOW_LOGIN){try{var u=JSON.parse(store('shm.user')||'null');if(u&&u.login&&u.token)state.user=u}catch(e){}}
   applyStatic();
-  buildRoutes();initMap();drawLines();fitAll();renderStats();renderList();renderAuth();buildCollage();
+  buildRoutes();initMap();drawLines();fitAll();renderStats();renderList();renderAuth();
   handleRedirect();revalidate();
   // Aktuelle Daten laden (werden 2x täglich automatisch von Twitch aktualisiert). Ohne Server bleibt der eingebettete Stand.
   if(location.protocol!=='file:'&&window.fetch){
