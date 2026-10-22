@@ -864,9 +864,18 @@ body.doc .app>.map-wrap{visibility:hidden}
 @media (min-width:1100px){
   .hero .upd:not(:empty){background:#1c0f21cc;color:#f1cfe6;padding:3px 9px;border-radius:999px;border:1px solid #f5a9d633}
   .hero-in{padding:14px 16px 12px;gap:4px}
-  .hero-top{position:relative;gap:4px}
+  .hero-top{position:relative;gap:4px;left:40px} /* Profilbild + Titel als Gruppe mittig */
   .hero-top>.avatar{position:absolute;right:calc(100% + 18px);top:50%;transform:translateY(-50%);width:62px;height:62px}
   .hero-in>.hero-row{margin-top:6px}
+}
+/* Angemeldete Bearbeiter auf mittleren Bildschirmen: Anmeldekasten als Leiste unter den Zahlen, damit er Titel und Zahlen nicht verdeckt */
+@media (min-width:821px) and (max-width:1749px){
+  header.hero .auth:has(.authbox){position:relative;top:auto;right:auto;display:flex;flex-direction:row;justify-content:center;align-items:center;padding:0 12px 12px}
+  header.hero .authbox{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:center;max-width:720px;min-width:0;padding:6px 8px;gap:8px}
+  header.hero .authbox .ab-top{flex:none}
+  header.hero .authbox .ab-name{flex:none}
+  header.hero .authbox .ab-acts{display:flex;gap:6px;padding:0 0 0 8px;border-top:0;border-left:1px solid #f5a9d633}
+  header.hero .authbox .ab-state{flex-basis:100%;justify-content:center}
 }
 /* Handy: Schieber zwischen Karte und Liste */
 .grip{display:none}
