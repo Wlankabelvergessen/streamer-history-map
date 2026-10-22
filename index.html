@@ -1059,7 +1059,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 /* ---------- Routen: Editor ---------- */
 .ed h2{font:600 22px/1.15 var(--f-display);margin:2px 0 4px}
 .ed .sub2{font:500 11px var(--f-mono);color:var(--muted);letter-spacing:.06em}
-.modes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0 8px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0 8px}
 .modes button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font:600 12px var(--f-body)}
 .modes button i{font-style:normal;font-size:17px;line-height:1}
 .modes button[aria-pressed="true"]{border-color:var(--accent);background:#f5a9d61f;color:var(--accent)}
@@ -1088,6 +1088,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .vh{width:12px;height:12px;box-sizing:border-box;border-radius:50%;background:#fff;border:2.5px solid var(--pink-deep);cursor:move;box-shadow:0 1px 4px #000a}
 .vh.first{background:var(--accent);border-color:#fff}
 #map.mode-free{cursor:crosshair}
+#map.mode-cut,#map.mode-erase{cursor:crosshair}
 #map.mode-points,#map.mode-stop,#map.armed{cursor:copy}
 #map.dropping{outline:3px dashed var(--accent);outline-offset:-3px}
 .card.flash{box-shadow:inset 3px 0 0 var(--accent);background:#f5a9d61a;transition:background .6s}
@@ -1310,7 +1311,9 @@ function store(k,v){try{if(v===undefined){return localStorage.getItem(k)}if(v===
 function sstore(k,v){try{if(v===undefined){return sessionStorage.getItem(k)}if(v===null){sessionStorage.removeItem(k)}else{sessionStorage.setItem(k,v)}}catch(e){}return null}
 function rad(x){return x*Math.PI/180}
 function hav(a,b){var R=6371,dLat=rad(b[0]-a[0]),dLng=rad(b[1]-a[1]);var h=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dLng/2)*Math.sin(dLng/2);return 2*R*Math.asin(Math.sqrt(h))}
-function dist(p){var d=0;for(var i=1;i<p.length;i++){d+=hav(p[i-1],p[i])}return d}
+function dist(p,br){var d=0,cut={};(br||[]).forEach(function(b){cut[b]=1});for(var i=1;i<p.length;i++){if(!cut[i])d+=hav(p[i-1],p[i])}return d}
+// Route in Teilstücke zerlegen (Lücken aus dem Schneiden-Werkzeug)
+function segsOf(p,br){if(!br||!br.length)return p;var cut={},s=[],cur=[];br.forEach(function(b){cut[b]=1});for(var i=0;i<p.length;i++){if(cut[i]&&cur.length){s.push(cur);cur=[]}cur.push(p[i])}if(cur.length)s.push(cur);s=s.filter(function(x){return x.length>1});return s.length?s:[]}
 function fmtKm(k){return k.toLocaleString(LOC,{minimumFractionDigits:1,maximumFractionDigits:1})+' km'}
 function fmtDur(m){var h=Math.floor(m/60),r=m%60;return (h?h+T(' Std. ',' h '):'')+(r||!h?r+T(' Min.',' min'):'')}
 function fmtDate(iso){var d=new Date(iso+'T12:00:00');if(isNaN(d))return iso;return d.toLocaleDateString(LOC,{weekday:'short',day:'2-digit',month:'long',year:'numeric'})}
@@ -1325,7 +1328,7 @@ var state={ routes:[], selectedId:null, user:null, draft:{points:[],meta:null}, 
 state.clipSort=store('shm.clipSort')==='time'?'time':'top';
 var map, lines={}, selGroup, draftLine;
 
-function prep(r,i){r.km=dist(r.points);r.color=r.color||PALETTE[i%PALETTE.length];return r}
+function prep(r,i){r.km=dist(r.points,r.breaks);r.color=r.color||PALETTE[i%PALETTE.length];return r}
 function ownKey(){return 'shm.routes.'+state.user.login}
 function loadOwn(){if(!state.user)return[];try{return JSON.parse(store(ownKey())||'[]')}catch(e){return[]}}
 function saveOwn(){if(!state.user)return;var own=state.routes.filter(function(r){return r.owner===state.user.login});store(ownKey(),JSON.stringify(own.map(function(r){var c=Object.assign({},r);delete c.km;return c})))}
@@ -1346,7 +1349,7 @@ function buildRoutes(){
   var ed=loadEdits();
   var all=SAMPLE.map(function(r){
     var x=Object.assign({},r,ed[r.id]||{}),rt=routeFor(r.id);
-    x.points=rt&&rt.points||[];x.stops=rt&&rt.stops||[];x.clipPos=rt&&rt.clips||{};
+    x.points=rt&&rt.points||[];x.breaks=rt&&rt.breaks||[];x.stops=rt&&rt.stops||[];x.clipPos=rt&&rt.clips||{};
     x._autoLoc=x.location||null;x._autoDesc=x.desc||'';
     applyExtra(x,rt);
     return x;
@@ -1409,7 +1412,7 @@ function drawLines(){
   Object.keys(groups).forEach(function(k){map.removeLayer(groups[k].marker)});groups={};hideTip(true);
   state.routes.forEach(function(r){
     if(!hasRoute(r))return;
-    var l=L.polyline(r.points,{color:'#f5a9d6',weight:3,opacity:.6,lineCap:'round',lineJoin:'round'}).addTo(map);
+    var l=L.polyline(segsOf(r.points,r.breaks),{color:'#f5a9d6',weight:3,opacity:.6,lineCap:'round',lineJoin:'round'}).addTo(map);
     l.on('click',function(){if(!state.drawing&&!state.editing)select(r.id)});
     lines[r.id]=l;
   });
@@ -1798,7 +1801,7 @@ function drawLinePair(p,group){
 var clipMarkers={};
 function drawRouteView(r){
   var p=r.points||[],pts=p.slice();
-  if(p.length>1){var lp=drawLinePair(p,selGroup);animateLine(lp[1])}
+  if(p.length>1){var lp=drawLinePair(segsOf(p,r.breaks),selGroup);animateLine(lp[1])}
   var stops=r.stops||[];
   stops.forEach(function(s,i){
     var m=L.marker([s.lat,s.lng],{icon:divI('rstop',String(i+1),24),keyboard:false,zIndexOffset:200}).addTo(selGroup);
@@ -1833,13 +1836,15 @@ var ed=null,edLayer=null,edLine=null,edEventsOn=false;
 var MODES={
   pan:['✋',T('Verschieben','Move'),T('Karte verschieben und zoomen. Punkte, Stationen und Clips kannst du mit der Maus verschieben. Rechtsklick auf einen Punkt oder Clip entfernt ihn.','Pan and zoom the map. Points, stops and clips can be dragged. Right-click a point or clip to remove it.')],
   points:['✏️',T('Punkte','Points'),T('Klick auf die Karte setzt den nächsten Punkt. Klick auf die Linie fügt dazwischen einen ein. Punkte ziehen zum Verschieben, Doppelklick löscht.','Click the map to add the next point. Click the line to insert one in between. Drag points to move, double-click to delete.')],
-  free:['〰️',T('Freihand','Freehand'),T('Maustaste gedrückt halten und die Strecke wie mit einem Stift nachmalen. Jeder neue Strich wird ans Ende angehängt.','Hold the mouse button and trace the route like with a pen. Each new stroke is added to the end.')],
+  free:['〰️',T('Freihand','Freehand'),T('Maustaste gedrückt halten und die Strecke wie mit einem Stift nachmalen. Ein neuer Strich nahe am Ende wird angehängt, ein Strich weiter weg beginnt ein eigenes Teilstück.','Hold the mouse button and trace the route like with a pen. A new stroke near the end is attached; a stroke further away starts a separate part.')],
+  cut:['✂️',T('Schneiden','Cut'),T('Klick auf die Linie trennt sie an dieser Stelle in zwei Teile. Danach kannst du mit „Teil löschen“ ein Stück entfernen.','Click the line to cut it in two at that spot. Then use “Delete part” to remove a piece.')],
+  erase:['🧽',T('Teil löschen','Delete part'),T('Klick auf ein Stück der Linie löscht dieses ganze Teilstück (bis zum nächsten Schnitt). Vorher mit ✂️ an den richtigen Stellen schneiden.','Click a piece of the line to delete that whole part (up to the next cut). Cut it first with ✂️ at the right spots.')],
   stop:['📍','Station',T('Klick auf die Route setzt eine nummerierte Station, z. B. „Altstadt“. Den Namen trägst du unten bei den Stationen ein.','Click the route to add a numbered stop, e.g. “Old town”. Enter its name below under stops.')]
 };
 function openEditor(id){
   var r=byId(id);if(!r||!canEdit(state.user))return;
   hideTip(true);selGroup.clearLayers();clipMarkers={};
-  ed={id:id,r:r,points:(r.points||[]).map(function(x){return x.slice()}),stops:(r.stops||[]).map(function(s){return {lat:s.lat,lng:s.lng,name:s.name||''}}),
+  ed={id:id,r:r,points:(r.points||[]).map(function(x){return x.slice()}),breaks:(r.breaks||[]).slice(),stops:(r.stops||[]).map(function(s){return {lat:s.lat,lng:s.lng,name:s.name||''}}),
       clips:JSON.parse(JSON.stringify(r.clipPos||{})),undo:[],mode:'pan',armed:null,dirty:false,saving:false,
       desc:(routeFor(id)&&routeFor(id).desc)||'',loc:r.location&&r.location.manual?{name:r.location.name,lat:r.location.lat,lng:r.location.lng}:null,armLoc:false};
   state.editing=true;document.body.classList.add('editing');
@@ -1862,14 +1867,27 @@ function closeEditor(force){
   if(edLayer){map.removeLayer(edLayer);edLayer=null;edLine=null}
   if(freeTmp){map.removeLayer(freeTmp);freeTmp=null}
   map.dragging.enable();map.doubleClickZoom.enable();
-  $('#map').classList.remove('mode-free','mode-points','mode-stop','mode-pan','armed','dropping');
+  $('#map').classList.remove('mode-free','mode-points','mode-stop','mode-pan','mode-cut','mode-erase','armed','dropping');
   undimAll();select(id);
 }
-function pushUndo(){ed.undo.push(JSON.stringify({p:ed.points,s:ed.stops,c:ed.clips,l:ed.loc}));if(ed.undo.length>80)ed.undo.shift();ed.dirty=true}
-function undoEd(){var x=ed.undo.pop();if(!x){toast(T('Nichts zum Rückgängigmachen.','Nothing to undo.'));return}x=JSON.parse(x);ed.points=x.p;ed.stops=x.s;ed.clips=x.c;ed.loc=x.l||null;ed.dirty=true;renderEd()}
+function pushUndo(){ed.undo.push(JSON.stringify({p:ed.points,b:ed.breaks,s:ed.stops,c:ed.clips,l:ed.loc}));if(ed.undo.length>80)ed.undo.shift();ed.dirty=true}
+function undoEd(){var x=ed.undo.pop();if(!x){toast(T('Nichts zum Rückgängigmachen.','Nothing to undo.'));return}x=JSON.parse(x);ed.points=x.p;ed.breaks=x.b||[];ed.stops=x.s;ed.clips=x.c;ed.loc=x.l||null;ed.dirty=true;renderEd()}
+// Lücken-Verwaltung im Editor: breaks[] = Indizes, vor denen die Linie getrennt ist
+function insPt(i,p){ed.points.splice(i,0,p);ed.breaks=ed.breaks.map(function(b){return b>=i?b+1:b})}
+function delPt(i){ed.points.splice(i,1);ed.breaks=ed.breaks.map(function(b){return b>i?b-1:b});cleanParts()}
+function partOf(i){var s=0,e=ed.points.length;ed.breaks.forEach(function(b){if(b<=i-1&&b>s)s=b;if(b>i-1&&b<e)e=b});if(i<1)s=0;return [s,e]}
+function cleanParts(){
+  var n=ed.points.length,seen={};
+  ed.breaks=ed.breaks.filter(function(b){if(b<=0||b>=n||seen[b])return false;seen[b]=1;return true}).sort(function(a,b){return a-b});
+  if(!ed.breaks.length)return;
+  // einzelne, übrig gebliebene Punkte zwischen zwei Lücken entfernen
+  var starts=[0].concat(ed.breaks),ends=ed.breaks.concat([n]),keep=[],nb=[];
+  for(var k=0;k<starts.length;k++){if(ends[k]-starts[k]<2)continue;if(keep.length)nb.push(keep.length);for(var j=starts[k];j<ends[k];j++)keep.push(ed.points[j])}
+  ed.points=keep;ed.breaks=nb;
+}
 function setMode(m){
   ed.mode=m;var c=$('#map').classList;
-  ['pan','points','free','stop'].forEach(function(k){c.toggle('mode-'+k,k===m)});
+  ['pan','points','free','stop','cut','erase'].forEach(function(k){c.toggle('mode-'+k,k===m)});
   if(m==='free')map.dragging.disable();else map.dragging.enable();
   if(edLayer)renderEdMap();
   document.querySelectorAll('[data-mode]').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.mode===m)});
@@ -1879,12 +1897,13 @@ function layerPts(){return ed.points.map(function(p){return map.latLngToLayerPoi
 // Nächster Punkt auf der Route (in Bildschirmpixeln gemessen)
 function nearest(ll){
   if(ed.points.length<2)return null;
-  var lp=layerPts(),q=map.latLngToLayerPoint(ll),best=null;
+  var lp=layerPts(),q=map.latLngToLayerPoint(ll),best=null,cut={};(ed.breaks||[]).forEach(function(b){cut[b]=1});
   for(var i=1;i<lp.length;i++){
+    if(cut[i])continue;
     var c=L.LineUtil.closestPointOnSegment(q,lp[i-1],lp[i]),d=c.distanceTo(q);
     if(!best||d<best.d)best={d:d,i:i,pt:c};
   }
-  best.ll=map.layerPointToLatLng(best.pt);return best;
+  if(!best)return null;best.ll=map.layerPointToLatLng(best.pt);return best;
 }
 function snap(ll){var n=nearest(ll);return n?[+n.ll.lat.toFixed(6),+n.ll.lng.toFixed(6)]:[+(ll.lat||ll[0]).toFixed(6),+(ll.lng||ll[1]).toFixed(6)]}
 function placeClip(sg,ll){pushUndo();ed.clips[sg]=snap(ll);ed.armed=null;$('#map').classList.remove('armed');renderEd()}
@@ -1896,8 +1915,22 @@ function edClick(e){
   if(ed.armed){placeClip(ed.armed,ll);return}
   if(ed.mode==='points'){
     pushUndo();var n=nearest(ll),P=[+ll.lat.toFixed(6),+ll.lng.toFixed(6)];
-    if(n&&n.d<10)ed.points.splice(n.i,0,[+n.ll.lat.toFixed(6),+n.ll.lng.toFixed(6)]);else ed.points.push(P);
+    if(n&&n.d<10)insPt(n.i,[+n.ll.lat.toFixed(6),+n.ll.lng.toFixed(6)]);else ed.points.push(P);
     renderEd();
+  }else if(ed.mode==='cut'){
+    var nc=nearest(ll);
+    if(!nc||nc.d>16){toast(T('Klick direkt auf die Linie, um sie dort zu trennen.','Click right on the line to cut it there.'));return}
+    pushUndo();var Pc=[+nc.ll.lat.toFixed(6),+nc.ll.lng.toFixed(6)];
+    insPt(nc.i,Pc);insPt(nc.i+1,Pc.slice());ed.breaks.push(nc.i+1);cleanParts();renderEd();
+    toast(T('Route getrennt. Mit 🧽 Teil löschen kannst du ein Stück entfernen.','Route cut. Use 🧽 Delete part to remove a piece.'));
+  }else if(ed.mode==='erase'){
+    var ne=nearest(ll);
+    if(!ne||ne.d>16){toast(T('Klick direkt auf das Stück der Linie, das weg soll.','Click right on the piece of line you want to remove.'));return}
+    var pr=partOf(ne.i);pushUndo();
+    var cnt=pr[1]-pr[0];ed.points.splice(pr[0],cnt);
+    ed.breaks=ed.breaks.filter(function(b){return b<pr[0]||b>=pr[1]}).map(function(b){return b>=pr[1]?b-cnt:b});
+    cleanParts();renderEd();
+    toast(T('Teilstück gelöscht. ↶ holt es zurück.','Part deleted. ↶ brings it back.'));
   }else if(ed.mode==='stop'){
     if(ed.points.length<2){toast(T('Zeichne zuerst die Route, dann setzt du Stationen darauf.','Draw the route first, then add stops to it.'));return}
     pushUndo();var s=snap(ll);ed.stops.push({lat:s[0],lng:s[1],name:'',fresh:true});renderEd();
@@ -1926,8 +1959,8 @@ function bindEditorEvents(){
     if(freeTmp){map.removeLayer(freeTmp);freeTmp=null}
     if(pts.length<2)return;
     var simp=L.LineUtil.simplify(pts,1.6).map(function(q){var l=map.containerPointToLatLng(q);return [+l.lat.toFixed(6),+l.lng.toFixed(6)]});
-    var last=ed.points[ed.points.length-1];if(last&&simp.length&&map.latLngToContainerPoint(last).distanceTo(map.latLngToContainerPoint(simp[0]))<6)simp.shift();
-    pushUndo();ed.points=ed.points.concat(simp);
+    var last=ed.points[ed.points.length-1],gap=last&&simp.length?map.latLngToContainerPoint(last).distanceTo(map.latLngToContainerPoint(simp[0])):0;if(last&&simp.length&&gap<6)simp.shift();
+    pushUndo();var at=ed.points.length;ed.points=ed.points.concat(simp);if(last&&gap>40&&simp.length>1)ed.breaks.push(at);
     ed.justDrew=true;setTimeout(function(){if(ed)ed.justDrew=false},80);
     renderEd();
   };
@@ -1954,16 +1987,16 @@ function renderEd(){
 }
 function renderEdMap(){
   edLayer.clearLayers();edLine=null;
-  if(ed.points.length>1)edLine=drawLinePair(ed.points,edLayer);
+  if(ed.points.length>1)edLine=drawLinePair(segsOf(ed.points,ed.breaks),edLayer);
   var many=ed.points.length>500;
   ed.points.forEach(function(p,i){
     if(many&&i%3&&i!==ed.points.length-1)return;
-    var free=ed.mode==='free';
+    var free=ed.mode==='free'||ed.mode==='cut'||ed.mode==='erase';
     var h=L.marker(p,{draggable:!free,interactive:!free,keyboard:false,zIndexOffset:300,icon:L.divIcon({className:'',html:'<div class="vh'+(i===0?' first':'')+'"></div>',iconSize:[12,12],iconAnchor:[6,6]}),title:i===0?'Start':''}).addTo(edLayer);
     h.on('dragstart',pushUndo);
-    h.on('drag',function(e){var l=e.target.getLatLng();ed.points[i]=[+l.lat.toFixed(6),+l.lng.toFixed(6)];if(edLine){edLine[0].setLatLngs(ed.points);edLine[1].setLatLngs(ed.points)}});
+    h.on('drag',function(e){var l=e.target.getLatLng();ed.points[i]=[+l.lat.toFixed(6),+l.lng.toFixed(6)];if(edLine){var sg2=segsOf(ed.points,ed.breaks);edLine[0].setLatLngs(sg2);edLine[1].setLatLngs(sg2)}});
     h.on('dragend',function(){renderEd()});
-    var del=function(e){if(e&&e.originalEvent)L.DomEvent.preventDefault(e.originalEvent);pushUndo();ed.points.splice(i,1);renderEd()};
+    var del=function(e){if(e&&e.originalEvent)L.DomEvent.preventDefault(e.originalEvent);pushUndo();delPt(i);renderEd()};
     h.on('dblclick',del);h.on('contextmenu',del);
     h.on('click',function(e){if(ed.armed){placeClip(ed.armed,e.latlng);return}if(ed.mode==='stop')edClick({latlng:L.latLng(p[0],p[1])})});
   });
@@ -2048,7 +2081,7 @@ function importRouteFile(f){
   var isKmz=/\.kmz$/i.test(f.name);
   (isKmz?f.arrayBuffer().then(unzipFirstKml):f.text()).then(function(text){
     var g=parseRouteXml(text);
-    pushUndo();ed.points=g.points;if(g.stops.length)ed.stops=g.stops;
+    pushUndo();ed.points=g.points;ed.breaks=[];if(g.stops.length)ed.stops=g.stops;
     renderEd();
     map.fitBounds(L.latLngBounds(g.points),{padding:[50,50],maxZoom:17});
     var km=0;for(var i=1;i<g.points.length;i++)km+=map.distance(g.points[i-1],g.points[i])/1000;
@@ -2081,7 +2114,7 @@ function renderEdPanel(){
       '<p class="help">'+(ed.loc?T('Eigener Ort gesetzt – er ersetzt den automatisch erkannten Ort. Marker auf der Karte lässt sich verschieben.','Own place set – it replaces the automatically detected one. Drag the marker to move it.'):T('Nur nötig, wenn der Ort fehlt oder falsch erkannt wurde. Name eintragen und auf die Karte klicken.','Only needed if the place is missing or wrong. Enter a name and click the map.'))+'</p></div>'+
     '<div class="sec"><h3>'+T('Stationen','Stops')+' <span>'+ed.stops.length+'</span></h3>'+stops+'</div>'+
     '<div class="sec"><h3>Clips <span>'+placed+T(' von ',' of ')+CL.length+T(' auf der Route',' on the route')+'</span></h3>'+(CL.length?'<p class="help">'+T('Clip mit der Maus auf die Route ziehen. Am Handy: Clip antippen, dann auf die Karte tippen.','Drag a clip onto the route. On mobile: tap the clip, then tap the map.')+'</p>':'')+clips+'</div>'+
-    '<div class="bar"><button type="button" class="btn primary" id="ed-save"'+(ed.saving?' disabled':'')+'>'+(ed.saving?T('Speichere …','Saving …'):T('Speichern','Save'))+'</button><button type="button" class="btn ghost" id="ed-cancel">'+T('Abbrechen','Cancel')+'</button><span class="st">'+ed.points.length+T(' Punkte · ',' points · ')+fmtKm(dist(ed.points))+'</span></div>';
+    '<div class="bar"><button type="button" class="btn primary" id="ed-save"'+(ed.saving?' disabled':'')+'>'+(ed.saving?T('Speichere …','Saving …'):T('Speichern','Save'))+'</button><button type="button" class="btn ghost" id="ed-cancel">'+T('Abbrechen','Cancel')+'</button><span class="st">'+ed.points.length+T(' Punkte · ',' points · ')+fmtKm(dist(ed.points,ed.breaks))+(ed.breaks.length?' · '+(ed.breaks.length+1)+T(' Teile',' parts'):'')+'</span></div>';
 }
 function autoPlace(){
   var r=ed.r,t0=new Date(r.date+'T'+(r.start||'00:00')+':00').getTime(),dur=(r.durationMin||1)*60000,n=0;
@@ -2103,12 +2136,12 @@ function edPayload(){
   var loc=ed.loc&&isFinite(ed.loc.lat)?{name:(ln||ed.loc.name||T('Ort','Place')).slice(0,60),lat:ed.loc.lat,lng:ed.loc.lng}:(ln&&ed.r._autoLoc&&ln!==ed.r._autoLoc.name?{name:ln.slice(0,60),lat:ed.r._autoLoc.lat,lng:ed.r._autoLoc.lng}:null);
   if(ed.points.length<2&&!ed.stops.length&&!Object.keys(ed.clips).length&&!desc&&!loc)return null;
   var clips={};Object.keys(ed.clips).forEach(function(k){clips[k]=r5(ed.clips[k])});
-  var out={desc:desc||undefined,loc:loc||undefined,points:ed.points.map(r5),stops:ed.stops.map(function(s,i){var p=r5([s.lat,s.lng]);return {lat:p[0],lng:p[1],name:(s.name||'').trim().slice(0,60)||'Station '+(i+1)}}),clips:clips};
+  var out={desc:desc||undefined,loc:loc||undefined,points:ed.points.map(r5),breaks:ed.breaks.length?ed.breaks.slice():undefined,stops:ed.stops.map(function(s,i){var p=r5([s.lat,s.lng]);return {lat:p[0],lng:p[1],name:(s.name||'').trim().slice(0,60)||'Station '+(i+1)}}),clips:clips};
   return out;
 }
 function applySaved(id,route,at){
   var p=loadPending();p[id]={route:route,at:at};store('shm.pending',JSON.stringify(p));
-  var r=byId(id);if(r){r.points=route&&route.points||[];r.stops=route&&route.stops||[];r.clipPos=route&&route.clips||{};applyExtra(r,route);prep(r,0)}
+  var r=byId(id);if(r){r.points=route&&route.points||[];r.breaks=route&&route.breaks||[];r.stops=route&&route.stops||[];r.clipPos=route&&route.clips||{};applyExtra(r,route);prep(r,0)}
 }
 function saveEd(){
   if(!ed||ed.saving)return;var u=state.user,route=edPayload(),id=ed.id;
@@ -2143,7 +2176,7 @@ $('#panel').addEventListener('click',function(e){
     case 'ed-import':pickRouteFile();break;
     case 'ed-save':saveEd();break;
     case 'ed-clear':
-      if(b.dataset.arm){pushUndo();ed.points=[];ed.stops=[];renderEd();toast(T('Route geleert. Clips bleiben, wo sie sind.','Route cleared. Clips stay where they are.'))}
+      if(b.dataset.arm){pushUndo();ed.points=[];ed.breaks=[];ed.stops=[];renderEd();toast(T('Route geleert. Clips bleiben, wo sie sind.','Route cleared. Clips stay where they are.'))}
       else{b.dataset.arm='1';b.textContent=T('Wirklich leeren?','Really clear?');b.classList.add('danger');setTimeout(function(){if(b.isConnected){delete b.dataset.arm;b.textContent=T('Route leeren','Clear route');b.classList.remove('danger')}},4000)}
       break;
   }

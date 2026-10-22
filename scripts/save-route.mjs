@@ -22,6 +22,8 @@ if (route !== null) {
   const points = route.points || [], stops = route.stops || [], clips = route.clips || {};
   if (!Array.isArray(points) || points.length > 3000 || !points.every(pt)) fail('Punkte ungültig');
   if (!Array.isArray(stops) || stops.length > 60) fail('Stationen ungültig');
+  const breaks = route.breaks == null ? [] : route.breaks;
+  if (!Array.isArray(breaks) || breaks.length > 500 || !breaks.every((b) => Number.isInteger(b) && b > 0 && b < points.length)) fail('Trennstellen ungültig');
   const cs = Object.entries(clips);
   const clean1 = (s, n) => String(s || '').replace(/[\u0000-\u0008\u000b-\u001f]/g, '').trim().slice(0, n);
   const desc = clean1(route.desc, 1500);
@@ -35,6 +37,7 @@ if (route !== null) {
     ...(desc ? { desc } : {}),
     ...(loc ? { loc } : {}),
     points: points.map(([a, b]) => [r5(a), r5(b)]),
+    ...(breaks.length ? { breaks: [...new Set(breaks)].sort((x, y) => x - y) } : {}),
     stops: stops.map((s) => {
       if (!s || !num(s.lat, -90, 90) || !num(s.lng, -180, 180)) fail('Station ungültig');
       return { lat: r5(s.lat), lng: r5(s.lng), name: String(s.name || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 60) };
