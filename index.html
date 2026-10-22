@@ -1209,6 +1209,9 @@ body.editing .grp-wrap{pointer-events:none}
 .catb img{flex:none;width:18px;height:24px;border-radius:2px;object-fit:cover;box-shadow:0 0 0 1px #ffffff22}
 .catb span{min-width:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .catb.irl span{color:var(--accent)}
+.catb.big{gap:9px;font-size:15px;line-height:1.1}
+.catb.big img{width:50px;height:69px;border-radius:4px;box-shadow:0 0 0 1px #ffffff22,0 4px 10px #0008}
+.catb.big span{-webkit-line-clamp:3}
 .cat-ic{width:11px;height:15px;border-radius:2px;object-fit:cover;vertical-align:-3px;margin-right:4px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -1752,7 +1755,8 @@ function catTag(r){var b=r.category&&catBox(r.category);return liveTag(r)+(r.cat
 // Rechte Spalte der Stream-Karte: Kategorie mit Twitch-Coverbild über dem Vorschaubild
 function cardSide(r,th){
   var b=r.category&&catBox(r.category);
-  var cat=r.category?'<span class="catb'+(r.category==='IRL'?' irl':'')+'" title="'+esc(r.category)+'">'+(b?'<img src="'+esc(b)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<span>'+esc(r.category)+'</span></span>':'';
+  var big=!th&&b;if(big)b=b.replace(/-52x72(\.\w+)$/,'-104x144$1');
+  var cat=r.category?'<span class="catb'+(r.category==='IRL'?' irl':'')+(big?' big':'')+'" title="'+esc(r.category)+'">'+(b?'<img src="'+esc(b)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<span>'+esc(r.category)+'</span></span>':'';
   if(!cat&&!th)return '';
   return '<span class="side">'+cat+(th?'<img class="thumb" src="'+esc(th)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>';
 }
