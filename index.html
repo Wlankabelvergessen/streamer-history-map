@@ -2013,7 +2013,10 @@ function openEditor(id){
   bindEditorEvents();
   setMode(ed.points.length>1?'pan':'points');
   var pts=ed.points.slice();ed.stops.forEach(function(s){pts.push([s.lat,s.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
-  if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16,animate:false});
+  // Bist du schon nah herangezoomt, bleibt die Ansicht, wie sie ist (nur wenn nichts vom Stream zu sehen wäre, springt die Karte hin)
+  var vb=map.getBounds(),inView=pts.some(function(p){return vb.contains(p)})||(r.location&&vb.contains([r.location.lat,r.location.lng]));
+  if(map.getZoom()>=11&&(inView||!pts.length)){}
+  else if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16,animate:false});
   else if(pts.length)map.setView(pts[0],15,{animate:false});
   else if(r.location)map.setView([r.location.lat,r.location.lng],14,{animate:false});
   showView('route');renderEd();
