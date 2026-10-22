@@ -1454,7 +1454,9 @@ function initMap(){
   map.on('click',function(e){if(!state.drawing)return;state.draft.points.push([+e.latlng.lat.toFixed(6),+e.latlng.lng.toFixed(6)]);updateDraft()});
   // Nicht weiter herauszoomen, als die Weltkarte den Kartenbereich füllt; nicht über die Pole hinaus schieben
   map.setMaxBounds([[-85.05,-200],[85.05,200]]);map.options.maxBoundsViscosity=1;
-  var fitMin=function(){var s=map.getSize(),z=Math.ceil(Math.log2(Math.max(s.x,s.y,256)/256));map.setMinZoom(Math.max(1,z))};fitMin();
+  // etwas Luft lassen: eine halbe Stufe weiter heraus als „Welt füllt die Karte“
+  map.options.zoomSnap=.5;
+  var fitMin=function(){var s=map.getSize(),z=Math.log2(Math.max(s.x,s.y,256)/256)-.5;map.setMinZoom(Math.max(1,Math.round(z*2)/2))};fitMin();
   if(window.ResizeObserver){new ResizeObserver(function(){map.invalidateSize();fitMin()}).observe($('#map'))}
 }
 /* ---------- Kevin, das Croissant: vermutete Aufenthaltsorte ---------- */
