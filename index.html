@@ -932,6 +932,11 @@ body.editing .kevin-pane{display:none}
 .kevin-rail button.lost{border-color:#f5a9d699}
 .kevin-rail button.lost span{color:var(--accent)}
 body.editing .kevin-rail{visibility:hidden}
+.castle{position:relative;width:76px;height:80px;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;filter:drop-shadow(0 4px 8px #000b) drop-shadow(0 0 10px #f5a9d655);transition:transform .2s}
+.castle:hover{transform:scale(1.08)}
+.castle img{width:76px;height:auto;display:block}
+.castle b{position:absolute;right:-4px;bottom:2px;min-width:24px;height:24px;padding:0 5px;box-sizing:border-box;display:grid;place-items:center;border-radius:999px;background:radial-gradient(circle at 35% 30%,#ffd3ec,var(--accent) 55%,var(--pink-deep));color:var(--accent-ink);font:700 11px var(--f-mono);border:2px solid #fff}
+.tag.home{color:#ffe2b8;border-color:#c98b4a99}
 /* App-Raster */
 .app{flex:1;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(320px,400px) minmax(0,1fr);grid-template-areas:"panel map"}
 .panel{grid-area:panel;min-height:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow-y:auto;overflow-x:hidden}
@@ -1407,7 +1412,18 @@ function buildRoutes(){
 function applyExtra(x,rt){
   x.desc=rt&&typeof rt.desc==='string'&&rt.desc?rt.desc:x._autoDesc;
   x.location=rt&&rt.loc&&isFinite(rt.loc.lat)?{name:rt.loc.name,lat:rt.loc.lat,lng:rt.loc.lng,manual:true}:x._autoLoc;
+  // Gaming-Streams ohne Ort im Titel: Naschii ist zu Hause – in ihrer Burg
+  if(!x.location&&isGame(x.category)){var h=homeLoc();x.location={name:h.name,lat:h.lat,lng:h.lng,home:true}}
 }
+// Kategorien, die kein Spiel sind (dann bleibt der Ort leer)
+var NONGAME=['IRL','Just Chatting','Music','Art','Talk Shows & Podcasts','Special Events','ASMR','Pools, Hot Tubs, and Beaches','Travel & Outdoors','Sports','Food & Drink','Science & Technology','Makers & Crafting','Software and Game Development','Fitness & Health','Politics','Variety','Summer Game Fest'];
+function isGame(c){return !!c&&NONGAME.indexOf(c)<0}
+// Homebase: Ort mit „Castle“ im Namen aus den gespeicherten Orten, sonst Standard
+function homeLoc(){
+  for(var k in ROUTES){var l=ROUTES[k]&&ROUTES[k].loc;if(l&&/castle/i.test(l.name||'')&&isFinite(l.lat))return {name:l.name,lat:l.lat,lng:l.lng}}
+  return {name:'Nashii´s Castle',lat:54.57206,lng:3.80127};
+}
+function isHome(name){return /castle/i.test(name||'')}
 function byId(id){return state.routes.filter(function(r){return r.id===id})[0]}
 
 /* ---------- Karte ---------- */
@@ -1523,8 +1539,10 @@ function drawLines(){
   var gl=groupList();
   Object.keys(gl).forEach(function(k){
     var g=gl[k],n=g.items.length;g.size=Math.round(26+Math.min(n,25)*1.3);
+    var home=isHome(g.name);
     var m=L.marker([g.lat,g.lng],{keyboard:true,title:g.name+' · '+n+' Streams',riseOnHover:true,
-      icon:L.divIcon({className:'grp-wrap',html:'<div class="grp" style="width:'+g.size+'px;height:'+g.size+'px">'+n+'</div>',iconSize:[g.size,g.size],iconAnchor:[g.size/2,g.size/2]})}).addTo(map);
+      icon:home?L.divIcon({className:'grp-wrap',html:'<div class="castle"><img src="castle.png" alt=""><b>'+n+'</b></div>',iconSize:[76,80],iconAnchor:[38,60]})
+               :L.divIcon({className:'grp-wrap',html:'<div class="grp" style="width:'+g.size+'px;height:'+g.size+'px">'+n+'</div>',iconSize:[g.size,g.size],iconAnchor:[g.size/2,g.size/2]})}).addTo(map);
     if(canHover){m.on('mouseover',function(){showGroup(g)});m.on('mouseout',function(){hideTip()})}
     m.on('click',function(){if(state.drawing||state.editing)return;if(n===1){hideTip(true);select(g.items[0].id)}else showGroup(g)});
     m.on('keypress',function(e){if(e.originalEvent.key==='Enter')showGroup(g)});
@@ -1777,7 +1795,7 @@ function renderCats(){
   sel.hidden=!keys.length;
   if(cur&&cnt[cur])sel.value=cur;else{state.cat='';sel.value=''}
 }
-function routeTag(r){if(hasRoute(r))return '<span class="tag route">ROUTE</span>';return r.location&&!r.location.manual?'<span class="tag">'+T('ORT UNGEFÄHR','APPROX. PLACE')+'</span>':''}
+function routeTag(r){if(hasRoute(r))return '<span class="tag route">ROUTE</span>';if(r.location&&r.location.home)return '<span class="tag home">🏰 HOMEBASE</span>';return r.location&&!r.location.manual?'<span class="tag">'+T('ORT UNGEFÄHR','APPROX. PLACE')+'</span>':''}
 function renderListSelection(){var cs=document.querySelectorAll('.card');for(var i=0;i<cs.length;i++){cs[i].setAttribute('aria-pressed',cs[i].dataset.id===state.selectedId)}}
 function gmapsUrl(r){
   var p=r.points,n=p.length,w=[],max=8;
@@ -1795,7 +1813,7 @@ function renderDetail(r){
   var LST=chrono?CL.slice().sort(function(a,b){return String(a.moment||a.at||'').localeCompare(String(b.moment||b.at||''))}):CL;
   state.clipList=LST;state.clipStream=r;
   var clips=LST.map(function(c,i){var u=safeUrl(c.url);if(!u)return'';var meta=c.views!=null?((chrono&&clipTime(c)?clipTime(c)+' · ':'')+c.views.toLocaleString(LOC)+' '+T('Aufrufe','views')+(c.dur?' · '+c.dur+' s':'')+(c.by?' · '+T('von ','by ')+c.by:'')):new URL(u).hostname.replace(/^www\./,'');var sg=slugOf(u),on=sg&&r.clipPos&&r.clipPos[sg];return '<a class="clip'+(i>=10?' more':'')+'" data-ci="'+i+'"'+(on?' data-slug="'+esc(sg)+'" title="'+T('Auf der Karte markiert','Marked on the map')+'"':'')+' href="'+esc(u)+'" target="_blank" rel="noopener noreferrer"'+(i>=10?' hidden':'')+'>'+clipIcon(c)+'<span class="tt">'+esc(c.title||'Clip')+'<small>'+(on?'📍 ':'')+esc(meta)+' ↗</small></span></a>'}).join('')+(CL.length>10?'<button type="button" class="btn ghost" id="moreclips">'+T('Alle '+CL.length+' Clips anzeigen','Show all '+CL.length+' clips')+'</button>':'');
-  var routeInfo=hasRoute(r)&&!(r.location&&r.location.manual)?'':r.location?'<p class="note routenote">'+(r.location.manual?'⌂ '+esc(r.location.name):T('Ort ungefähr, abgeleitet aus dem Streamtitel: ','Approximate place, taken from the stream title: ')+esc(r.location.name))+'</p>':'';
+  var routeInfo=hasRoute(r)&&!(r.location&&r.location.manual)?'':r.location?'<p class="note routenote">'+(r.location.manual?'⌂ '+esc(r.location.name):r.location.home?'🏰 '+T('Gaming-Stream – Naschii ist zu Hause in ihrer Homebase: ','Gaming stream – Naschii is at home in her base: ')+esc(r.location.name):T('Ort ungefähr, abgeleitet aus dem Streamtitel: ','Approximate place, taken from the stream title: ')+esc(r.location.name))+'</p>':'';
   $('#v-detail').innerHTML=
     '<button type="button" class="back" id="back">'+T('← Alle Streams','← All streams')+'</button>'+
     '<div class="when"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+catTag(r)+routeTag(r)+'</div>'+
