@@ -1029,7 +1029,7 @@ body.presenting #panel,body.presenting .grip,body.presenting .totop{display:none
 .card.has-thumb{display:grid;grid-template-columns:minmax(0,1fr) 124px;gap:12px;align-items:center}
 .cbody{display:block;min-width:0}
 .card .thumb{width:124px;height:70px;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--panel-2)}
-.cat{font:600 10px var(--f-mono);letter-spacing:.06em;text-transform:none;border-radius:4px;padding:1px 6px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line)}
+.cat{font:600 10px var(--f-mono);letter-spacing:.06em;text-transform:none;border-radius:4px;padding:1px 6px;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);white-space:nowrap;display:inline-flex;align-items:center;max-width:100%}
 .tag.livetag{color:#fff;background:#e91916;border-color:#e91916;margin-left:0}
 .cat.irl{background:#f5a9d61f;border-color:#f5a9d680;color:var(--accent)}
 .hero-thumb{position:relative;display:block;margin:10px 0 4px;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/9;max-width:100%;background:var(--panel-2)}
@@ -1079,7 +1079,7 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .tag.warn{color:var(--accent);border-color:var(--accent)}
 .routenote{margin:-4px 0 12px;padding:9px 11px;border:1px dashed var(--line);border-radius:8px}
 .src-note{margin-top:14px}
-.tag{margin-left:auto;font:500 10px var(--f-mono);letter-spacing:.1em;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.tag{margin-left:auto;font:500 10px var(--f-mono);letter-spacing:.1em;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:4px;flex:none}
 
 .back{display:inline-flex;align-items:center;gap:6px;margin:-2px 0 12px;padding:7px 14px 7px 11px;border:1px solid var(--accent);border-radius:999px;background:var(--panel-2);color:var(--fg);font:600 14px var(--f-body);cursor:pointer;box-shadow:0 2px 10px #0004;transition:background .15s,color .15s}
 .back:hover,.back:focus-visible{background:var(--accent);color:var(--accent-ink)}
