@@ -2727,7 +2727,14 @@ document.addEventListener('click',function(e){
     case 'qclear':setQuery('');$('#q').focus();break;
     case 'calbtn':state.view=state.view==='cal'?'list':'cal';renderList();break;
     case 'rndbtn':randomClip();break;
-    case 'moreclips':document.querySelectorAll('.clip.more').forEach(function(x){x.hidden=false});t.remove();break;
+    case 'moreclips':
+      var open=t.dataset.open!=='1';
+      document.querySelectorAll('.clip.more').forEach(function(x){x.hidden=!open});
+      t.dataset.open=open?'1':'';
+      var nAll=document.querySelectorAll('#v-detail .clip').length;
+      t.textContent=open?(state.clipSort==='time'?T('Nur die ersten 10 anzeigen','Show first 10 only'):T('Nur Top 10 anzeigen','Show top 10 only')):T('Alle '+nAll+' Clips anzeigen','Show all '+nAll+' clips');
+      if(!open){var hd=document.querySelector('#v-detail .cliph');if(hd)hd.scrollIntoView({block:'start',behavior:reduceMotion?'auto':'smooth'})}
+      break;
     case 'login':login();break;
     case 'manual-upd':manualUpdate(t);break;
     case 'site-toggle':siteSwitch(t);break;
