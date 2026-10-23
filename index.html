@@ -1084,6 +1084,8 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .dot{width:9px;height:9px;border-radius:50%;flex:none}
 .card h3{font:600 22px/1.1 var(--f-display);letter-spacing:.02em;margin:4px 0 6px;text-wrap:balance}
 .card .m{display:flex;flex-wrap:wrap;gap:4px 14px;font:400 12px var(--f-mono);color:var(--muted)}
+.card .m.mm{flex-direction:column;flex-wrap:nowrap;gap:2px;min-width:0;min-height:32px}
+.card .m.mm>span{display:block;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tag.warn{color:var(--accent);border-color:var(--accent)}
 .routenote{margin:-4px 0 12px;padding:9px 11px;border:1px dashed var(--line);border-radius:8px}
 .src-note{margin-top:14px}
@@ -1723,7 +1725,7 @@ function renderList(){
     return '<button type="button" class="card'+(side?' has-thumb':'')+'" data-id="'+esc(r.id)+'" aria-pressed="'+(r.id===state.selectedId)+'"><span class="cbody">'+
       '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDateShort(r.date))+' · '+esc(r.start||'')+liveTag(r)+routeTag(r)+'</div>'+
       '<h3>'+esc(r.title)+'</h3>'+
-      '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+(r.clips.length===1?' Clip':' Clips')+'</span>':'')+(function(){var n=q.length>=2?(r.clips||[]).filter(function(c){return clipMatch(c,q)}).length:0;return n?'<span class="hl">🎬 '+n+T(' passend',' matching')+'</span>':''})()+'</div></span>'+side+'</button>';
+      '<div class="m mm"><span class="m1">'+esc(fmtDur(r.durationMin))+((r.clips||[]).length?' · '+r.clips.length+(r.clips.length===1?' Clip':' Clips'):'')+(function(){var n=q.length>=2?(r.clips||[]).filter(function(c){return clipMatch(c,q)}).length:0;return n?' · <span class="hl">🎬 '+n+T(' passend',' matching')+'</span>':''})()+'</span>'+(r.location?'<span class="m2" title="'+esc(r.location.name)+'">📍 '+esc(r.location.name)+'</span>':'')+'</div></span>'+side+'</button>';
   }).join(''):'<p class="empty">'+(DATA_LOADED||location.protocol==='file:'?T('Keine Streams gefunden.','No streams found.'):'<span class="loading">'+T('Lade Streams …','Loading streams …')+'</span>')+'</p>';
   $('#listhint').textContent=canEdit(state.user)?'':(state.user?T('Nur Kanalbetreiber, Mods und Berechtigte können Routen bearbeiten.','Only the channel owner, mods and authorised people can edit routes.'):T('Kanalbetreiber, Mods und Berechtigte können sich mit Twitch anmelden, um Routen zu ergänzen.','The channel owner, mods and authorised people can log in with Twitch to add routes.'));
   $('#listhint').hidden=!SHOW_LOGIN||canEdit(state.user);
