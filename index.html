@@ -2160,10 +2160,18 @@ function parseRouteXml(text){
   var tag=function(el,n){return el.getElementsByTagNameNS?el.getElementsByTagNameNS('*',n):el.getElementsByTagName(n)};
   var txt=function(el,n){var e=tag(el,n)[0];return e?e.textContent.trim():''};
   var ok=function(a,b){return isFinite(a)&&isFinite(b)&&Math.abs(a)<=90&&Math.abs(b)<=180};
-  var pts=[],stops=[],times=[];
+  var segs=[],stops=[],times=[],pts=[];
+  var newSeg=function(){if(pts.length)segs.push(pts);pts=[]};
   if(doc.documentElement.localName==='gpx'){
-    var tp=tag(doc,'trkpt');if(!tp.length)tp=tag(doc,'rtept');
-    for(var i=0;i<tp.length;i++){var la=parseFloat(tp[i].getAttribute('lat')),lo=parseFloat(tp[i].getAttribute('lon'));if(ok(la,lo)){pts.push([la,lo]);var tm=txt(tp[i],'time');if(tm)times.push(tm)}}
+    // Jedes Teilstück (trkseg/rte) bleibt ein eigenes Stück – so gehen auch Routen mit Lücken (z. B. Buchstaben)
+    var groups=tag(doc,'trkseg');if(!groups.length)groups=tag(doc,'trk');if(!groups.length)groups=tag(doc,'rte');
+    var grpList=groups.length?groups:[doc];
+    for(var gi=0;gi<grpList.length;gi++){
+      newSeg();
+      var tp=tag(grpList[gi],'trkpt');if(!tp.length)tp=tag(grpList[gi],'rtept');
+      for(var i=0;i<tp.length;i++){var la=parseFloat(tp[i].getAttribute('lat')),lo=parseFloat(tp[i].getAttribute('lon'));if(ok(la,lo)){pts.push([la,lo]);var tm=txt(tp[i],'time');if(tm)times.push(tm)}}
+    }
+    newSeg();
     var wp=tag(doc,'wpt');
     for(var j=0;j<wp.length;j++){var a=parseFloat(wp[j].getAttribute('lat')),b=parseFloat(wp[j].getAttribute('lon'));if(ok(a,b))stops.push({lat:a,lng:b,name:txt(wp[j],'name')})}
   }else{
@@ -2171,19 +2179,25 @@ function parseRouteXml(text){
     for(var m=0;m<pms.length;m++){
       var pm=pms[m],ls=tag(pm,'LineString'),gx=tag(pm,'coord');
       for(var q=0;q<ls.length;q++){
+        newSeg();
         txt(ls[q],'coordinates').split(/\s+/).forEach(function(c){var v=c.split(',');var lo=parseFloat(v[0]),la=parseFloat(v[1]);if(ok(la,lo))pts.push([la,lo])});
       }
+      if(gx.length)newSeg();
       for(var g=0;g<gx.length;g++){var v=gx[g].textContent.trim().split(/\s+/),lo2=parseFloat(v[0]),la2=parseFloat(v[1]);if(ok(la2,lo2))pts.push([la2,lo2])}
       if(!ls.length&&!gx.length){var pt=tag(pm,'Point')[0];if(pt){var c2=txt(pt,'coordinates').split(','),lo3=parseFloat(c2[0]),la3=parseFloat(c2[1]);if(ok(la3,lo3))stops.push({lat:la3,lng:lo3,name:txt(pm,'name')})}}
     }
   }
-  if(pts.length<2)throw new Error(T('In der Datei ist keine Strecke (Linie) enthalten.','The file contains no track (line).'));
+  newSeg();segs=segs.filter(function(x){return x.length>1});
+  if(!segs.length)throw new Error(T('In der Datei ist keine Strecke (Linie) enthalten.','The file contains no track (line).'));
   // Vereinfachen: Punkte, die weniger als ~2 m von der Linie abweichen, fallen weg (max. 1500 Punkte)
-  var lat0=pts[0][0]*Math.PI/180,kx=111320*Math.cos(lat0),ky=110540;
-  var proj=pts.map(function(p){return L.point(p[1]*kx,p[0]*ky)}),tol=2,s=proj;
-  do{s=L.LineUtil.simplify(proj,tol);tol*=1.6}while(s.length>1500);
-  pts=s.map(function(q){return [+(q.y/ky).toFixed(6),+(q.x/kx).toFixed(6)]});
-  return {points:pts,stops:stops.slice(0,60).map(function(x){return {lat:+x.lat.toFixed(6),lng:+x.lng.toFixed(6),name:(x.name||'').slice(0,60)}}),times:times};
+  var lat0=segs[0][0][0]*Math.PI/180,kx=111320*Math.cos(lat0),ky=110540,tol=2,out,br;
+  do{
+    out=[];br=[];
+    segs.forEach(function(sg){var proj=sg.map(function(p){return L.point(p[1]*kx,p[0]*ky)}),sm=L.LineUtil.simplify(proj,tol);if(out.length)br.push(out.length);sm.forEach(function(q){out.push([+(q.y/ky).toFixed(6),+(q.x/kx).toFixed(6)])})});
+    tol*=1.6;
+  }while(out.length>1500);
+  pts=out;
+  return {points:pts,breaks:br,stops:stops.slice(0,60).map(function(x){return {lat:+x.lat.toFixed(6),lng:+x.lng.toFixed(6),name:(x.name||'').slice(0,60)}}),times:times};
 }
 // Nach dem Import: Ortsnamen zur Route vorschlagen (OpenStreetMap, sonst nächster Ort aus der eigenen Ortsliste)
 function suggestPlace(pts){
@@ -2215,10 +2229,10 @@ function importRouteFile(f){
   var isKmz=/\.kmz$/i.test(f.name);
   (isKmz?f.arrayBuffer().then(unzipFirstKml):f.text()).then(function(text){
     var g=parseRouteXml(text);
-    pushUndo();ed.points=g.points;ed.breaks=[];if(g.stops.length)ed.stops=g.stops;ed.draftId=null;
+    pushUndo();ed.points=g.points;ed.breaks=g.breaks||[];if(g.stops.length)ed.stops=g.stops;ed.draftId=null;
     renderEd();
     map.fitBounds(L.latLngBounds(g.points),{padding:[50,50],maxZoom:17});
-    var km=0;for(var i=1;i<g.points.length;i++)km+=map.distance(g.points[i-1],g.points[i])/1000;
+    var km=dist(g.points,g.breaks||[]);
     suggestPlace(g.points);
     toast(T('Route importiert: ','Route imported: ')+km.toLocaleString(LOC,{maximumFractionDigits:1})+' km'+(g.stops.length?' · '+g.stops.length+(g.stops.length===1?T(' Station',' stop'):T(' Stationen',' stops')):'')+T(' – jetzt prüfen und speichern. ↶ macht es rückgängig.',' – check it and save. ↶ undoes it.'));
   }).catch(function(ex){toast((ex&&ex.message)||T('Die Datei konnte nicht gelesen werden.','The file could not be read.'))});
