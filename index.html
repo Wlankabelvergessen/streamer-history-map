@@ -987,6 +987,14 @@ body.presenting #panel,body.presenting .grip,body.presenting .totop{display:none
 .pb-all button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:#ffffff12;font-size:12px;color:#fff}
 .pb-all button:hover{background:#ffffff26}
 @media (max-width:820px){.presbar{top:8px;left:56px;right:8px;transform:none;max-width:none;flex-wrap:wrap;justify-content:center;gap:6px;padding:6px}.pb-t{flex:1}.pb-ctl{flex-basis:100%;justify-content:center}.pb-t b{font-size:16px}.pb-t span{display:none}.pb-nav{width:34px;height:34px;font-size:22px}}
+.thought{position:fixed;z-index:900;max-width:340px;padding:14px 18px 15px;background:var(--panel);color:var(--fg);border:1.5px solid var(--accent);border-radius:26px;box-shadow:0 10px 30px #000a,0 0 0 4px #f5a9d61a;pointer-events:none;opacity:0;transform:translateX(-6px) scale(.97);transform-origin:left center;transition:opacity .14s ease,transform .14s ease}
+.thought.on{opacity:1;transform:none}
+.thought small{display:block;margin-bottom:5px;font:500 10px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thought p{margin:0;font-size:14px;line-height:1.5}
+.thought i{position:absolute;border-radius:50%;background:var(--panel);border:1.5px solid var(--accent)}
+.thought i.b1{width:14px;height:14px;left:-12px;top:calc(var(--ty,50%) - 7px)}
+.thought i.b2{width:8px;height:8px;left:-26px;top:calc(var(--ty,50%) + 1px)}
+@media (prefers-reduced-motion:reduce){.thought{transition:none}}
 .castle .isle{display:none;position:absolute;left:-107px;top:2px;width:290px;height:155px;z-index:-1;pointer-events:none}
 #map.z-near .castle .isle{display:block}
 #map.z-near .castle{filter:drop-shadow(0 4px 8px #000b)}
@@ -2730,6 +2738,34 @@ $('#q').addEventListener('keydown',function(e){if(e.key==='Escape'&&e.target.val
 $('#flt').addEventListener('change',function(e){state.filter=e.target.value;renderList()});
 $('#cat').addEventListener('change',function(e){state.cat=e.target.value;renderList();$('#panel').scrollTop=0});
 $('#srt').addEventListener('change',function(e){state.sort=e.target.value;renderList();$('#panel').scrollTop=0});
+
+/* ---------- Gedankenblase: Beschreibung beim Drüberfahren in der Liste (nur mit Maus, am PC) ---------- */
+(function(){
+  var mq=window.matchMedia&&window.matchMedia('(hover:hover) and (pointer:fine) and (min-width:821px)');
+  var box=null,tmr=0,cur=null;
+  function hide(){clearTimeout(tmr);cur=null;if(box)box.classList.remove('on')}
+  function show(card){
+    var r=byId(card.dataset.id);if(!r||!r.desc||state.editing||document.body.classList.contains('doc'))return;
+    if(!box){box=document.createElement('div');box.className='thought';box.setAttribute('aria-hidden','true');document.body.appendChild(box)}
+    box.innerHTML='<i class="b1"></i><i class="b2"></i><small>'+esc(r.title)+'</small><p>'+esc(r.desc)+'</p>';
+    var cr=card.getBoundingClientRect(),pr=$('#panel').getBoundingClientRect(),mr=$('#map').getBoundingClientRect();
+    var left=pr.right+30;box.style.left=left+'px';box.style.maxWidth=Math.max(220,Math.min(360,mr.right-left-16))+'px';
+    var h=box.offsetHeight,cy=cr.top+cr.height/2,top=Math.max(mr.top+10,Math.min(cy-h/2,mr.bottom-h-10));
+    box.style.top=top+'px';box.style.setProperty('--ty',Math.max(16,Math.min(h-24,cy-top))+'px');
+    requestAnimationFrame(function(){if(cur===card)box.classList.add('on')});
+  }
+  var list=$('#list');
+  list.addEventListener('mouseover',function(e){
+    if(!mq||!mq.matches)return;var c=e.target.closest('.card');if(!c||c===cur)return;
+    hide();cur=c;tmr=setTimeout(function(){if(cur===c)show(c)},300);
+  });
+  list.addEventListener('mouseleave',hide);
+  list.addEventListener('mouseout',function(e){var c=e.target.closest('.card');if(c&&!c.contains(e.relatedTarget))hide()});
+  list.addEventListener('click',hide);
+  $('#panel').addEventListener('scroll',hide,{passive:true});
+  window.addEventListener('resize',hide);
+})();
+
 /* ---------- Daten laden (beim Start und nach dem Update-Knopf) ---------- */
 function loadData(first){
   if(location.protocol==='file:'||!window.fetch)return Promise.resolve();
