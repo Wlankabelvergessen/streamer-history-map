@@ -2339,7 +2339,7 @@ function draftsHtml(){
   if(!CONFIG.saveUrl)return '';
   var all=ed.drafts,cur=ed.draftId&&findDraft(ed.draftId),L0=all?all.filter(function(d){return !d.backup}):null,bk=all?all.filter(function(d){return d.backup})[0]:null,n=L0?L0.length:0;
   var pub=routeFor(ed.id),hasPub=pub&&((pub.points&&pub.points.length>1)||(pub.stops&&pub.stops.length)||Object.keys(pub.clips||{}).length||pub.desc||pub.loc);
-  var pubRow=(ed.draftId||ed.fromBackup)?'<div class="dlist"><div class="drow pub"><i>🌐</i><span class="dn"><b>'+T('Veröffentlichte Route','Published route')+'</b><small>'+(hasPub?T('die Route, die Besucher gerade sehen','the route visitors currently see'):T('noch keine – der Stream hat keine Route','none yet – the stream has no route'))+'</small></span><button type="button" class="btn sm" id="ed-dpub" title="'+T('Zurück zur veröffentlichten Route','Back to the published route')+'">'+T('Laden','Load')+'</button></div></div>':'';
+  var pubRow=(ed.draftId||ed.fromBackup||ed.newDraft)?'<div class="dlist"><div class="drow pub"><i>🌐</i><span class="dn"><b>'+T('Veröffentlichte Route','Published route')+'</b><small>'+(hasPub?T('die Route, die Besucher gerade sehen','the route visitors currently see'):T('noch keine – der Stream hat keine Route','none yet – the stream has no route'))+'</small></span><button type="button" class="btn sm" id="ed-dpub" title="'+T('Zurück zur veröffentlichten Route','Back to the published route')+'">'+T('Laden','Load')+'</button></div></div>':'';
   var list=L0===null?'<p class="help">'+T('Lade Entwürfe …','Loading drafts …')+'</p>':pubRow+
     (ed.draftsErr?'<p class="help">'+esc(ed.draftsErr)+'</p>':'')+
     (n?'<div class="dlist">'+L0.map(function(d,i){
@@ -2354,8 +2354,9 @@ function draftsHtml(){
   return '<div class="sec drafts"><h3>'+T('Entwürfe','Drafts')+' <span>'+n+' / '+MAX_DRAFTS+T(' · nur für Bearbeiter',' · editors only')+'</span></h3>'+list+
     '<div class="drow-in"><input type="text" id="ed-dname" maxlength="60" placeholder="'+T('Name, z. B. Variante A – über den Markt','Name, e.g. Variant A – via the market')+'" value="'+esc(nm)+'"></div>'+
     '<div class="row">'+
+      '<button type="button" class="btn" id="ed-dnewblank" title="'+T('Leere Karte für eine neue Variante – die veröffentlichte Route bleibt, wie sie ist','Blank map for a new variant – the published route stays as it is')+'">'+T('＋ Neuer Entwurf','＋ New draft')+'</button>'+
       '<button type="button" class="btn" id="ed-dsave"'+(ed.draftBusy?' disabled':'')+'>'+(ed.draftBusy?T('Speichere …','Saving …'):(cur?T('💾 Entwurf aktualisieren','💾 Update draft'):T('💾 Als Entwurf speichern','💾 Save as draft')))+'</button>'+
-      (cur?'<button type="button" class="btn" id="ed-dnew"'+(ed.draftBusy?' disabled':'')+'>'+T('+ Als neuen Entwurf','+ As new draft')+'</button>':'')+
+      (cur?'<button type="button" class="btn" id="ed-dnew"'+(ed.draftBusy?' disabled':'')+'>'+T('⧉ Als Kopie speichern','⧉ Save as copy')+'</button>':'')+
       (n?'<button type="button" class="btn" id="ed-dpres">'+T('🎬 Präsentieren','🎬 Present')+'</button>':'')+
     '</div><p class="help">'+(cur?T('Geladen: „','Loaded: “')+esc(cur.name)+T('“. ','”. '):'')+T('„Speichern“ ganz unten veröffentlicht die Route, die gerade im Editor ist.','“Save” at the bottom publishes the route currently in the editor.')+'</p></div>';
 }
@@ -2369,7 +2370,7 @@ function saveDraft(asNew){
   if(asNew&&upd&&name===upd.name)name=nx;
   ed.draftBusy=true;renderEdPanel();
   draftCall({action:'draft-save',id:ed.id,draft:{did:upd?upd.did:undefined,name:name,route:route}}).then(function(j){
-    if(!ed)return;ed.drafts=j.drafts||[];ed.draftId=j.did||null;ed.dname='';ed.draftBusy=false;ed.dirty=false;renderEdPanel();
+    if(!ed)return;ed.drafts=j.drafts||[];ed.draftId=j.did||null;ed.newDraft=false;ed.dname='';ed.draftBusy=false;ed.dirty=false;renderEdPanel();
     toast(T('Entwurf „','Draft “')+name+T('“ gespeichert. Nur für Bearbeiter sichtbar.','” saved. Visible to editors only.'));
   }).catch(function(e){if(ed){ed.draftBusy=false;renderEdPanel()}draftErr(e)});
 }
@@ -2378,7 +2379,7 @@ function loadDraftInto(d){
   ed.points=(r.points||[]).map(function(x){return x.slice()});ed.breaks=(r.breaks||[]).slice();
   ed.stops=(r.stops||[]).map(function(x){return {lat:x.lat,lng:x.lng,name:x.name||''}});
   ed.clips=JSON.parse(JSON.stringify(r.clips||{}));ed.desc=r.desc||'';ed.loc=r.loc?{name:r.loc.name,lat:r.loc.lat,lng:r.loc.lng}:null;ed.locName='';
-  ed.draftId=d.backup?null:d.did;ed.fromBackup=!!d.backup;ed.dname='';ed.dirty=!!d.backup;renderEd();
+  ed.newDraft=false;ed.draftId=d.backup?null:d.did;ed.fromBackup=!!d.backup;ed.dname='';ed.dirty=!!d.backup;renderEd();
   var pts=ed.points.slice();ed.stops.forEach(function(x){pts.push([x.lat,x.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
   if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16});else if(pts.length)map.setView(pts[0],15);
   toast(T('Entwurf „','Draft “')+(d.name||'')+T('“ geladen. ↶ holt die vorige Zeichnung zurück.','” loaded. ↶ brings back the previous drawing.'));
@@ -2388,7 +2389,7 @@ function loadPublished(){
   ed.points=(rt.points||[]).map(function(x){return x.slice()});ed.breaks=(rt.breaks||[]).slice();
   ed.stops=(rt.stops||[]).map(function(x){return {lat:x.lat,lng:x.lng,name:x.name||''}});
   ed.clips=JSON.parse(JSON.stringify(rt.clips||{}));ed.desc=rt.desc||'';ed.loc=rt.loc?{name:rt.loc.name,lat:rt.loc.lat,lng:rt.loc.lng}:null;ed.locName='';
-  ed.draftId=null;ed.fromBackup=false;ed.dname='';ed.dirty=false;renderEd();
+  ed.draftId=null;ed.fromBackup=false;ed.newDraft=false;ed.dname='';ed.dirty=false;renderEd();
   var pts=ed.points.slice();ed.stops.forEach(function(x){pts.push([x.lat,x.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
   if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16});else if(pts.length)map.setView(pts[0],15);else if(r.location)map.setView([r.location.lat,r.location.lng],14);
   toast(T('Veröffentlichte Route geladen. ↶ holt den Entwurf zurück.','Published route loaded. ↶ brings the draft back.'));
@@ -2475,6 +2476,12 @@ $('#panel').addEventListener('click',function(e){
   switch(b.id){
     case 'ed-dsave':saveDraft(false);break;
     case 'ed-dpub':loadPublished();break;
+    case 'ed-dnewblank':
+      if(realDrafts().length>=MAX_DRAFTS){toast(T('Schon 10 Entwürfe. Bitte erst einen löschen.','Already 10 drafts. Please delete one first.'));break}
+      pushUndo();ed.points=[];ed.breaks=[];ed.stops=[];ed.clips={};ed.draftId=null;ed.fromBackup=false;ed.newDraft=true;ed.dname='';ed.dirty=false;setMode('points');renderEd();
+      setTimeout(function(){var i=$('#ed-dname');if(i)i.focus()},50);
+      toast(T('Leere Karte für einen neuen Entwurf. Namen eintragen, zeichnen, dann „Als Entwurf speichern“. Die veröffentlichte Route bleibt unverändert.','Blank map for a new draft. Enter a name, draw, then “Save as draft”. The published route stays unchanged.'));
+      break;
     case 'ed-dnew':saveDraft(true);break;
     case 'ed-dpres':startPresent(0);break;
     case 'ed-locset':ed.armLoc=!ed.armLoc;ed.armed=null;$('#map').classList.toggle('armed',ed.armLoc);renderEdPanel();if(ed.armLoc)toast(T('Jetzt auf die Karte klicken, wo der Ort liegt.','Now click the map where the place is.'));break;
