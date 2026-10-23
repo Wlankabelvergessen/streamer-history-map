@@ -1442,6 +1442,7 @@ function segsOf(p,br){if(!br||!br.length)return p;var cut={},s=[],cur=[];br.forE
 function fmtKm(k){return k.toLocaleString(LOC,{minimumFractionDigits:1,maximumFractionDigits:1})+' km'}
 function fmtDur(m){var h=Math.floor(m/60),r=m%60;return (h?h+T(' Std. ',' h '):'')+(r||!h?r+T(' Min.',' min'):'')}
 function fmtDate(iso){var d=new Date(iso+'T12:00:00');if(isNaN(d))return iso;return d.toLocaleDateString(LOC,{weekday:'short',day:'2-digit',month:'long',year:'numeric'})}
+function fmtDateShort(iso){var d=new Date(iso+'T12:00:00');if(isNaN(d))return iso;return d.toLocaleDateString(LOC,{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}
 function addMin(t,m){var a=(t||'00:00').split(':');var x=(parseInt(a[0],10)*60+parseInt(a[1],10)+m)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')}
 function pad2(n){return String(n).padStart(2,'0')}
 var toastTimer;
@@ -1720,7 +1721,7 @@ function renderList(){
     var th=thumbOf(r);
     var side=cardSide(r,th);
     return '<button type="button" class="card'+(side?' has-thumb':'')+'" data-id="'+esc(r.id)+'" aria-pressed="'+(r.id===state.selectedId)+'"><span class="cbody">'+
-      '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDate(r.date))+' · '+esc(r.start||'')+liveTag(r)+routeTag(r)+'</div>'+
+      '<div class="d"><span class="dot" style="background:'+r.color+'"></span>'+esc(fmtDateShort(r.date))+' · '+esc(r.start||'')+liveTag(r)+routeTag(r)+'</div>'+
       '<h3>'+esc(r.title)+'</h3>'+
       '<div class="m"><span>'+esc(fmtDur(r.durationMin))+'</span>'+(r.location?'<span>'+esc(r.location.name)+'</span>':'')+((r.clips||[]).length?'<span>'+r.clips.length+(r.clips.length===1?' Clip':' Clips')+'</span>':'')+(function(){var n=q.length>=2?(r.clips||[]).filter(function(c){return clipMatch(c,q)}).length:0;return n?'<span class="hl">🎬 '+n+T(' passend',' matching')+'</span>':''})()+'</div></span>'+side+'</button>';
   }).join(''):'<p class="empty">'+(DATA_LOADED||location.protocol==='file:'?T('Keine Streams gefunden.','No streams found.'):'<span class="loading">'+T('Lade Streams …','Loading streams …')+'</span>')+'</p>';
