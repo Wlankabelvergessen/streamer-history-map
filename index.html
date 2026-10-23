@@ -2365,7 +2365,7 @@ function saveDraft(asNew){
   if(asNew&&upd&&name===upd.name)name=nx;
   ed.draftBusy=true;renderEdPanel();
   draftCall({action:'draft-save',id:ed.id,draft:{did:upd?upd.did:undefined,name:name,route:route}}).then(function(j){
-    if(!ed)return;ed.drafts=j.drafts||[];ed.draftId=j.did||null;ed.dname='';ed.draftBusy=false;renderEdPanel();
+    if(!ed)return;ed.drafts=j.drafts||[];ed.draftId=j.did||null;ed.dname='';ed.draftBusy=false;ed.dirty=false;renderEdPanel();
     toast(T('Entwurf „','Draft “')+name+T('“ gespeichert. Nur für Bearbeiter sichtbar.','” saved. Visible to editors only.'));
   }).catch(function(e){if(ed){ed.draftBusy=false;renderEdPanel()}draftErr(e)});
 }
@@ -2374,7 +2374,7 @@ function loadDraftInto(d){
   ed.points=(r.points||[]).map(function(x){return x.slice()});ed.breaks=(r.breaks||[]).slice();
   ed.stops=(r.stops||[]).map(function(x){return {lat:x.lat,lng:x.lng,name:x.name||''}});
   ed.clips=JSON.parse(JSON.stringify(r.clips||{}));ed.desc=r.desc||'';ed.loc=r.loc?{name:r.loc.name,lat:r.loc.lat,lng:r.loc.lng}:null;ed.locName='';
-  ed.draftId=d.backup?null:d.did;ed.dname='';ed.dirty=true;renderEd();
+  ed.draftId=d.backup?null:d.did;ed.dname='';ed.dirty=!!d.backup;renderEd();
   var pts=ed.points.slice();ed.stops.forEach(function(x){pts.push([x.lat,x.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
   if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16});else if(pts.length)map.setView(pts[0],15);
   toast(T('Entwurf „','Draft “')+(d.name||'')+T('“ geladen. ↶ holt die vorige Zeichnung zurück.','” loaded. ↶ brings back the previous drawing.'));
