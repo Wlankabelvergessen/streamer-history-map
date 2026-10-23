@@ -961,7 +961,8 @@ body.editing .kevin-rail{visibility:hidden}
 .drow.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
 .drow>i{flex:none;width:10px;height:10px;border-radius:50%}
 .drow.bk{border-style:dashed}
-.drow.bk>i{width:auto;height:auto;font-style:normal;font-size:15px}
+.drow.pub{border-color:#5fd38d88}
+.drow.bk>i,.drow.pub>i{width:auto;height:auto;font-style:normal;font-size:15px}
 .drow .dn{flex:1;min-width:0;display:flex;flex-direction:column}
 .drow .dn b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .drow .dn small{font:400 11px var(--f-mono);color:var(--muted)}
@@ -2336,7 +2337,9 @@ function draftWhen(iso){var d=new Date(iso);return isNaN(d)?'':d.toLocaleString(
 function draftsHtml(){
   if(!CONFIG.saveUrl)return '';
   var all=ed.drafts,cur=ed.draftId&&findDraft(ed.draftId),L0=all?all.filter(function(d){return !d.backup}):null,bk=all?all.filter(function(d){return d.backup})[0]:null,n=L0?L0.length:0;
-  var list=L0===null?'<p class="help">'+T('Lade Entwürfe …','Loading drafts …')+'</p>':
+  var pub=routeFor(ed.id),hasPub=pub&&((pub.points&&pub.points.length>1)||(pub.stops&&pub.stops.length)||Object.keys(pub.clips||{}).length||pub.desc||pub.loc);
+  var pubRow=(ed.draftId||ed.fromBackup)?'<div class="dlist"><div class="drow pub"><i>🌐</i><span class="dn"><b>'+T('Veröffentlichte Route','Published route')+'</b><small>'+(hasPub?T('die Route, die Besucher gerade sehen','the route visitors currently see'):T('noch keine – der Stream hat keine Route','none yet – the stream has no route'))+'</small></span><button type="button" class="btn sm" id="ed-dpub" title="'+T('Zurück zur veröffentlichten Route','Back to the published route')+'">'+T('Laden','Load')+'</button></div></div>':'';
+  var list=L0===null?'<p class="help">'+T('Lade Entwürfe …','Loading drafts …')+'</p>':pubRow+
     (ed.draftsErr?'<p class="help">'+esc(ed.draftsErr)+'</p>':'')+
     (n?'<div class="dlist">'+L0.map(function(d,i){
       return '<div class="drow'+(d.did===ed.draftId?' cur':'')+'"><i style="background:'+PALETTE[i%PALETTE.length]+'"></i><span class="dn"><b>'+esc(d.name||'Entwurf')+'</b><small>'+esc([d.by?T('von ','by ')+d.by:'',draftWhen(d.at),(d.route&&d.route.points?d.route.points.length:0)+T(' Punkte',' points'),Object.keys(d.route&&d.route.clips||{}).length+' Clips'].filter(Boolean).join(' · '))+'</small></span>'+
@@ -2374,10 +2377,20 @@ function loadDraftInto(d){
   ed.points=(r.points||[]).map(function(x){return x.slice()});ed.breaks=(r.breaks||[]).slice();
   ed.stops=(r.stops||[]).map(function(x){return {lat:x.lat,lng:x.lng,name:x.name||''}});
   ed.clips=JSON.parse(JSON.stringify(r.clips||{}));ed.desc=r.desc||'';ed.loc=r.loc?{name:r.loc.name,lat:r.loc.lat,lng:r.loc.lng}:null;ed.locName='';
-  ed.draftId=d.backup?null:d.did;ed.dname='';ed.dirty=!!d.backup;renderEd();
+  ed.draftId=d.backup?null:d.did;ed.fromBackup=!!d.backup;ed.dname='';ed.dirty=!!d.backup;renderEd();
   var pts=ed.points.slice();ed.stops.forEach(function(x){pts.push([x.lat,x.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
   if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16});else if(pts.length)map.setView(pts[0],15);
   toast(T('Entwurf „','Draft “')+(d.name||'')+T('“ geladen. ↶ holt die vorige Zeichnung zurück.','” loaded. ↶ brings back the previous drawing.'));
+}
+function loadPublished(){
+  var r=ed.r,rt=routeFor(ed.id)||{};pushUndo();
+  ed.points=(rt.points||[]).map(function(x){return x.slice()});ed.breaks=(rt.breaks||[]).slice();
+  ed.stops=(rt.stops||[]).map(function(x){return {lat:x.lat,lng:x.lng,name:x.name||''}});
+  ed.clips=JSON.parse(JSON.stringify(rt.clips||{}));ed.desc=rt.desc||'';ed.loc=rt.loc?{name:rt.loc.name,lat:rt.loc.lat,lng:rt.loc.lng}:null;ed.locName='';
+  ed.draftId=null;ed.fromBackup=false;ed.dname='';ed.dirty=false;renderEd();
+  var pts=ed.points.slice();ed.stops.forEach(function(x){pts.push([x.lat,x.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
+  if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16});else if(pts.length)map.setView(pts[0],15);else if(r.location)map.setView([r.location.lat,r.location.lng],14);
+  toast(T('Veröffentlichte Route geladen. ↶ holt den Entwurf zurück.','Published route loaded. ↶ brings the draft back.'));
 }
 function delDraft(did){
   draftCall({action:'draft-del',id:ed.id,did:did}).then(function(j){if(!ed)return;ed.drafts=j.drafts||[];if(ed.draftId===did)ed.draftId=null;renderEdPanel();toast(T('Entwurf gelöscht.','Draft deleted.'))}).catch(draftErr);
@@ -2460,6 +2473,7 @@ $('#panel').addEventListener('click',function(e){
   var b=t.closest('button');if(!b)return;
   switch(b.id){
     case 'ed-dsave':saveDraft(false);break;
+    case 'ed-dpub':loadPublished();break;
     case 'ed-dnew':saveDraft(true);break;
     case 'ed-dpres':startPresent(0);break;
     case 'ed-locset':ed.armLoc=!ed.armLoc;ed.armed=null;$('#map').classList.toggle('armed',ed.armLoc);renderEdPanel();if(ed.armLoc)toast(T('Jetzt auf die Karte klicken, wo der Ort liegt.','Now click the map where the place is.'));break;
