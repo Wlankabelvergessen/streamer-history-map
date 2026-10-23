@@ -1483,9 +1483,9 @@ function buildRoutes(){
 function applyExtra(x,rt){
   x.desc=rt&&typeof rt.desc==='string'&&rt.desc?rt.desc:x._autoDesc;
   x.location=rt&&rt.loc&&isFinite(rt.loc.lat)?{name:rt.loc.name,lat:rt.loc.lat,lng:rt.loc.lng,manual:true}:x._autoLoc;
-  // Gaming-Streams ohne Ort im Titel: Naschii ist zu Hause – in ihrer Burg
+  // Gaming- und Just-Chatting-Streams ohne Ort im Titel: Naschii ist zu Hause – in ihrer Burg
   var h=homeLoc();
-  if(!x.location&&isGame(x.category))x.location={name:h.name,lat:h.lat,lng:h.lng,home:true};
+  if(!x.location&&(isGame(x.category)||x.category==='Just Chatting'))x.location={name:h.name,lat:h.lat,lng:h.lng,home:true};
   // Die Burg steht fest: auch ein von Hand gesetzter Ort mit „Castle“ im Namen landet immer an derselben Stelle
   else if(x.location&&isHome(x.location.name)){x.location.name=h.name;x.location.lat=h.lat;x.location.lng=h.lng}
 }
