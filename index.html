@@ -1258,7 +1258,8 @@ body.site-off main.app,body.site-off .rail,body.site-off #stats,body.site-off #u
 .chipbtn[aria-pressed="true"]{border-color:var(--accent);background:#f5a9d61f;color:var(--accent)}
 #cliphits:empty{display:none}
 #cliphits{margin:8px 16px 4px;border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden}
-.ch-head{display:flex;align-items:center;gap:8px;padding:8px 12px;font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-bottom:1px solid var(--line)}
+.ch-seg{text-transform:none;letter-spacing:0}
+.ch-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;font:600 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border-bottom:1px solid var(--line)}
 .ch-item{all:unset;box-sizing:border-box;display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;align-items:center;width:100%;padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer}
 .ch-item:hover,.ch-item:focus-visible{background:#f5a9d614}
 .ch-item img,.ch-item .ph{width:72px;height:41px;border-radius:5px;object-fit:cover;background:linear-gradient(135deg,#3b1d40,#9146ff)}
@@ -1713,7 +1714,10 @@ function renderList(){
   state.rows=rows;
   var hits=[];
   if(q.length>=2)rows.forEach(function(r){(r.clips||[]).forEach(function(c){if(clipMatch(c,q))hits.push({c:c,r:r})})});
-  hits.sort(function(a,b){return (b.c.views||0)-(a.c.views||0)});
+  // Sortierung der Clip-Treffer: eigene Wahl oder passend zur Stream-Sortierung (Neueste/Älteste, bei „Längste“ nach Aufrufen)
+  var hs=state.hitSort||(srt==='old'?'old':srt==='time'?'top':'new');state.hitSortCur=hs;
+  var ck=function(x){return x.c.at||x.c.moment||(x.r.date+'T'+(x.r.start||'00:00'))};
+  hits.sort(function(a,b){if(hs==='top')return (b.c.views||0)-(a.c.views||0);var ka=ck(a),kb=ck(b);return hs==='old'?(ka<kb?-1:ka>kb?1:0):(ka<kb?1:ka>kb?-1:0)});
   state.clipHits=hits;
   $('#count').innerHTML=!DATA_LOADED&&!state.routes.length?'':'<span>'+(rows.length===state.routes.length?'':rows.length+T(' von ',' of '))+state.routes.length+' Streams</span>'+(hits.length?' <span>· '+hits.length.toLocaleString(LOC)+(hits.length===1?' Clip':' Clips')+'</span>':'');
   renderMemo();renderClipHits(q);
@@ -1737,7 +1741,9 @@ function renderClipHits(q){
   var box=$('#cliphits'),h=state.clipHits||[];
   if(!h.length||state.view==='cal'){box.innerHTML='';return}
   var show=state.clipAll?h.length:Math.min(h.length,5);
-  box.innerHTML='<div class="ch-head">🎬 '+h.length.toLocaleString(LOC)+(h.length===1?T(' passender Clip',' matching clip'):T(' passende Clips',' matching clips'))+'</div>'+
+  var hs=state.hitSortCur||'new',sb=function(k,l){return '<button type="button" data-hsort="'+k+'" aria-pressed="'+(hs===k)+'">'+l+'</button>'};
+  box.innerHTML='<div class="ch-head"><span>🎬 '+h.length.toLocaleString(LOC)+(h.length===1?T(' passender Clip',' matching clip'):T(' passende Clips',' matching clips'))+'</span>'+
+    (h.length>1?'<span class="seg ch-seg" role="group" aria-label="'+T('Clip-Treffer sortieren','Sort matching clips')+'">'+sb('new',T('Neueste','Newest'))+sb('old',T('Älteste','Oldest'))+sb('top',T('Beliebteste','Most viewed'))+'</span>':'')+'</div>'+
     h.slice(0,show).map(function(x,i){var th=x.c.thumb&&safeUrl(x.c.thumb);
       return '<button type="button" class="ch-item" data-hit="'+i+'">'+(th?'<img src="'+esc(th)+'" alt="" loading="lazy" onerror="this.removeAttribute(\'src\')">':'<span class="ph"></span>')+
       '<span><b>'+markQ(x.c.title||'Clip',q)+'</b><small>'+esc([fmtDate(x.r.date),x.c.views!=null?x.c.views.toLocaleString(LOC)+' '+T('Aufrufe','views'):'',x.c.by&&x.c.by.toLowerCase().indexOf(q)>=0?T('von ','by ')+x.c.by:''].filter(Boolean).join(' · '))+'</small></span></button>'}).join('')+
@@ -1745,6 +1751,7 @@ function renderClipHits(q){
 }
 $('#cliphits').addEventListener('click',function(e){
   if(e.target.closest('[data-more]')){state.clipAll=true;renderClipHits(state.query.trim().toLowerCase());return}
+  var hsb=e.target.closest('[data-hsort]');if(hsb){state.hitSort=hsb.dataset.hsort;renderList();return}
   var b=e.target.closest('[data-hit]');if(!b)return;
   var h=state.clipHits||[],i=+b.dataset.hit;if(!h[i])return;
   var list=h.map(function(x){var o={};for(var k in x.c)o[k]=x.c[k];o.__r=x.r;return o});
@@ -2747,7 +2754,7 @@ $('#q').addEventListener('input',function(e){setQuery(e.target.value)});
 $('#q').addEventListener('keydown',function(e){if(e.key==='Escape'&&e.target.value){setQuery('');e.preventDefault()}});
 $('#flt').addEventListener('change',function(e){state.filter=e.target.value;renderList()});
 $('#cat').addEventListener('change',function(e){state.cat=e.target.value;renderList();$('#panel').scrollTop=0});
-$('#srt').addEventListener('change',function(e){state.sort=e.target.value;renderList();$('#panel').scrollTop=0});
+$('#srt').addEventListener('change',function(e){state.sort=e.target.value;state.hitSort=null;renderList();$('#panel').scrollTop=0});
 
 /* ---------- Gedankenblase: Beschreibung beim Drüberfahren in der Liste (nur mit Maus, am PC) ---------- */
 (function(){
