@@ -403,6 +403,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <li>Oben rechts <span class="ui-btn t">Mit Twitch anmelden</span>. Neben dem Namen steht dann <span class="ui-tag r">KANAL</span>, <span class="ui-tag r">MOD</span> oder <span class="ui-tag r">BEARBEITER</span>.</li>
       <li>Stream öffnen und <span class="ui-btn p">Route zeichnen</span> bzw. <i>Route bearbeiten</i> klicken.</li>
       <li>Zeichnen, Clips ziehen, <b>Speichern</b>. Nach 1–2 Minuten ist es öffentlich.</li>
+      <li>Noch unsicher? Erst als <b>Entwurf</b> speichern, mehrere Varianten bauen und später eine davon veröffentlichen – siehe <i>Entwürfe</i> weiter unten.</li>
     </ol></div>
   </div>
   <h3 style="margin-top:18px">Die sechs Werkzeuge</h3>
@@ -429,6 +430,31 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     </table>
   </div>
   <div class="tip"><b class="i">!</b><div><b>Route komplett entfernen:</b> Route leeren, alle Clips per × von der Karte nehmen und speichern – der Stream erscheint wieder ohne Route. Läuft die Twitch-Anmeldung ab, bleibt deine Zeichnung offen: einfach neu anmelden und erneut speichern.</div></div>
+  <h3 style="margin-top:18px">📝 Entwürfe und 🎬 Präsentieren</h3>
+  <div class="grid2" style="margin-top:8px">
+  <figure class="figure">
+    <div style="font:500 11px 'IBM Plex Mono';letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;margin:2px 2px 8px"><span style="color:#f4ebf3">ENTWÜRFE</span><span>3 / 10 · nur für Bearbeiter</span></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--accent);border-radius:8px;box-shadow:0 0 0 1px var(--accent) inset"><i style="width:10px;height:10px;border-radius:50%;background:#f5a9d6;flex:none"></i><span style="flex:1;min-width:0;line-height:1.3"><b style="font-size:13px">Variante A – über den Markt</b><br><small class="mono" style="font-size:10px;color:var(--muted)">von Mod · 23.10., 12:06 · 9 Punkte · 10 Clips</small></span><span class="ui-btn">Neu laden</span><span class="ui-btn">▶</span><span class="ui-btn">×</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px"><i style="width:10px;height:10px;border-radius:50%;background:#7fd7ff;flex:none"></i><span style="flex:1;min-width:0;line-height:1.3"><b style="font-size:13px">Variante B – am Rhein entlang</b><br><small class="mono" style="font-size:10px;color:var(--muted)">von Naschii · 23.10., 12:20 · 14 Punkte · 8 Clips</small></span><span class="ui-btn">Laden</span><span class="ui-btn">▶</span><span class="ui-btn">×</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px"><i style="width:10px;height:10px;border-radius:50%;background:#c792ea;flex:none"></i><span style="flex:1;min-width:0;line-height:1.3"><b style="font-size:13px">Variante C – kurze Runde</b><br><small class="mono" style="font-size:10px;color:var(--muted)">von Mod · 23.10., 12:31 · 6 Punkte · 5 Clips</small></span><span class="ui-btn">Laden</span><span class="ui-btn">▶</span><span class="ui-btn">×</span></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="ui-btn">💾 Entwurf aktualisieren</span><span class="ui-btn">+ Als neuen Entwurf</span><span class="ui-btn">🎬 Präsentieren</span></div>
+    <figcaption>Oben im Editor: Varianten speichern, laden, präsentieren</figcaption>
+  </figure>
+  <figure class="figure">
+    <div style="position:relative;height:178px;border-radius:8px;background:#211926;overflow:hidden">
+      <div style="position:absolute;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:6px 8px;background:#1c0f21ee;border:1px solid #f5a9d677;border-radius:12px;white-space:nowrap">
+        <span style="width:26px;height:26px;border-radius:50%;background:#ffffff14;display:grid;place-items:center">‹</span>
+        <span style="text-align:center"><small class="mono" style="font-size:9px;letter-spacing:.08em;color:var(--accent)">VARIANTE 2 / 3</small><br><b style="font:700 15px 'Barlow Condensed'"><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#7fd7ff;margin-right:5px"></i>Variante B – am Rhein entlang</b></span>
+        <span style="width:26px;height:26px;border-radius:50%;background:#ffffff14;display:grid;place-items:center">›</span>
+        <span class="ui-btn">Alle zeigen</span><span class="ui-btn">✕</span>
+      </div>
+      <svg viewBox="0 0 400 178" style="position:absolute;inset:0;width:100%;height:100%"><path d="M40 150 C90 120 120 140 160 110 S240 80 270 100 S340 70 370 60" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="10" stroke-linecap="round"/><path d="M40 150 C90 120 120 140 160 110 S240 80 270 100 S340 70 370 60" fill="none" stroke="#7fd7ff" stroke-width="5" stroke-linecap="round"/><g font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle"><circle cx="160" cy="110" r="9" fill="#f5a9d6"/><text x="160" y="114" fill="#2a0f22">1</text><circle cx="270" cy="100" r="9" fill="#f5a9d6"/><text x="270" y="104" fill="#2a0f22">2</text></g><g><rect x="96" y="119" width="20" height="18" rx="4" fill="#1c0f21" stroke="#f5a9d6" stroke-width="2"/><path d="M103 123 l8 5 -8 5z" fill="#fff"/><rect x="318" y="68" width="20" height="18" rx="4" fill="#1c0f21" stroke="#f5a9d6" stroke-width="2"/><path d="M325 72 l8 5 -8 5z" fill="#fff"/></g></svg>
+    </div>
+    <figcaption>Präsentationsmodus: große Karte, blättern mit ‹ › oder Pfeiltasten</figcaption>
+  </figure>
+  </div>
   <div class="grid2" style="margin-top:14px">
     <div class="card"><h3>📝 Entwürfe – bis zu 10 Varianten</h3><ul>
       <li>Oben im Editor unter <b>Entwürfe</b>: Route zeichnen, Namen eintragen (z. B. „Variante A – über den Markt“), <span class="ui-btn">💾 Als Entwurf speichern</span></li>
