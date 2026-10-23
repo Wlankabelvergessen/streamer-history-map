@@ -1081,8 +1081,9 @@ label{display:block;font:500 11px var(--f-mono);letter-spacing:.08em;text-transf
 .src-note{margin-top:14px}
 .tag{margin-left:auto;font:500 10px var(--f-mono);letter-spacing:.1em;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
 
-.back{margin:-2px 0 10px;padding:4px 0;background:none;border:0;color:var(--muted)}
-.back:hover{color:var(--fg)}
+.back{display:inline-flex;align-items:center;gap:6px;margin:-2px 0 12px;padding:7px 14px 7px 11px;border:1px solid var(--accent);border-radius:999px;background:var(--panel-2);color:var(--fg);font:600 14px var(--f-body);cursor:pointer;box-shadow:0 2px 10px #0004;transition:background .15s,color .15s}
+.back:hover,.back:focus-visible{background:var(--accent);color:var(--accent-ink)}
+#back{position:sticky;top:8px;z-index:6}
 .detail h2{font:700 34px/1.02 var(--f-display);letter-spacing:.02em;text-wrap:balance;margin:6px 0 4px}
 .detail .when{font:500 12px var(--f-mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
 .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:16px 0;border-top:1px solid var(--line)}
