@@ -2229,12 +2229,12 @@ function importRouteFile(f){
   var isKmz=/\.kmz$/i.test(f.name);
   (isKmz?f.arrayBuffer().then(unzipFirstKml):f.text()).then(function(text){
     var g=parseRouteXml(text);
-    pushUndo();ed.points=g.points;ed.breaks=g.breaks||[];if(g.stops.length)ed.stops=g.stops;ed.draftId=null;
+    pushUndo();ed.points=g.points;ed.breaks=g.breaks||[];ed.stops=g.stops||[];var hadClips=Object.keys(ed.clips).length;ed.clips={};ed.draftId=null;
     renderEd();
     map.fitBounds(L.latLngBounds(g.points),{padding:[50,50],maxZoom:17});
     var km=dist(g.points,g.breaks||[]);
     suggestPlace(g.points);
-    toast(T('Route importiert: ','Route imported: ')+km.toLocaleString(LOC,{maximumFractionDigits:1})+' km'+(g.stops.length?' · '+g.stops.length+(g.stops.length===1?T(' Station',' stop'):T(' Stationen',' stops')):'')+T(' – jetzt prüfen und speichern. ↶ macht es rückgängig.',' – check it and save. ↶ undoes it.'));
+    toast(T('Route importiert: ','Route imported: ')+km.toLocaleString(LOC,{maximumFractionDigits:1})+' km'+(g.stops.length?' · '+g.stops.length+(g.stops.length===1?T(' Station',' stop'):T(' Stationen',' stops')):'')+(hadClips?T(' · Clips und Stationen der alten Route entfernt',' · clips and stops of the old route removed'):'')+T(' – jetzt prüfen und speichern. ↶ macht es rückgängig.',' – check it and save. ↶ undoes it.'));
   }).catch(function(ex){toast((ex&&ex.message)||T('Die Datei konnte nicht gelesen werden.','The file could not be read.'))});
 }
 function renderEdPanel(){
@@ -2263,7 +2263,7 @@ function renderEdPanel(){
       (ed.loc?'<button type="button" class="x" id="ed-locdel" title="'+T('Eigenen Ort entfernen (automatischen Ort nutzen)','Remove own place (use automatic place)')+'">×</button>':'')+'</div>'+
       '<p class="help">'+(ed.loc?T('Eigener Ort gesetzt – er ersetzt den automatisch erkannten Ort. Marker auf der Karte lässt sich verschieben.','Own place set – it replaces the automatically detected one. Drag the marker to move it.'):T('Nur nötig, wenn der Ort fehlt oder falsch erkannt wurde. Name eintragen und auf die Karte klicken.','Only needed if the place is missing or wrong. Enter a name and click the map.'))+'</p></div>'+
     '<div class="sec"><h3>'+T('Stationen','Stops')+' <span>'+ed.stops.length+'</span></h3>'+stops+'</div>'+
-    '<div class="sec"><h3>Clips <span>'+placed+' / '+MAX_CLIPS+T(' auf der Route',' on the route')+(CL.length>MAX_CLIPS?T(' · '+CL.length+' im Stream',' · '+CL.length+' in stream'):'')+'</span></h3>'+(CL.length?'<p class="help">'+T('Clip mit der Maus auf die Route ziehen. Am Handy: Clip antippen, dann auf die Karte tippen. Höchstens '+MAX_CLIPS+' Clips pro Route.','Drag a clip onto the route. On mobile: tap the clip, then tap the map. At most '+MAX_CLIPS+' clips per route.')+'</p>':'')+clips+'</div>'+
+    '<div class="sec"><h3>Clips <span>'+placed+' / '+MAX_CLIPS+T(' auf der Route',' on the route')+(CL.length>MAX_CLIPS?T(' · '+CL.length+' im Stream',' · '+CL.length+' in stream'):'')+'</span></h3>'+(CL.length?'<p class="help">'+T('Clip mit der Maus auf die Route ziehen. Am Handy: Clip antippen, dann auf die Karte tippen. Höchstens '+MAX_CLIPS+' Clips pro Route.','Drag a clip onto the route. On mobile: tap the clip, then tap the map. At most '+MAX_CLIPS+' clips per route.')+'</p>':'')+(placed?'<div class="row"><button type="button" class="btn" id="ed-clipsclear">'+T('× Alle Clips von der Karte nehmen','× Remove all clips from the map')+'</button></div>':'')+clips+'</div>'+
     '<div class="bar"><button type="button" class="btn primary" id="ed-save"'+(ed.saving?' disabled':'')+'>'+(ed.saving?T('Speichere …','Saving …'):T('Speichern','Save'))+'</button><button type="button" class="btn ghost" id="ed-cancel">'+T('Abbrechen','Cancel')+'</button><span class="st">'+ed.points.length+T(' Punkte · ',' points · ')+fmtKm(dist(ed.points,ed.breaks))+(ed.breaks.length?' · '+(ed.breaks.length+1)+T(' Teile',' parts'):'')+'</span></div>';
 }
 function autoPlace(){
@@ -2467,6 +2467,7 @@ $('#panel').addEventListener('click',function(e){
     case 'ed-back':case 'ed-cancel':closeEditor(false);break;
     case 'ed-undo':undoEd();break;
     case 'ed-auto':autoPlace();break;
+    case 'ed-clipsclear':pushUndo();ed.clips={};renderEd();toast(T('Alle Clips von der Karte genommen. ↶ holt sie zurück.','All clips removed from the map. ↶ brings them back.'));break;
     case 'ed-import':pickRouteFile();break;
     case 'ed-save':saveEd();break;
     case 'ed-clear':
