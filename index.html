@@ -1844,7 +1844,7 @@ function renderCats(){
   sel.hidden=!keys.length;
   if(cur&&cnt[cur])sel.value=cur;else{state.cat='';sel.value=''}
 }
-function routeTag(r){if(hasRoute(r))return '<span class="tag route">ROUTE</span>';if(r.location&&r.location.home)return '<span class="tag home">🏰 HOMEBASE</span>';return r.location&&!r.location.manual?'<span class="tag">'+T('ORT UNGEFÄHR','APPROX. PLACE')+'</span>':''}
+function routeTag(r){if(hasRoute(r))return '<span class="tag route">ROUTE</span>';if(r.location&&r.location.home)return '<span class="tag home">🏰 HOME</span>';return r.location&&!r.location.manual?'<span class="tag">'+T('ORT UNGEFÄHR','APPROX. PLACE')+'</span>':''}
 function renderListSelection(){var cs=document.querySelectorAll('.card');for(var i=0;i<cs.length;i++){cs[i].setAttribute('aria-pressed',cs[i].dataset.id===state.selectedId)}}
 function safeUrl(u){try{var x=new URL(u);return x.protocol==='https:'?x.href:null}catch(e){return null}}
 function renderDetail(r){
