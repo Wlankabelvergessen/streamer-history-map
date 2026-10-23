@@ -2,7 +2,7 @@
  * Naschii's Adventure Map – Taktgeber für die automatische Aktualisierung
  *
  * 1) Stößt alle 15 Minuten den GitHub-Workflow "Streams und Clips aktualisieren" an.
- * 2) Nimmt gezeichnete Routen, den Update-Knopf und „Seite offline/online“ der Webseite entgegen (doPost), prüft Twitch-Login und
+ * 2) Nimmt gezeichnete Routen, Entwürfe, den Update-Knopf und „Seite offline/online“ der Webseite entgegen (doPost), prüft Twitch-Login und
  *    Bearbeitungsrecht (naschiitaschii, EDITORS, Mods des Kanals) und stößt "Route speichern" an.
  *
  * Einrichtung Taktgeber (einmalig):
@@ -15,6 +15,10 @@
  *   Bereitstellen → Neue Bereitstellung → Typ "Web-App"
  *     Ausführen als: Ich · Zugriff: Jeder → Bereitstellen → Web-App-URL kopieren
  *   Nach jeder Code-Änderung: Bereitstellen → Bereitstellungen verwalten → Bearbeiten (Stift) → Version "Neue Version".
+ *
+ * Einrichtung Entwürfe (einmalig):
+ *   Oben die Funktion "entwuerfeEinrichten" auswählen → Ausführen → Zugriff auf Google Drive erlauben.
+ *   Im Protokoll steht dann der Link zum Ordner "Adventure Map – Entwürfe (privat)". Danach wie oben eine neue Version bereitstellen.
  */
 
 const REPO = 'naschiis-adventure-map/naschiis-adventure-map.github.io';
@@ -124,6 +128,47 @@ function doPost(e) {
       return antwort({ ok: true, at: new Date().toISOString(), by: login, offline: off });
     }
 
+    // 2d. Entwürfe: bis zu 10 Routen-Varianten pro Stream, privat in deinem Google Drive (nicht öffentlich)
+    if (body.action === 'drafts' || body.action === 'draft-save' || body.action === 'draft-del') {
+      const sid = String(body.id || '');
+      if (!/^[\w-]{1,80}$/.test(sid)) return antwort({ ok: false, error: 'Ungültiger Stream.' });
+      const lock = LockService.getScriptLock();
+      lock.waitLock(15000);
+      try {
+        let list = entwuerfeLesen(sid);
+        if (body.action === 'draft-save') {
+          const d = body.draft || {};
+          const route = d.route;
+          if (!route || typeof route !== 'object') return antwort({ ok: false, error: 'Entwurf ist leer.' });
+          const size = JSON.stringify(route).length;
+          if (size > 60000) return antwort({ ok: false, error: 'Entwurf zu groß. Bitte gröber zeichnen.' });
+          const name = String(d.name || 'Entwurf').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 60) || 'Entwurf';
+          const did = String(d.did || '');
+          const vorhanden = did && list.find(x => x.did === did);
+          if (vorhanden) {
+            vorhanden.name = name; vorhanden.route = route; vorhanden.by = login; vorhanden.at = new Date().toISOString();
+          } else {
+            if (list.length >= 10) return antwort({ ok: false, code: 'full', error: 'Höchstens 10 Entwürfe pro Stream.' });
+            list.push({ did: Utilities.getUuid().slice(0, 8), name: name, by: login, at: new Date().toISOString(), route: route });
+          }
+          entwuerfeSchreiben(sid, list);
+          const neu = vorhanden || list[list.length - 1];
+          console.log('Entwurf ' + sid + '/' + neu.did + ' gespeichert von ' + login);
+          return antwort({ ok: true, did: neu.did, drafts: list });
+        }
+        if (body.action === 'draft-del') {
+          const did = String(body.did || '');
+          list = list.filter(x => x.did !== did);
+          entwuerfeSchreiben(sid, list);
+          console.log('Entwurf ' + sid + '/' + did + ' gelöscht von ' + login);
+          return antwort({ ok: true, drafts: list });
+        }
+        return antwort({ ok: true, drafts: list });
+      } finally {
+        lock.releaseLock();
+      }
+    }
+
     // 3. Grobe Prüfung der Daten (die genaue Prüfung macht scripts/save-route.mjs)
     const id = String(body.id || '');
     if (!/^[\w-]{1,80}$/.test(id)) return antwort({ ok: false, error: 'Ungültiger Stream.' });
@@ -164,6 +209,34 @@ function istMod(userId, token) {
     if (!cursor) return false;
   }
   return false;
+}
+
+/* ---------------- Entwürfe (privat in Google Drive) ---------------- */
+
+/** Ordner "Adventure Map – Entwürfe (privat)" in deinem Google Drive (wird beim ersten Mal angelegt). */
+function entwurfOrdner() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('DRAFT_FOLDER');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  const f = DriveApp.createFolder('Adventure Map – Entwürfe (privat)');
+  props.setProperty('DRAFT_FOLDER', f.getId());
+  return f;
+}
+function entwuerfeLesen(streamId) {
+  const it = entwurfOrdner().getFilesByName('entwuerfe-' + streamId + '.json');
+  if (!it.hasNext()) return [];
+  try { const l = JSON.parse(it.next().getBlob().getDataAsString()); return Array.isArray(l) ? l : []; } catch (e) { return []; }
+}
+function entwuerfeSchreiben(streamId, list) {
+  const name = 'entwuerfe-' + streamId + '.json', ordner = entwurfOrdner(), it = ordner.getFilesByName(name);
+  const inhalt = JSON.stringify(list);
+  if (it.hasNext()) { const f = it.next(); if (list.length) f.setContent(inhalt); else f.setTrashed(true); }
+  else if (list.length) ordner.createFile(name, inhalt, MimeType.PLAIN_TEXT);
+}
+/** Einmal von Hand ausführen (Zugriff auf Google Drive erlauben): legt den Entwürfe-Ordner an. */
+function entwuerfeEinrichten() {
+  const f = entwurfOrdner();
+  console.log('Entwürfe-Ordner bereit: ' + f.getName() + ' (' + f.getUrl() + ')');
 }
 
 /** Zum Testen im Editor: zeigt, dass die Web-App erreichbar ist. */

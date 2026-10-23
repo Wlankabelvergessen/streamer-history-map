@@ -956,6 +956,34 @@ body.editing .kevin-rail{visibility:hidden}
 #map.z-world .castle:hover{transform:scale(.36)}
 #map.z-world .castle b{transform:scale(1.8);transform-origin:right bottom}
 .castle img{width:76px;height:auto;display:block}
+.drafts .dlist{display:flex;flex-direction:column;gap:6px;margin:6px 0 8px}
+.drow{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.drow.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.drow>i{flex:none;width:10px;height:10px;border-radius:50%}
+.drow .dn{flex:1;min-width:0;display:flex;flex-direction:column}
+.drow .dn b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .dn small{font:400 11px var(--f-mono);color:var(--muted)}
+.drow .btn.sm{flex:none;font-size:12px;padding:4px 9px}
+.drow .x.danger{width:auto;padding:0 8px;font-size:12px;color:#fff;background:#c0392b;border-radius:6px}
+.drow-in input{width:100%;margin:2px 0 8px}
+body.presenting .app{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"map"!important}
+body.presenting #panel,body.presenting .grip,body.presenting .totop{display:none!important}
+@media (max-width:820px){body.presenting .app{grid-template-rows:minmax(0,1fr)!important}}
+.presbar{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:800;display:flex;align-items:center;gap:10px;max-width:calc(100% - 100px);padding:8px 10px;background:#1c0f21ee;border:1px solid #f5a9d677;border-radius:14px;box-shadow:0 8px 24px #000a;backdrop-filter:blur(6px)}
+.presbar[hidden]{display:none}
+.pb-nav{all:unset;cursor:pointer;width:40px;height:40px;display:grid;place-items:center;border-radius:50%;font-size:26px;color:#fff;background:#ffffff14}
+.pb-nav:hover{background:var(--accent);color:var(--accent-ink)}
+.pb-t{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0;padding:0 6px}
+.pb-t small{font:500 11px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.pb-t b{display:flex;align-items:center;gap:8px;font:700 22px/1.15 var(--f-display);color:#fff}
+.pb-t b i,.pb-all i{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none}
+.pb-t span{font-size:12px;color:var(--muted);max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb-ctl{display:flex;gap:6px;flex:none}
+.pb-ctl .btn{font-size:12px;padding:6px 10px}
+.pb-all{display:flex;flex-wrap:wrap;gap:6px;max-width:640px}
+.pb-all button{all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:#ffffff12;font-size:12px;color:#fff}
+.pb-all button:hover{background:#ffffff26}
+@media (max-width:820px){.presbar{top:8px;left:56px;right:8px;transform:none;max-width:none;flex-wrap:wrap;justify-content:center;gap:6px;padding:6px}.pb-t{flex:1}.pb-ctl{flex-basis:100%;justify-content:center}.pb-t b{font-size:16px}.pb-t span{display:none}.pb-nav{width:34px;height:34px;font-size:22px}}
 .castle .isle{display:none;position:absolute;left:-107px;top:2px;width:290px;height:155px;z-index:-1;pointer-events:none}
 #map.z-near .castle .isle{display:block}
 #map.z-near .castle{filter:drop-shadow(0 4px 8px #000b)}
@@ -1919,7 +1947,7 @@ function openEditor(id){
   hideTip(true);selGroup.clearLayers();clipMarkers={};
   ed={id:id,r:r,points:(r.points||[]).map(function(x){return x.slice()}),breaks:(r.breaks||[]).slice(),stops:(r.stops||[]).map(function(s){return {lat:s.lat,lng:s.lng,name:s.name||''}}),
       clips:JSON.parse(JSON.stringify(r.clipPos||{})),undo:[],mode:'pan',armed:null,dirty:false,saving:false,
-      desc:(routeFor(id)&&routeFor(id).desc)||'',loc:r.location&&r.location.manual?{name:r.location.name,lat:r.location.lat,lng:r.location.lng}:null,armLoc:false};
+      desc:(routeFor(id)&&routeFor(id).desc)||'',loc:r.location&&r.location.manual?{name:r.location.name,lat:r.location.lat,lng:r.location.lng}:null,armLoc:false,drafts:null,draftId:null,draftBusy:false,dname:''};
   state.editing=true;document.body.classList.add('editing');
   Object.keys(lines).forEach(function(k){lines[k].setStyle({opacity:.12})});
   Object.keys(groups).forEach(function(k){groups[k].marker.setOpacity(.25)});
@@ -1934,10 +1962,11 @@ function openEditor(id){
   else if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16,animate:false});
   else if(pts.length)map.setView(pts[0],15,{animate:false});
   else if(r.location)map.setView([r.location.lat,r.location.lng],14,{animate:false});
-  showView('route');renderEd();
+  showView('route');renderEd();loadDrafts();
 }
 function closeEditor(force){
   if(!ed)return;
+  if(PRES)endPresent();
   if(ed.dirty&&!force){var b=$('#ed-cancel');if(b&&!b.dataset.arm){b.dataset.arm='1';b.textContent=T('Änderungen verwerfen?','Discard changes?');b.classList.add('danger');setTimeout(function(){if(b.isConnected){delete b.dataset.arm;b.textContent=T('Abbrechen','Cancel');b.classList.remove('danger')}},4000);return}}
   var id=ed.id;ed=null;state.editing=false;document.body.classList.remove('editing');
   if(edLayer){map.removeLayer(edLayer);edLayer=null;edLine=null}
@@ -2207,6 +2236,7 @@ function renderEdPanel(){
   $('#v-route').innerHTML=
     '<button type="button" class="back" id="ed-back">'+T('← Zurück zum Stream','← Back to stream')+'</button>'+
     '<h2>'+T('Route bearbeiten','Edit route')+'</h2><p class="sub2">'+esc(fmtDate(r.date))+' · '+esc(r.title)+'</p>'+
+    draftsHtml()+
     '<div class="modes" role="group" aria-label="Werkzeug">'+modes+'</div>'+
     '<p class="help" id="ed-help">'+(ed.armed?T('Jetzt auf die Karte klicken, um den Clip zu platzieren. Esc bricht ab.','Now click the map to place the clip. Esc cancels.'):MODES[ed.mode][2])+'</p>'+
     '<div class="row"><button type="button" class="btn" id="ed-undo">'+T('↶ Rückgängig','↶ Undo')+'</button><button type="button" class="btn" id="ed-clear">'+T('Route leeren','Clear route')+'</button><button type="button" class="btn" id="ed-import" title="'+T('GPX-, KML- oder KMZ-Datei laden, z. B. aus gpx.studio, Google My Maps oder einer Tracking-App','Load a GPX, KML or KMZ file, e.g. from gpx.studio, Google My Maps or a tracking app')+'">'+T('📂 Route importieren','📂 Import route')+'</button>'+(CL.some(function(c){return c.at})&&ed.points.length>1?'<button type="button" class="btn" id="ed-auto" title="'+T('Die 10 meistgesehenen Clips anhand ihrer Uhrzeit auf der Route verteilen','Place the 10 most viewed clips along the route by their time')+'">'+T('Top-10-Clips nach Uhrzeit verteilen','Place top 10 clips by time')+'</button>':'')+'</div>'+
@@ -2263,6 +2293,132 @@ function saveEd(){
     else toast(T('Speichern fehlgeschlagen: ','Saving failed: ')+((e&&e.message)||T('keine Verbindung','no connection')));
   });
 }
+/* ---------- Entwürfe: bis zu 10 Varianten pro Stream, privat beim Prüfdienst (nicht öffentlich) ---------- */
+var MAX_DRAFTS=10;
+function draftCall(body){
+  var u=state.user;body.token=u&&u.token;
+  return fetch(CONFIG.saveUrl,{method:'POST',body:JSON.stringify(body)}).then(function(r){return r.json()}).then(function(j){
+    if(!j||!j.ok){var er=new Error(j&&j.error||T('Unbekannter Fehler','Unknown error'));er.code=j&&j.code;throw er}return j});
+}
+function draftErr(e){
+  if(e&&e.code==='token'){toast(T('Twitch-Anmeldung abgelaufen. Bitte neu anmelden, deine Zeichnung bleibt offen.','Twitch login expired. Please log in again, your drawing stays open.'));state.user.token=null;store('shm.user',JSON.stringify(state.user));renderAuth()}
+  else toast(T('Entwürfe: ','Drafts: ')+((e&&e.message)||T('keine Verbindung','no connection')));
+}
+function loadDrafts(){
+  if(!ed||!CONFIG.saveUrl)return;var id=ed.id;ed.drafts=null;ed.draftsErr='';
+  draftCall({action:'drafts',id:id}).then(function(j){if(ed&&ed.id===id){ed.drafts=j.drafts||[];renderEdPanel()}})
+    .catch(function(e){if(ed&&ed.id===id){ed.drafts=[];ed.draftsErr=(e&&e.message)||'';renderEdPanel()}});
+}
+function findDraft(did){return (ed&&ed.drafts||[]).filter(function(d){return d.did===did})[0]||null}
+function draftWhen(iso){var d=new Date(iso);return isNaN(d)?'':d.toLocaleString(LOC,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
+function draftsHtml(){
+  if(!CONFIG.saveUrl)return '';
+  var L0=ed.drafts,cur=ed.draftId&&findDraft(ed.draftId),n=L0?L0.length:0;
+  var list=L0===null?'<p class="help">'+T('Lade Entwürfe …','Loading drafts …')+'</p>':
+    (ed.draftsErr?'<p class="help">'+esc(ed.draftsErr)+'</p>':'')+
+    (n?'<div class="dlist">'+L0.map(function(d,i){
+      return '<div class="drow'+(d.did===ed.draftId?' cur':'')+'"><i style="background:'+PALETTE[i%PALETTE.length]+'"></i><span class="dn"><b>'+esc(d.name||'Entwurf')+'</b><small>'+esc([d.by?T('von ','by ')+d.by:'',draftWhen(d.at),(d.route&&d.route.points?d.route.points.length:0)+T(' Punkte',' points'),Object.keys(d.route&&d.route.clips||{}).length+' Clips'].filter(Boolean).join(' · '))+'</small></span>'+
+        '<button type="button" class="btn sm" data-dload="'+esc(d.did)+'" title="'+T('In den Editor laden','Load into editor')+'">'+(d.did===ed.draftId?T('Neu laden','Reload'):T('Laden','Load'))+'</button>'+
+        '<button type="button" class="btn sm" data-dpres="'+i+'" title="'+T('Ab hier präsentieren','Present from here')+'">▶</button>'+
+        '<button type="button" class="x" data-ddel="'+esc(d.did)+'" title="'+T('Entwurf löschen','Delete draft')+'">×</button></div>'}).join('')+'</div>'
+      :(ed.draftsErr?'':'<p class="help">'+T('Noch keine Entwürfe. Route zeichnen und als Entwurf speichern – bis zu 10 Varianten, nur für Bearbeiter sichtbar.','No drafts yet. Draw a route and save it as a draft – up to 10 variants, visible to editors only.')+'</p>'));
+  var nm=ed.dname||(cur?cur.name:'');
+  return '<div class="sec drafts"><h3>'+T('Entwürfe','Drafts')+' <span>'+n+' / '+MAX_DRAFTS+T(' · nur für Bearbeiter',' · editors only')+'</span></h3>'+list+
+    '<div class="drow-in"><input type="text" id="ed-dname" maxlength="60" placeholder="'+T('Name, z. B. Variante A – über den Markt','Name, e.g. Variant A – via the market')+'" value="'+esc(nm)+'"></div>'+
+    '<div class="row">'+
+      '<button type="button" class="btn" id="ed-dsave"'+(ed.draftBusy?' disabled':'')+'>'+(ed.draftBusy?T('Speichere …','Saving …'):(cur?T('💾 Entwurf aktualisieren','💾 Update draft'):T('💾 Als Entwurf speichern','💾 Save as draft')))+'</button>'+
+      (cur?'<button type="button" class="btn" id="ed-dnew"'+(ed.draftBusy?' disabled':'')+'>'+T('+ Als neuen Entwurf','+ As new draft')+'</button>':'')+
+      (n?'<button type="button" class="btn" id="ed-dpres">'+T('🎬 Präsentieren','🎬 Present')+'</button>':'')+
+    '</div><p class="help">'+(cur?T('Geladen: „','Loaded: “')+esc(cur.name)+T('“. ','”. '):'')+T('„Speichern“ ganz unten veröffentlicht die Route, die gerade im Editor ist.','“Save” at the bottom publishes the route currently in the editor.')+'</p></div>';
+}
+function saveDraft(asNew){
+  if(!ed||ed.draftBusy)return;var route=edPayload();
+  if(!route||(!route.points.length&&!route.stops.length&&!Object.keys(route.clips).length)){toast(T('Noch nichts gezeichnet.','Nothing drawn yet.'));return}
+  var upd=!asNew&&ed.draftId&&findDraft(ed.draftId);
+  if(!upd&&(ed.drafts||[]).length>=MAX_DRAFTS){toast(T('Höchstens '+MAX_DRAFTS+' Entwürfe pro Stream. Bitte erst einen löschen.','At most '+MAX_DRAFTS+' drafts per stream. Please delete one first.'));return}
+  var name=(ed.dname||(upd?upd.name:'')).trim().slice(0,60)||('Variante '+String.fromCharCode(65+Math.min(25,(ed.drafts||[]).length)));
+  if(asNew&&upd&&name===upd.name)name=('Variante '+String.fromCharCode(65+Math.min(25,(ed.drafts||[]).length)));
+  ed.draftBusy=true;renderEdPanel();
+  draftCall({action:'draft-save',id:ed.id,draft:{did:upd?upd.did:undefined,name:name,route:route}}).then(function(j){
+    if(!ed)return;ed.drafts=j.drafts||[];ed.draftId=j.did||null;ed.dname='';ed.draftBusy=false;renderEdPanel();
+    toast(T('Entwurf „','Draft “')+name+T('“ gespeichert. Nur für Bearbeiter sichtbar.','” saved. Visible to editors only.'));
+  }).catch(function(e){if(ed){ed.draftBusy=false;renderEdPanel()}draftErr(e)});
+}
+function loadDraftInto(d){
+  var r=d.route||{};pushUndo();
+  ed.points=(r.points||[]).map(function(x){return x.slice()});ed.breaks=(r.breaks||[]).slice();
+  ed.stops=(r.stops||[]).map(function(x){return {lat:x.lat,lng:x.lng,name:x.name||''}});
+  ed.clips=JSON.parse(JSON.stringify(r.clips||{}));ed.desc=r.desc||'';ed.loc=r.loc?{name:r.loc.name,lat:r.loc.lat,lng:r.loc.lng}:null;ed.locName='';
+  ed.draftId=d.did;ed.dname='';ed.dirty=true;renderEd();
+  var pts=ed.points.slice();ed.stops.forEach(function(x){pts.push([x.lat,x.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
+  if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16});else if(pts.length)map.setView(pts[0],15);
+  toast(T('Entwurf „','Draft “')+(d.name||'')+T('“ geladen. ↶ holt die vorige Zeichnung zurück.','” loaded. ↶ brings back the previous drawing.'));
+}
+function delDraft(did){
+  draftCall({action:'draft-del',id:ed.id,did:did}).then(function(j){if(!ed)return;ed.drafts=j.drafts||[];if(ed.draftId===did)ed.draftId=null;renderEdPanel();toast(T('Entwurf gelöscht.','Draft deleted.'))}).catch(draftErr);
+}
+/* ---------- Präsentieren: Entwürfe groß auf der Karte zeigen und durchblättern (z. B. im Stream) ---------- */
+var PRES=null;
+function startPresent(i){
+  if(!ed||!ed.drafts||!ed.drafts.length)return;
+  PRES={list:ed.drafts.slice(),i:Math.max(0,Math.min(i||0,ed.drafts.length-1)),all:false,layer:L.layerGroup().addTo(map)};
+  if(edLayer)map.removeLayer(edLayer);
+  document.body.classList.add('presenting');
+  var bar=$('#presbar');if(!bar){bar=document.createElement('div');bar.id='presbar';bar.className='presbar';document.querySelector('.map-wrap').appendChild(bar)}
+  bar.hidden=false;setTimeout(function(){map.invalidateSize();drawPresent()},60);
+}
+function endPresent(){
+  if(!PRES)return;map.removeLayer(PRES.layer);PRES=null;
+  document.body.classList.remove('presenting');var bar=$('#presbar');if(bar)bar.hidden=true;
+  if(ed&&edLayer)edLayer.addTo(map);
+  setTimeout(function(){map.invalidateSize()},60);
+}
+function presDraw(d,color,withMarkers){
+  var r=d.route||{},pts=[];
+  if(r.points&&r.points.length>1){
+    var sg=segsOf(r.points,r.breaks||[]);
+    L.polyline(sg,{color:'#000',weight:10,opacity:.35,lineCap:'round',lineJoin:'round',interactive:false}).addTo(PRES.layer);
+    L.polyline(sg,{color:color,weight:5.5,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(PRES.layer);
+    pts=pts.concat(r.points);
+  }
+  if(withMarkers){
+    (r.stops||[]).forEach(function(s,i){L.marker([s.lat,s.lng],{icon:divI('rstop',String(i+1),24),title:s.name||''}).bindTooltip(esc(s.name||'Station '+(i+1)),{direction:'top',offset:[0,-12]}).addTo(PRES.layer);pts.push([s.lat,s.lng])});
+    Object.keys(r.clips||{}).forEach(function(k){var c=clipBySlug(k),p=r.clips[k];if(!c)return;var m=L.marker(p,{icon:divI('rclip','▶',30),zIndexOffset:600}).addTo(PRES.layer);m.bindTooltip(clipCard(c,false),{direction:'top',offset:[0,-18],className:'clip-tip',opacity:1});m.on('click',function(){openPlayer([c],0,ed&&ed.r)});pts.push(p)});
+    if(r.loc&&isFinite(r.loc.lat))L.marker([r.loc.lat,r.loc.lng],{icon:divI('rloc','⌂',28),title:r.loc.name||''}).addTo(PRES.layer);
+  }
+  return pts;
+}
+function drawPresent(){
+  if(!PRES)return;PRES.layer.clearLayers();var pts=[],n=PRES.list.length;
+  if(PRES.all)PRES.list.forEach(function(d,i){pts=pts.concat(presDraw(d,PALETTE[i%PALETTE.length],false))});
+  else pts=presDraw(PRES.list[PRES.i],PALETTE[PRES.i%PALETTE.length],true);
+  if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[70,70],maxZoom:17});else if(pts.length)map.setView(pts[0],15);
+  var d=PRES.list[PRES.i];
+  $('#presbar').innerHTML=PRES.all?
+    '<div class="pb-all">'+PRES.list.map(function(x,i){return '<button type="button" data-pgo="'+i+'"><i style="background:'+PALETTE[i%PALETTE.length]+'"></i>'+(i+1)+'. '+esc(x.name||'')+'</button>'}).join('')+'</div>'+
+    '<div class="pb-ctl"><button type="button" class="btn" id="pb-one">'+T('Einzeln zeigen','Show one by one')+'</button><button type="button" class="btn ghost" id="pb-end">✕ '+T('Beenden','End')+'</button></div>'
+    :'<button type="button" class="pb-nav" id="pb-prev" aria-label="'+T('Vorherige','Previous')+'">‹</button>'+
+    '<div class="pb-t"><small>'+T('Variante ','Variant ')+(PRES.i+1)+' / '+n+'</small><b><i style="background:'+PALETTE[PRES.i%PALETTE.length]+'"></i>'+esc(d.name||'')+'</b>'+(d.route&&d.route.desc?'<span>'+esc(d.route.desc)+'</span>':'')+'</div>'+
+    '<button type="button" class="pb-nav" id="pb-next" aria-label="'+T('Nächste','Next')+'">›</button>'+
+    '<div class="pb-ctl">'+(n>1?'<button type="button" class="btn" id="pb-all">'+T('Alle zeigen','Show all')+'</button>':'')+'<button type="button" class="btn ghost" id="pb-end">✕ '+T('Beenden','End')+'</button></div>';
+}
+document.addEventListener('click',function(e){
+  if(!PRES)return;var b=e.target.closest&&e.target.closest('#presbar button');if(!b)return;
+  if(b.dataset.pgo){PRES.all=false;PRES.i=+b.dataset.pgo;drawPresent();return}
+  switch(b.id){
+    case 'pb-prev':PRES.i=(PRES.i-1+PRES.list.length)%PRES.list.length;drawPresent();break;
+    case 'pb-next':PRES.i=(PRES.i+1)%PRES.list.length;drawPresent();break;
+    case 'pb-all':PRES.all=true;drawPresent();break;
+    case 'pb-one':PRES.all=false;drawPresent();break;
+    case 'pb-end':endPresent();break;
+  }
+});
+document.addEventListener('keydown',function(e){
+  if(!PRES||!$('#player').hidden||/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;
+  if(e.key==='Escape'){endPresent()}
+  else if(e.key==='ArrowRight'&&!PRES.all){PRES.i=(PRES.i+1)%PRES.list.length;drawPresent()}
+  else if(e.key==='ArrowLeft'&&!PRES.all){PRES.i=(PRES.i-1+PRES.list.length)%PRES.list.length;drawPresent()}
+});
 // Bedienung im Editor-Panel
 $('#panel').addEventListener('click',function(e){
   if(!ed)return;var t=e.target;
@@ -2270,8 +2426,17 @@ $('#panel').addEventListener('click',function(e){
   var sd=t.closest('[data-sdel]');if(sd){pushUndo();ed.stops.splice(+sd.dataset.sdel,1);renderEd();return}
   var cd=t.closest('[data-cdel]');if(cd){pushUndo();delete ed.clips[cd.dataset.cdel];renderEd();return}
   var ec=t.closest('.eclip');if(ec){var sg=ec.dataset.slug;ed.armed=ed.armed===sg?null:sg;$('#map').classList.toggle('armed',!!ed.armed);renderEdPanel();if(ed.armed&&ed.clips[sg])map.panTo(ed.clips[sg]);return}
+  var dl=t.closest('[data-dload]');if(dl){var d=findDraft(dl.dataset.dload);if(d)loadDraftInto(d);return}
+  var dd=t.closest('[data-ddel]');if(dd){
+    if(dd.dataset.arm){delDraft(dd.dataset.ddel)}
+    else{dd.dataset.arm='1';dd.textContent=T('Löschen?','Delete?');dd.classList.add('danger');setTimeout(function(){if(dd.isConnected){delete dd.dataset.arm;dd.textContent='×';dd.classList.remove('danger')}},4000)}
+    return}
+  var dp=t.closest('[data-dpres]');if(dp){startPresent(+dp.dataset.dpres);return}
   var b=t.closest('button');if(!b)return;
   switch(b.id){
+    case 'ed-dsave':saveDraft(false);break;
+    case 'ed-dnew':saveDraft(true);break;
+    case 'ed-dpres':startPresent(0);break;
     case 'ed-locset':ed.armLoc=!ed.armLoc;ed.armed=null;$('#map').classList.toggle('armed',ed.armLoc);renderEdPanel();if(ed.armLoc)toast(T('Jetzt auf die Karte klicken, wo der Ort liegt.','Now click the map where the place is.'));break;
     case 'ed-locdel':pushUndo();ed.loc=null;renderEd();break;
     case 'ed-back':case 'ed-cancel':closeEditor(false);break;
@@ -2322,6 +2487,7 @@ $('#panel').addEventListener('keydown',function(e){
 $('#panel').addEventListener('focusout',function(e){if(e.target.id==='ed-locname')setTimeout(function(){var b=$('#ed-locsug');if(b)b.hidden=true},150)});
 $('#panel').addEventListener('input',function(e){
   if(ed&&e.target.id==='ed-desc'){ed.desc=e.target.value;ed.dirty=true;return}
+  if(ed&&e.target.id==='ed-dname'){ed.dname=e.target.value;return}
   if(ed&&e.target.id==='ed-locname'){ed.locName=e.target.value;if(ed.loc)ed.loc.name=e.target.value;ed.dirty=true;showLocSug(e.target);return}
   var i=e.target.dataset&&e.target.dataset.si;if(i===undefined||!ed)return;if(!ed.typing){pushUndo();ed.typing=true}ed.stops[+i].name=e.target.value;});
 $('#panel').addEventListener('change',function(e){if(e.target.dataset&&e.target.dataset.si!==undefined&&ed){ed.typing=false}});
