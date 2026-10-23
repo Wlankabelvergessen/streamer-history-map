@@ -1440,7 +1440,8 @@ function toast(msg){var t=$('#toast');t.textContent=msg;t.hidden=false;clearTime
 
 /* ---------- Zustand ---------- */
 var state={ routes:[], selectedId:null, user:null, editing:false, query:'' };
-state.clipSort=store('shm.clipSort')==='time'?'time':'top';
+state.clipSort='top';   // beim Betreten der Seite immer „Beliebteste“
+try{localStorage.removeItem('shm.clipSort')}catch(e){}
 var map, lines={}, selGroup;
 
 function prep(r,i){r.km=dist(r.points,r.breaks);r.color=r.color||PALETTE[i%PALETTE.length];return r}
@@ -1862,7 +1863,7 @@ function renderDetail(r){
     routeInfo+
     (r.desc?'<p class="desc">'+esc(r.desc)+'</p>':'')+
     (stops?'<div class="sec"><h3>'+T('Stationen','Stops')+'</h3><ol class="stops">'+stops+'</ol></div>':'')+
-    '<div class="sec"><h3 class="cliph">Clips'+(CL.length?' · '+CL.length:'')+(CL.length>1?'<span class="seg" role="group" aria-label="'+T('Clips sortieren','Sort clips')+'"><button type="button" data-csort="top" aria-pressed="'+!chrono+'">'+T('Beliebteste','Most viewed')+'</button><button type="button" data-csort="time" aria-pressed="'+chrono+'">'+T('Chronologisch','Chronological')+'</button></span>':'')+'</h3>'+(clips?'<div class="clips">'+clips+'</div>':'<p class="note">'+T('Zu diesem Stream gibt es keine Clips.','There are no clips for this stream.')+' <a href="https://www.twitch.tv/'+CHANNEL+'/clips?filter=clips&range=all" target="_blank" rel="noopener noreferrer">'+T('Clips auf Twitch ansehen ↗','View clips on Twitch ↗')+'</a></p>')+'</div>'+
+    '<div class="sec"><h3 class="cliph">Clips'+(CL.length?' · '+CL.length:'')+(CL.length>1?'<span class="seg" role="group" aria-label="'+T('Clips sortieren','Sort clips')+'"><button type="button" data-csort="time" aria-pressed="'+chrono+'">'+T('Chronologisch','Chronological')+'</button><button type="button" data-csort="top" aria-pressed="'+!chrono+'">'+T('Beliebteste','Most viewed')+'</button></span>':'')+'</h3>'+(clips?'<div class="clips">'+clips+'</div>':'<p class="note">'+T('Zu diesem Stream gibt es keine Clips.','There are no clips for this stream.')+' <a href="https://www.twitch.tv/'+CHANNEL+'/clips?filter=clips&range=all" target="_blank" rel="noopener noreferrer">'+T('Clips auf Twitch ansehen ↗','View clips on Twitch ↗')+'</a></p>')+'</div>'+
     '<div class="actions">'+
     (canEdit(state.user)?'<button type="button" class="btn primary" id="redit">'+(hasRoute(r)?T('Route bearbeiten','Edit route'):T('Route zeichnen','Draw route'))+'</button>':'')+'</div>'+
     (CL.length?'<p class="note src-note">'+[CL.length?'Clips: Twitch, '+(chrono?T('vom Streamanfang bis zum Ende','from start to end of stream'):T('nach Aufrufen sortiert','sorted by views')):''].filter(Boolean).join(' · ')+'</p>':'');
@@ -2700,7 +2701,7 @@ document.addEventListener('click',function(e){
   if(t.classList.contains('card')){select(t.dataset.id);return}
   if(t.classList.contains('gp-item')){hideTip(true);select(t.dataset.id);return}
   if(t.classList.contains('gp-all')){showInList(t.dataset.loc);return}
-  if(t.dataset.csort){state.clipSort=t.dataset.csort;store('shm.clipSort',state.clipSort);var rr=byId(state.selectedId);if(rr){var y=$('#panel').scrollTop;renderDetail(rr);$('#panel').scrollTop=y}return}
+  if(t.dataset.csort){state.clipSort=t.dataset.csort;var rr=byId(state.selectedId);if(rr){var y=$('#panel').scrollTop;renderDetail(rr);$('#panel').scrollTop=y}return}
   if(t.dataset.stop!==undefined){var m=stopMarkers[+t.dataset.stop];if(m){map.flyTo(m.getLatLng(),Math.max(map.getZoom(),16),{duration:reduceMotion?0:.6});m.openPopup()}return}
   switch(t.id){
     case 'back':deselect();break;
