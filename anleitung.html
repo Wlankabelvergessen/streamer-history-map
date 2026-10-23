@@ -439,8 +439,9 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px"><i style="width:10px;height:10px;border-radius:50%;background:#7fd7ff;flex:none"></i><span style="flex:1;min-width:0;line-height:1.3"><b style="font-size:13px">Variante B – am Rhein entlang</b><br><small class="mono" style="font-size:10px;color:var(--muted)">von Naschii · 23.10., 12:20 · 14 Punkte · 8 Clips</small></span><span class="ui-btn">Laden</span><span class="ui-btn">▶</span><span class="ui-btn">×</span></div>
       <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px"><i style="width:10px;height:10px;border-radius:50%;background:#c792ea;flex:none"></i><span style="flex:1;min-width:0;line-height:1.3"><b style="font-size:13px">Variante C – kurze Runde</b><br><small class="mono" style="font-size:10px;color:var(--muted)">von Mod · 23.10., 12:31 · 6 Punkte · 5 Clips</small></span><span class="ui-btn">Laden</span><span class="ui-btn">▶</span><span class="ui-btn">×</span></div>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin-top:6px;border:1px dashed var(--line);border-radius:8px"><span style="font-size:14px">🛟</span><span style="flex:1;min-width:0;line-height:1.3"><b style="font-size:13px">Vorherige Route (ersetzt am 23.10., 12:30)</b><br><small class="mono" style="font-size:10px;color:var(--muted)">Automatische Sicherung · ersetzt von Mod</small></span><span class="ui-btn">Laden</span></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><span class="ui-btn">💾 Entwurf aktualisieren</span><span class="ui-btn">+ Als neuen Entwurf</span><span class="ui-btn">🎬 Präsentieren</span></div>
-    <figcaption>Oben im Editor: Varianten speichern, laden, präsentieren</figcaption>
+    <figcaption>Oben im Editor: Varianten speichern, laden, präsentieren – darunter die automatische Sicherung</figcaption>
   </figure>
   <figure class="figure">
     <div style="position:relative;height:178px;border-radius:8px;background:#211926;overflow:hidden">
@@ -462,6 +463,8 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
       <li><b>Laden</b> holt einen Entwurf in den Editor, <span class="ui-btn">💾 Entwurf aktualisieren</span> speichert Änderungen daran, <span class="ui-btn">+ Als neuen Entwurf</span> legt eine Kopie an</li>
       <li>× löscht einen Entwurf (zweimal klicken)</li>
       <li><b>Veröffentlichen:</b> gewünschten Entwurf laden und unten <span class="ui-btn">Speichern</span> – nur diese Route wird öffentlich</li>
+      <li><b>🛟 Automatische Sicherung:</b> Ersetzt das Speichern eine bestehende Route, wird die bisherige automatisch als „Vorherige Route (ersetzt am …)“ bei den Entwürfen abgelegt. Sie zählt <b>nicht</b> zu den 10 Entwürfen. Es gibt immer eine Sicherung pro Stream – die nächste ersetzt sie.</li>
+      <li><b>Zurückholen:</b> bei der Sicherung auf <i>Laden</i>, dann <span class="ui-btn">Speichern</span> – die alte Route ist wieder öffentlich</li>
     </ul></div>
     <div class="card"><h3>🎬 Präsentieren – z. B. im Stream</h3><ul>
       <li><span class="ui-btn">🎬 Präsentieren</span> oder ▶ neben einem Entwurf: die Karte wird groß, oben steht „Variante 1 / 5“ mit Namen</li>
@@ -582,6 +585,7 @@ else if(h==='anleitung.html'||h==='datenschutz.html'){e.preventDefault();window.
     <tr><td><b>Ist Naschii live?</b></td><td>rote LIVE-Anzeige im Header anklicken</td></tr>
     <tr><td><b>Route zeichnen</b></td><td>mit Twitch anmelden → Stream öffnen → <i>Route zeichnen</i></td></tr>
     <tr><td><b>Routen-Varianten</b></td><td>Route zeichnen → <i>💾 Als Entwurf speichern</i> → <i>🎬 Präsentieren</i></td></tr>
+    <tr><td><b>Alte Route zurück</b></td><td>Route bearbeiten → 🛟 <i>Vorherige Route</i> → Laden → Speichern</td></tr>
     <tr><td><b>Route aus Datei</b></td><td>Route zeichnen → <i>📂 Route importieren</i> → GPX/KML/KMZ wählen</td></tr>
     <tr><td><b>Update erzwingen</b></td><td>anmelden → <i>⟳ Daten aktualisieren</i></td></tr>
     <tr><td><b>Seite offline / online</b></td><td>anmelden → <i>⏻ Seite offline nehmen</i> (2× klicken) bzw. <i>▶ Seite online stellen</i></td></tr>

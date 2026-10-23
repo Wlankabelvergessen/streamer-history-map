@@ -129,13 +129,25 @@ function doPost(e) {
     }
 
     // 2d. Entwürfe: bis zu 10 Routen-Varianten pro Stream, privat in deinem Google Drive (nicht öffentlich)
-    if (body.action === 'drafts' || body.action === 'draft-save' || body.action === 'draft-del') {
+    if (body.action === 'drafts' || body.action === 'draft-save' || body.action === 'draft-del' || body.action === 'draft-backup') {
       const sid = String(body.id || '');
       if (!/^[\w-]{1,80}$/.test(sid)) return antwort({ ok: false, error: 'Ungültiger Stream.' });
       const lock = LockService.getScriptLock();
       lock.waitLock(15000);
       try {
         let list = entwuerfeLesen(sid);
+        // Automatische Sicherung: bisherige öffentliche Route vor dem Überschreiben (eine pro Stream, zählt nicht zu den 10)
+        if (body.action === 'draft-backup') {
+          const route = body.route;
+          if (!route || typeof route !== 'object') return antwort({ ok: false, error: 'Keine Route zum Sichern.' });
+          if (JSON.stringify(route).length > 60000) return antwort({ ok: false, error: 'Route zu groß für die Sicherung.' });
+          const tag = Utilities.formatDate(new Date(), 'Europe/Berlin', 'dd.MM., HH:mm');
+          list = list.filter(x => !x.backup);
+          list.push({ did: 'backup', backup: true, name: 'Vorherige Route (ersetzt am ' + tag + ')', by: login, at: new Date().toISOString(), route: route });
+          entwuerfeSchreiben(sid, list);
+          console.log('Sicherung ' + sid + ' angelegt von ' + login);
+          return antwort({ ok: true, drafts: list });
+        }
         if (body.action === 'draft-save') {
           const d = body.draft || {};
           const route = d.route;
@@ -148,7 +160,7 @@ function doPost(e) {
           if (vorhanden) {
             vorhanden.name = name; vorhanden.route = route; vorhanden.by = login; vorhanden.at = new Date().toISOString();
           } else {
-            if (list.length >= 10) return antwort({ ok: false, code: 'full', error: 'Höchstens 10 Entwürfe pro Stream.' });
+            if (list.filter(x => !x.backup).length >= 10) return antwort({ ok: false, code: 'full', error: 'Höchstens 10 Entwürfe pro Stream.' });
             list.push({ did: Utilities.getUuid().slice(0, 8), name: name, by: login, at: new Date().toISOString(), route: route });
           }
           entwuerfeSchreiben(sid, list);

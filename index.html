@@ -960,6 +960,8 @@ body.editing .kevin-rail{visibility:hidden}
 .drow{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
 .drow.cur{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
 .drow>i{flex:none;width:10px;height:10px;border-radius:50%}
+.drow.bk{border-style:dashed}
+.drow.bk>i{width:auto;height:auto;font-style:normal;font-size:15px}
 .drow .dn{flex:1;min-width:0;display:flex;flex-direction:column}
 .drow .dn b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .drow .dn small{font:400 11px var(--f-mono);color:var(--muted)}
@@ -2213,7 +2215,7 @@ function importRouteFile(f){
   var isKmz=/\.kmz$/i.test(f.name);
   (isKmz?f.arrayBuffer().then(unzipFirstKml):f.text()).then(function(text){
     var g=parseRouteXml(text);
-    pushUndo();ed.points=g.points;ed.breaks=[];if(g.stops.length)ed.stops=g.stops;
+    pushUndo();ed.points=g.points;ed.breaks=[];if(g.stops.length)ed.stops=g.stops;ed.draftId=null;
     renderEd();
     map.fitBounds(L.latLngBounds(g.points),{padding:[50,50],maxZoom:17});
     var km=0;for(var i=1;i<g.points.length;i++)km+=map.distance(g.points[i-1],g.points[i])/1000;
@@ -2282,11 +2284,16 @@ function saveEd(){
   if(route&&route.points.length>3000){toast(T('Die Route hat zu viele Punkte (max. 3000). Bitte etwas gröber zeichnen.','The route has too many points (max. 3000). Please draw a bit coarser.'));return}
   if(!CONFIG.saveUrl){applySaved(id,route,new Date().toISOString());ed.dirty=false;closeEditor(true);drawLines();renderList();toast(T('Nur in diesem Browser gespeichert: Online-Speichern ist noch nicht eingerichtet.','Saved in this browser only: online saving is not set up yet.'));return}
   ed.saving=true;renderEdPanel();
-  fetch(CONFIG.saveUrl,{method:'POST',body:JSON.stringify({token:u.token,id:id,route:route})}).then(function(r){return r.json()}).then(function(j){
+  // Automatische Sicherung: bisherige öffentliche Route als „Vorherige Route“ ablegen (zählt nicht zu den 10 Entwürfen)
+  var prev=routeFor(id),backupNote='';
+  var hasPrev=prev&&((prev.points&&prev.points.length>1)||(prev.stops&&prev.stops.length)||Object.keys(prev.clips||{}).length||prev.desc||prev.loc);
+  var same=hasPrev&&route&&JSON.stringify({p:prev.points||[],s:prev.stops||[],c:prev.clips||{},d:prev.desc||'',l:prev.loc||null})===JSON.stringify({p:route.points||[],s:route.stops||[],c:route.clips||{},d:route.desc||'',l:route.loc||null});
+  var backup=hasPrev&&!same?draftCall({action:'draft-backup',id:id,route:{desc:prev.desc,loc:prev.loc,points:prev.points||[],breaks:prev.breaks,stops:prev.stops||[],clips:prev.clips||{}}}).then(function(j){if(ed&&ed.id===id)ed.drafts=j.drafts||ed.drafts;backupNote=T(' Die vorige Route liegt als Sicherung bei den Entwürfen.',' The previous route is kept as a backup among the drafts.')}).catch(function(e){if(e&&e.code==='token')throw e;backupNote=T(' (Sicherung der vorigen Route hat nicht geklappt.)',' (Backing up the previous route failed.)')}):Promise.resolve();
+  backup.then(function(){return fetch(CONFIG.saveUrl,{method:'POST',body:JSON.stringify({token:u.token,id:id,route:route})})}).then(function(r){return r.json()}).then(function(j){
     if(!j||!j.ok){var err=new Error(j&&j.error||T('Unbekannter Fehler','Unknown error'));err.code=j&&j.code;throw err}
     applySaved(id,route,j.at||new Date().toISOString());if(ed)ed.dirty=false;
     closeEditor(true);drawLines();renderList();
-    toast(T('Gespeichert. In 1–2 Minuten ist die Route für alle sichtbar.','Saved. The route will be visible to everyone in 1–2 minutes.'));
+    toast(T('Gespeichert. In 1–2 Minuten ist die Route für alle sichtbar.','Saved. The route will be visible to everyone in 1–2 minutes.')+backupNote);
   }).catch(function(e){
     if(ed){ed.saving=false;renderEdPanel()}
     if(e&&e.code==='token'){toast(T('Twitch-Anmeldung abgelaufen. Bitte neu anmelden, deine Zeichnung bleibt offen.','Twitch login expired. Please log in again, your drawing stays open.'));state.user.token=null;store('shm.user',JSON.stringify(state.user));renderAuth()}
@@ -2309,11 +2316,12 @@ function loadDrafts(){
   draftCall({action:'drafts',id:id}).then(function(j){if(ed&&ed.id===id){ed.drafts=j.drafts||[];renderEdPanel()}})
     .catch(function(e){if(ed&&ed.id===id){ed.drafts=[];ed.draftsErr=(e&&e.message)||'';renderEdPanel()}});
 }
+function realDrafts(){return (ed&&ed.drafts||[]).filter(function(d){return !d.backup})}
 function findDraft(did){return (ed&&ed.drafts||[]).filter(function(d){return d.did===did})[0]||null}
 function draftWhen(iso){var d=new Date(iso);return isNaN(d)?'':d.toLocaleString(LOC,{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
 function draftsHtml(){
   if(!CONFIG.saveUrl)return '';
-  var L0=ed.drafts,cur=ed.draftId&&findDraft(ed.draftId),n=L0?L0.length:0;
+  var all=ed.drafts,cur=ed.draftId&&findDraft(ed.draftId),L0=all?all.filter(function(d){return !d.backup}):null,bk=all?all.filter(function(d){return d.backup})[0]:null,n=L0?L0.length:0;
   var list=L0===null?'<p class="help">'+T('Lade Entwürfe …','Loading drafts …')+'</p>':
     (ed.draftsErr?'<p class="help">'+esc(ed.draftsErr)+'</p>':'')+
     (n?'<div class="dlist">'+L0.map(function(d,i){
@@ -2321,7 +2329,9 @@ function draftsHtml(){
         '<button type="button" class="btn sm" data-dload="'+esc(d.did)+'" title="'+T('In den Editor laden','Load into editor')+'">'+(d.did===ed.draftId?T('Neu laden','Reload'):T('Laden','Load'))+'</button>'+
         '<button type="button" class="btn sm" data-dpres="'+i+'" title="'+T('Ab hier präsentieren','Present from here')+'">▶</button>'+
         '<button type="button" class="x" data-ddel="'+esc(d.did)+'" title="'+T('Entwurf löschen','Delete draft')+'">×</button></div>'}).join('')+'</div>'
-      :(ed.draftsErr?'':'<p class="help">'+T('Noch keine Entwürfe. Route zeichnen und als Entwurf speichern – bis zu 10 Varianten, nur für Bearbeiter sichtbar.','No drafts yet. Draw a route and save it as a draft – up to 10 variants, visible to editors only.')+'</p>'));
+      :(ed.draftsErr||bk?'':'<p class="help">'+T('Noch keine Entwürfe. Route zeichnen und als Entwurf speichern – bis zu 10 Varianten, nur für Bearbeiter sichtbar.','No drafts yet. Draw a route and save it as a draft – up to 10 variants, visible to editors only.')+'</p>'))+
+    (bk?'<div class="dlist"><div class="drow bk'+(bk.did===ed.draftId?' cur':'')+'"><i>🛟</i><span class="dn"><b>'+esc(bk.name||T('Vorherige Route','Previous route'))+'</b><small>'+esc(T('Automatische Sicherung','Automatic backup')+(bk.by?' · '+T('ersetzt von ','replaced by ')+bk.by:'')+' · '+draftWhen(bk.at))+'</small></span>'+
+      '<button type="button" class="btn sm" data-dload="'+esc(bk.did)+'" title="'+T('In den Editor laden – mit „Speichern“ wiederherstellen','Load into editor – restore with “Save”')+'">'+T('Laden','Load')+'</button></div></div>':'');
   var nm=ed.dname||(cur?cur.name:'');
   return '<div class="sec drafts"><h3>'+T('Entwürfe','Drafts')+' <span>'+n+' / '+MAX_DRAFTS+T(' · nur für Bearbeiter',' · editors only')+'</span></h3>'+list+
     '<div class="drow-in"><input type="text" id="ed-dname" maxlength="60" placeholder="'+T('Name, z. B. Variante A – über den Markt','Name, e.g. Variant A – via the market')+'" value="'+esc(nm)+'"></div>'+
@@ -2335,9 +2345,10 @@ function saveDraft(asNew){
   if(!ed||ed.draftBusy)return;var route=edPayload();
   if(!route||(!route.points.length&&!route.stops.length&&!Object.keys(route.clips).length)){toast(T('Noch nichts gezeichnet.','Nothing drawn yet.'));return}
   var upd=!asNew&&ed.draftId&&findDraft(ed.draftId);
-  if(!upd&&(ed.drafts||[]).length>=MAX_DRAFTS){toast(T('Höchstens '+MAX_DRAFTS+' Entwürfe pro Stream. Bitte erst einen löschen.','At most '+MAX_DRAFTS+' drafts per stream. Please delete one first.'));return}
-  var name=(ed.dname||(upd?upd.name:'')).trim().slice(0,60)||('Variante '+String.fromCharCode(65+Math.min(25,(ed.drafts||[]).length)));
-  if(asNew&&upd&&name===upd.name)name=('Variante '+String.fromCharCode(65+Math.min(25,(ed.drafts||[]).length)));
+  if(!upd&&realDrafts().length>=MAX_DRAFTS){toast(T('Höchstens '+MAX_DRAFTS+' Entwürfe pro Stream. Bitte erst einen löschen.','At most '+MAX_DRAFTS+' drafts per stream. Please delete one first.'));return}
+  var nx='Variante '+String.fromCharCode(65+Math.min(25,realDrafts().length));
+  var name=(ed.dname||(upd&&!upd.backup?upd.name:'')).trim().slice(0,60)||nx;
+  if(asNew&&upd&&name===upd.name)name=nx;
   ed.draftBusy=true;renderEdPanel();
   draftCall({action:'draft-save',id:ed.id,draft:{did:upd?upd.did:undefined,name:name,route:route}}).then(function(j){
     if(!ed)return;ed.drafts=j.drafts||[];ed.draftId=j.did||null;ed.dname='';ed.draftBusy=false;renderEdPanel();
@@ -2349,7 +2360,7 @@ function loadDraftInto(d){
   ed.points=(r.points||[]).map(function(x){return x.slice()});ed.breaks=(r.breaks||[]).slice();
   ed.stops=(r.stops||[]).map(function(x){return {lat:x.lat,lng:x.lng,name:x.name||''}});
   ed.clips=JSON.parse(JSON.stringify(r.clips||{}));ed.desc=r.desc||'';ed.loc=r.loc?{name:r.loc.name,lat:r.loc.lat,lng:r.loc.lng}:null;ed.locName='';
-  ed.draftId=d.did;ed.dname='';ed.dirty=true;renderEd();
+  ed.draftId=d.backup?null:d.did;ed.dname='';ed.dirty=true;renderEd();
   var pts=ed.points.slice();ed.stops.forEach(function(x){pts.push([x.lat,x.lng])});Object.keys(ed.clips).forEach(function(k){pts.push(ed.clips[k])});
   if(pts.length>1)map.fitBounds(L.latLngBounds(pts),{padding:[60,60],maxZoom:16});else if(pts.length)map.setView(pts[0],15);
   toast(T('Entwurf „','Draft “')+(d.name||'')+T('“ geladen. ↶ holt die vorige Zeichnung zurück.','” loaded. ↶ brings back the previous drawing.'));
@@ -2360,8 +2371,8 @@ function delDraft(did){
 /* ---------- Präsentieren: Entwürfe groß auf der Karte zeigen und durchblättern (z. B. im Stream) ---------- */
 var PRES=null;
 function startPresent(i){
-  if(!ed||!ed.drafts||!ed.drafts.length)return;
-  PRES={list:ed.drafts.slice(),i:Math.max(0,Math.min(i||0,ed.drafts.length-1)),all:false,layer:L.layerGroup().addTo(map)};
+  var dl=realDrafts();if(!dl.length)return;
+  PRES={list:dl,i:Math.max(0,Math.min(i||0,dl.length-1)),all:false,layer:L.layerGroup().addTo(map)};
   if(edLayer)map.removeLayer(edLayer);
   document.body.classList.add('presenting');
   var bar=$('#presbar');if(!bar){bar=document.createElement('div');bar.id='presbar';bar.className='presbar';document.querySelector('.map-wrap').appendChild(bar)}
