@@ -39,7 +39,7 @@ if (route !== null) {
     if (!num(route.loc.lat, -90, 90) || !num(route.loc.lng, -180, 180)) fail('Ort ungültig');
     loc = { name: clean1(route.loc.name, 60) || 'Ort', lat: r5(route.loc.lat), lng: r5(route.loc.lng) };
   }
-  if (cs.length > 600) fail('zu viele Clips');
+  if (cs.length > 15) fail('höchstens 15 Clips pro Route');
   clean = {
     ...(desc ? { desc } : {}),
     ...(loc ? { loc } : {}),

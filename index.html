@@ -1982,7 +1982,10 @@ function nearest(ll){
   if(!best)return null;best.ll=map.layerPointToLatLng(best.pt);return best;
 }
 function snap(ll){var n=nearest(ll);return n?[+n.ll.lat.toFixed(6),+n.ll.lng.toFixed(6)]:[+(ll.lat||ll[0]).toFixed(6),+(ll.lng||ll[1]).toFixed(6)]}
-function placeClip(sg,ll){pushUndo();ed.clips[sg]=snap(ll);ed.armed=null;$('#map').classList.remove('armed');renderEd()}
+var MAX_CLIPS=15;   // höchstens so viele Clips pro Route
+function placeClip(sg,ll){
+  if(!ed.clips[sg]&&Object.keys(ed.clips).length>=MAX_CLIPS){ed.armed=null;$('#map').classList.remove('armed');renderEdPanel();toast(T('Höchstens '+MAX_CLIPS+' Clips pro Route. Erst einen anderen mit × von der Karte nehmen.','At most '+MAX_CLIPS+' clips per route. Remove another one with × first.'));return}
+  pushUndo();ed.clips[sg]=snap(ll);ed.armed=null;$('#map').classList.remove('armed');renderEd()}
 function edClick(e){
   if(!state.editing||!ed)return;
   if(ed.justDrew)return;
@@ -2214,7 +2217,7 @@ function renderEdPanel(){
       (ed.loc?'<button type="button" class="x" id="ed-locdel" title="'+T('Eigenen Ort entfernen (automatischen Ort nutzen)','Remove own place (use automatic place)')+'">×</button>':'')+'</div>'+
       '<p class="help">'+(ed.loc?T('Eigener Ort gesetzt – er ersetzt den automatisch erkannten Ort. Marker auf der Karte lässt sich verschieben.','Own place set – it replaces the automatically detected one. Drag the marker to move it.'):T('Nur nötig, wenn der Ort fehlt oder falsch erkannt wurde. Name eintragen und auf die Karte klicken.','Only needed if the place is missing or wrong. Enter a name and click the map.'))+'</p></div>'+
     '<div class="sec"><h3>'+T('Stationen','Stops')+' <span>'+ed.stops.length+'</span></h3>'+stops+'</div>'+
-    '<div class="sec"><h3>Clips <span>'+placed+T(' von ',' of ')+CL.length+T(' auf der Route',' on the route')+'</span></h3>'+(CL.length?'<p class="help">'+T('Clip mit der Maus auf die Route ziehen. Am Handy: Clip antippen, dann auf die Karte tippen.','Drag a clip onto the route. On mobile: tap the clip, then tap the map.')+'</p>':'')+clips+'</div>'+
+    '<div class="sec"><h3>Clips <span>'+placed+' / '+MAX_CLIPS+T(' auf der Route',' on the route')+(CL.length>MAX_CLIPS?T(' · '+CL.length+' im Stream',' · '+CL.length+' in stream'):'')+'</span></h3>'+(CL.length?'<p class="help">'+T('Clip mit der Maus auf die Route ziehen. Am Handy: Clip antippen, dann auf die Karte tippen. Höchstens '+MAX_CLIPS+' Clips pro Route.','Drag a clip onto the route. On mobile: tap the clip, then tap the map. At most '+MAX_CLIPS+' clips per route.')+'</p>':'')+clips+'</div>'+
     '<div class="bar"><button type="button" class="btn primary" id="ed-save"'+(ed.saving?' disabled':'')+'>'+(ed.saving?T('Speichere …','Saving …'):T('Speichern','Save'))+'</button><button type="button" class="btn ghost" id="ed-cancel">'+T('Abbrechen','Cancel')+'</button><span class="st">'+ed.points.length+T(' Punkte · ',' points · ')+fmtKm(dist(ed.points,ed.breaks))+(ed.breaks.length?' · '+(ed.breaks.length+1)+T(' Teile',' parts'):'')+'</span></div>';
 }
 function autoPlace(){
@@ -2223,7 +2226,7 @@ function autoPlace(){
   pushUndo();
   // nur die 10 meistgesehenen Clips, sonst stapeln sich die Marker
   (r.clips||[]).slice().sort(function(a,b){return (b.views||0)-(a.views||0)}).slice(0,10).forEach(function(c){
-    var sg=slugOf(c.url);if(!sg||ed.clips[sg]||!c.at)return;
+    var sg=slugOf(c.url);if(!sg||ed.clips[sg]||!c.at||Object.keys(ed.clips).length>=MAX_CLIPS)return;
     var t=new Date(c.moment||c.at).getTime();if(isNaN(t))return;
     var pp=pointAtFrac(ed.points,(t-t0)/dur);ed.clips[sg]=[+pp[0].toFixed(6),+pp[1].toFixed(6)];n++;
   });
